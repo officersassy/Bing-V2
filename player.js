@@ -38,14 +38,55 @@ function applyCosmetics() {
   const dabber = profile?.cosmetics?.dabber || "default";
   const theme = profile?.cosmetics?.theme || "default";
   const nameEffect = profile?.cosmetics?.nameEffect || "default";
+  const effect = profile?.cosmetics?.effect || "default";
 
   document.body.dataset.dabber = dabber;
   document.body.dataset.theme = theme;
   document.body.dataset.nameEffect = nameEffect;
+  document.body.dataset.effect = effect;
+
+  // Classes make the cosmetic selectors reliable across browsers.
+  [...document.body.classList]
+    .filter(name => name.startsWith("cosmetic-"))
+    .forEach(name => document.body.classList.remove(name));
+
+  [dabber, theme, nameEffect, effect]
+    .filter(value => value && value !== "default")
+    .forEach(value => document.body.classList.add(`cosmetic-${value}`));
 
   $("equippedDabber").textContent = cosmeticName(dabber);
   $("equippedTheme").textContent = cosmeticName(theme);
   $("equippedNameEffect").textContent = cosmeticName(nameEffect);
+}
+
+function fireConfettiCannons() {
+  if (profile?.cosmetics?.effect !== "confetti-party") return;
+
+  const layer = $("confettiLayer");
+  if (!layer) return;
+
+  layer.innerHTML = "";
+  const pieces = 90;
+  const symbols = ["●", "■", "▲", "★"];
+
+  for (let i = 0; i < pieces; i++) {
+    const piece = document.createElement("span");
+    piece.className = `confetti-piece ${i % 2 === 0 ? "from-left" : "from-right"}`;
+    piece.textContent = symbols[i % symbols.length];
+    piece.style.setProperty("--x", `${Math.random() * 90 - 45}vw`);
+    piece.style.setProperty("--y", `${-(35 + Math.random() * 60)}vh`);
+    piece.style.setProperty("--r", `${Math.random() * 900 - 450}deg`);
+    piece.style.setProperty("--delay", `${Math.random() * 0.35}s`);
+    piece.style.setProperty("--duration", `${1.6 + Math.random() * 1.1}s`);
+    layer.appendChild(piece);
+  }
+
+  layer.classList.add("active");
+
+  setTimeout(() => {
+    layer.classList.remove("active");
+    layer.innerHTML = "";
+  }, 3400);
 }
 
 function showWinnerOverlay(stageLabel, names, reward = 0) {
@@ -299,6 +340,14 @@ $("saveNameButton").onclick=async()=>{
 
 onAuthStateChanged(auth,async u=>{
   if(!u){location.href="./index.html";return;} user=u;
+  const adminSnap = await get(ref(database,`v2/admins/${u.uid}`));
+  if (adminSnap.exists() && adminSnap.val() === true) {
+    $("hostPanelButton").classList.remove("hidden");
+    $("hostPanelButton").onclick = () => {
+      location.href = "./host.html";
+    };
+  }
+
   onValue(ref(database,`v2/profiles/${u.uid}`),s=>{
     const nextProfile=s.val();
     detectAchievementToasts(nextProfile);
@@ -338,6 +387,11 @@ onAuthStateChanged(auth,async u=>{
     const names=winners.map(w=>w.name||"Player");
     const reward=st==="one-line"?100:st==="two-lines"?200:500;
 
-    showWinnerOverlay(stageName(st),names,names.includes(profile?.username)?reward:0);
+    const localWinner = winners.some(w => w.uid === user.uid);
+    showWinnerOverlay(stageName(st), names, localWinner ? reward : 0);
+
+    if (localWinner) {
+      fireConfettiCannons();
+    }
   });
 });

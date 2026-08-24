@@ -1370,3 +1370,128 @@ body[data-name-effect="name-vip"] #profileName {
   .equipped-grid{grid-template-columns:1fr;}
   .toast-stack{top:8px;right:8px;width:calc(100% - 16px);}
 }
+
+
+/* =========================
+   EVENT READY COSMETICS FIX
+========================= */
+
+/* Neon Card — intentionally obvious so a purchased/equipped theme is visible. */
+body[data-theme="theme-neon"] .ticket-panel,
+body.cosmetic-theme-neon .ticket-panel {
+  border: 2px solid rgba(168,85,247,.78) !important;
+  background:
+    radial-gradient(circle at 15% 10%,rgba(56,189,248,.16),transparent 32%),
+    radial-gradient(circle at 85% 85%,rgba(168,85,247,.18),transparent 36%),
+    rgba(5,18,43,.94) !important;
+  box-shadow:
+    0 0 16px rgba(56,189,248,.48),
+    0 0 34px rgba(168,85,247,.38),
+    inset 0 0 24px rgba(56,189,248,.08) !important;
+}
+
+body[data-theme="theme-neon"] .ticket-panel h2,
+body.cosmetic-theme-neon .ticket-panel h2 {
+  color: #c4b5fd;
+  text-shadow:
+    0 0 8px rgba(168,85,247,.85),
+    0 0 16px rgba(56,189,248,.55);
+}
+
+body[data-theme="theme-neon"] .v2-cell:not(.blank),
+body.cosmetic-theme-neon .v2-cell:not(.blank) {
+  border-color: rgba(96,165,250,.38);
+  box-shadow: inset 0 0 10px rgba(56,189,248,.08);
+}
+
+/* VIP Name Glow */
+body[data-name-effect="name-vip"] #welcomeName,
+body[data-name-effect="name-vip"] #profileName,
+body.cosmetic-name-vip #welcomeName,
+body.cosmetic-name-vip #profileName {
+  color: #fde68a !important;
+  text-shadow:
+    0 0 6px rgba(250,204,21,.95),
+    0 0 14px rgba(250,204,21,.75),
+    0 0 28px rgba(245,158,11,.5) !important;
+  animation: vipNameGlow 1.8s ease-in-out infinite alternate;
+}
+
+@keyframes vipNameGlow {
+  from { filter: brightness(1); }
+  to { filter: brightness(1.28); }
+}
+
+/* Existing dabbers also get class fallbacks. */
+body.cosmetic-dabber-blue .v2-cell.marked {
+  background: linear-gradient(145deg,#2563eb,#38bdf8) !important;
+}
+
+body.cosmetic-dabber-gold .v2-cell.marked {
+  background: linear-gradient(145deg,#d97706,#facc15) !important;
+  color:#172033 !important;
+}
+
+/* Party Confetti — fires when the equipped player wins. */
+.confetti-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 220;
+  overflow: hidden;
+  pointer-events: none;
+  display: none;
+}
+
+.confetti-layer.active {
+  display: block;
+}
+
+.confetti-piece {
+  position: absolute;
+  bottom: -5vh;
+  font-size: clamp(.65rem,2vw,1.15rem);
+  opacity: 0;
+  animation:
+    sassyConfetti var(--duration) cubic-bezier(.12,.72,.28,1)
+    var(--delay) forwards;
+}
+
+.confetti-piece.from-left {
+  left: 4vw;
+}
+
+.confetti-piece.from-right {
+  right: 4vw;
+}
+
+.confetti-piece:nth-child(5n+1) { color:#facc15; }
+.confetti-piece:nth-child(5n+2) { color:#38bdf8; }
+.confetti-piece:nth-child(5n+3) { color:#a855f7; }
+.confetti-piece:nth-child(5n+4) { color:#22c55e; }
+.confetti-piece:nth-child(5n) { color:#fb7185; }
+
+@keyframes sassyConfetti {
+  0% {
+    opacity: 1;
+    transform: translate(0,0) rotate(0deg) scale(.7);
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--x),var(--y)) rotate(var(--r)) scale(1.15);
+  }
+}
+
+
+/* Admin-only quick link */
+.side-menu-nav .host-panel-menu-button {
+  margin-top: 8px;
+  color: #fde68a;
+  border-color: rgba(250,204,21,.18);
+  background: rgba(250,204,21,.07);
+}
+.side-menu-nav .host-panel-menu-button:hover {
+  background: rgba(250,204,21,.13);
+}

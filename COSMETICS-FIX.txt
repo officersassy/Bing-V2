@@ -1,0 +1,15 @@
+COSMETICS FIX
+
+Fixed:
+- VIP Name Glow now visibly applies after equipping.
+- Neon Card now has a strong visible glow/theme after equipping.
+- Party Confetti now actually fires when the player who has it equipped wins.
+- Blue and Gold dabbers still work.
+- Added class-based cosmetic fallbacks for more reliable styling.
+
+IMPORTANT:
+Buying an item unlocks it.
+After buying, press EQUIP in the Shop.
+The button will then say EQUIPPED.
+
+Party Confetti is an effect, so it is intentionally shown when that equipped player wins.
