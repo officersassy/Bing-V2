@@ -1177,3 +1177,196 @@ body.menu-open {
     width: 190px;
   }
 }
+
+
+/* =========================
+   V2 POLISH — WAITING / WINNERS / COSMETICS
+========================= */
+
+.waiting-panel {
+  min-height: min(62vh, 520px);
+  display: grid;
+  place-items: center;
+  align-content: center;
+  text-align: center;
+  gap: 10px;
+}
+
+.waiting-icon {
+  font-size: clamp(3rem, 14vw, 6rem);
+}
+
+.waiting-panel h2 {
+  margin: 0;
+}
+
+.waiting-panel p {
+  max-width: 460px;
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.waiting-pulse {
+  margin-top: 12px;
+  color: var(--blue);
+  font-size: 1.6rem;
+  animation: waitingPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes waitingPulse {
+  0%,100% { opacity:.25; transform:scale(.8); }
+  50% { opacity:1; transform:scale(1.15); }
+}
+
+.winner-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(2,6,23,.86);
+  backdrop-filter: blur(10px);
+}
+
+.winner-modal {
+  width: min(460px,100%);
+  padding: 26px;
+  border-radius: 24px;
+  text-align: center;
+  border: 1px solid rgba(250,204,21,.22);
+  background:
+    radial-gradient(circle at top,rgba(250,204,21,.12),transparent 38%),
+    linear-gradient(145deg,#0b2452,#061229);
+  box-shadow:0 30px 90px rgba(0,0,0,.58);
+}
+
+.winner-icon {
+  font-size: 4.2rem;
+}
+
+.winner-names {
+  display: grid;
+  gap: 8px;
+  margin: 18px 0;
+  font-size: 1.1rem;
+  font-weight: 900;
+}
+
+.winner-reward {
+  margin: 14px auto 18px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  color: #fde68a;
+  background: rgba(250,204,21,.08);
+  border: 1px solid rgba(250,204,21,.16);
+  font-weight: 900;
+}
+
+.toast-stack {
+  position: fixed;
+  z-index: 180;
+  right: 14px;
+  top: 14px;
+  display: grid;
+  gap: 8px;
+  width: min(360px,calc(100% - 28px));
+  pointer-events:none;
+}
+
+.toast-item {
+  transform: translateY(-12px);
+  opacity: 0;
+  transition: .22s ease;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px;
+  align-items: center;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(5,18,43,.97);
+  border: 1px solid var(--line);
+  box-shadow: 0 15px 40px rgba(0,0,0,.35);
+}
+
+.toast-item.show {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.toast-item > span {
+  font-size: 1.45rem;
+}
+
+.toast-item small {
+  display:block;
+  color:var(--muted);
+  margin-top:2px;
+}
+
+.equipped-grid {
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:7px;
+  margin:12px 0 16px;
+}
+
+.equipped-grid > div {
+  padding:10px;
+  border-radius:11px;
+  background:rgba(255,255,255,.035);
+  display:grid;
+  gap:4px;
+}
+
+.equipped-grid span {
+  color:var(--muted);
+  font-size:.7rem;
+}
+
+.equipped-grid strong {
+  font-size:.8rem;
+}
+
+.winner-list {
+  display:grid;
+  gap:7px;
+  margin:12px 0;
+}
+
+.winner-list > div {
+  padding:10px;
+  border-radius:11px;
+  background:rgba(250,204,21,.07);
+  border:1px solid rgba(250,204,21,.12);
+}
+
+/* Cosmetic examples */
+body[data-theme="theme-neon"] .ticket-panel {
+  box-shadow:
+    0 0 28px rgba(56,189,248,.18),
+    0 0 48px rgba(168,85,247,.12);
+  border-color:rgba(168,85,247,.28);
+}
+
+body[data-dabber="dabber-blue"] .v2-cell.marked {
+  background:linear-gradient(145deg,#2563eb,#38bdf8);
+}
+
+body[data-dabber="dabber-gold"] .v2-cell.marked {
+  background:linear-gradient(145deg,#d97706,#facc15);
+  color:#172033;
+}
+
+body[data-name-effect="name-vip"] #welcomeName,
+body[data-name-effect="name-vip"] #profileName {
+  color:#fde68a;
+  text-shadow:0 0 16px rgba(250,204,21,.42);
+}
+
+@media(max-width:520px){
+  .winner-modal{padding:20px 16px;}
+  .equipped-grid{grid-template-columns:1fr;}
+  .toast-stack{top:8px;right:8px;width:calc(100% - 16px);}
+}

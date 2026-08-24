@@ -5,6 +5,7 @@ import { create75Card,create90Card,shuffle,missingCount } from "./game-engine.js
 
 const $=id=>document.getElementById(id);
 let host=null,profiles={},selectedUid=null,game={},called=[];
+let currentStageWinners=[];
 
 function stageName(s){return({"one-line":"One Line","two-lines":"Two Lines","full-house":"Full House"})[s]||s;}
 function currentStage(){return game.mode==="90-progressive"?(game.stage||"one-line"):(game.mode==="90-full-house"?"full-house":"one-line");}
@@ -82,6 +83,43 @@ function drawNear(){
   rows.forEach((r,i)=>{const e=document.createElement("div");e.className="leader-row";e.innerHTML=`<strong>${i+1}</strong><div><b>${r.name}</b><small>${r.missing} away</small></div><span>${r.missing===1?"🔥":""}</span>`;$("nearWinnerList").appendChild(e);});
 }
 
+
+function renderHostWinners(stage,winners){
+  currentStageWinners=winners;
+
+  if(!winners.length){
+    $("hostWinnerPanel").classList.add("hidden");
+    return;
+  }
+
+  $("hostWinnerPanel").classList.remove("hidden");
+  $("hostWinnerTitle").textContent=`🏆 ${stageName(stage)} Winner${winners.length>1?"s":""}`;
+  $("hostWinnerList").innerHTML=winners.map(w=>`<div>🏆 ${w.name||"Player"}</div>`).join("");
+
+  const progressive=game.mode==="90-progressive"&&stage!=="full-house";
+  $("continueStageButton").classList.toggle("hidden",!progressive);
+  $("continueStageButton").textContent=
+    stage==="one-line"?"Continue to Two Lines":"Continue to Full House";
+}
+
+$("continueStageButton").onclick=async()=>{
+  const st=currentStage();
+  if(game.mode!=="90-progressive"||st==="full-house")return;
+
+  const next=st==="one-line"?"two-lines":"full-house";
+
+  await update(ref(database,"v2/game"),{
+    stage:next,
+    status:"playing"
+  });
+};
+
+$("newRoundButton").onclick=async()=>{
+  if(!confirm("Start a fresh round?"))return;
+  await set(ref(database,"v2/game"),{status:"joining"});
+  $("hostWinnerPanel").classList.add("hidden");
+};
+
 onAuthStateChanged(auth,async u=>{
   if(!u){location.href="./index.html";return;}host=u;
   const a=await get(ref(database,`v2/admins/${u.uid}`));if(!a.exists()||a.val()!==true){$("hostDenied").classList.remove("hidden");return;}
@@ -91,7 +129,9 @@ onAuthStateChanged(auth,async u=>{
   onValue(ref(database,"v2/gamePlayers"),s=>{window.gamePlayers=s.val()||{};drawNear();});
   onValue(ref(database,"v2/claims"),async s=>{
     const claims=s.val()||{},rid=game.roundId,stage=currentStage();const stageClaims=claims?.[rid]?.[stage]||{};
-    const winners=Object.values(stageClaims);if(!winners.length)return;
+    const winners=Object.values(stageClaims);
+    renderHostWinners(stage,winners);
+    if(!winners.length)return;
     for(const w of winners){
       const reward=stage==="one-line"?100:stage==="two-lines"?200:500;
       const rewardKey=`${rid}-${stage}`;
@@ -103,10 +143,10 @@ onAuthStateChanged(auth,async u=>{
       await set(ref(database,`v2/profiles/${w.uid}/achievements/first-win`),Date.now());
       if(stage==="full-house"){await runTransaction(ref(database,`v2/profiles/${w.uid}/stats/fullHouses`),v=>Number(v||0)+1);await set(ref(database,`v2/profiles/${w.uid}/achievements/full-house`),Date.now());}
     }
-    if(game.mode==="90-progressive"&&stage!=="full-house"){
-      await update(ref(database,"v2/game"),{stage:stage==="one-line"?"two-lines":"full-house"});
-    }else{
-      await update(ref(database,"v2/game"),{status:"winner"});
-    }
+    await update(ref(database,"v2/game"),{
+      status: stage==="full-house" || game.mode!=="90-progressive"
+        ? "winner"
+        : "stage-winner"
+    });
   });
 });

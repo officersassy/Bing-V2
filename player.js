@@ -6,9 +6,112 @@ import { BLANK,validWin } from "./game-engine.js";
 
 const $=id=>document.getElementById(id);
 let user=null,profile=null,game={},card=[],marked=[],called=[];
+let previousAchievements = new Set();
+let previousCoinBalance = null;
+let previousWinnerKey = null;
 
 function show(id,text,type=""){const el=$(id);el.textContent=text;el.className=`message-box ${type}`.trim();}
 function coins(n){return Number(n||0).toLocaleString("en-GB");}
+
+function toast(title, text, icon = "✨") {
+  const stack = $("toastStack");
+  if (!stack) return;
+
+  const item = document.createElement("div");
+  item.className = "toast-item";
+  item.innerHTML = `<span>${icon}</span><div><strong>${title}</strong><small>${text}</small></div>`;
+  stack.appendChild(item);
+
+  setTimeout(() => item.classList.add("show"), 20);
+  setTimeout(() => {
+    item.classList.remove("show");
+    setTimeout(() => item.remove(), 250);
+  }, 4200);
+}
+
+function cosmeticName(id) {
+  const item = SHOP_ITEMS.find(x => x.id === id);
+  return item ? item.name : "Default";
+}
+
+function applyCosmetics() {
+  const dabber = profile?.cosmetics?.dabber || "default";
+  const theme = profile?.cosmetics?.theme || "default";
+  const nameEffect = profile?.cosmetics?.nameEffect || "default";
+
+  document.body.dataset.dabber = dabber;
+  document.body.dataset.theme = theme;
+  document.body.dataset.nameEffect = nameEffect;
+
+  $("equippedDabber").textContent = cosmeticName(dabber);
+  $("equippedTheme").textContent = cosmeticName(theme);
+  $("equippedNameEffect").textContent = cosmeticName(nameEffect);
+}
+
+function showWinnerOverlay(stageLabel, names, reward = 0) {
+  $("winnerTitle").textContent = `${stageLabel} Winner${names.length > 1 ? "s" : ""}`;
+  $("winnerNames").innerHTML = names.map(name => `<div>🏆 ${name}</div>`).join("");
+
+  if (reward > 0) {
+    $("winnerReward").textContent = `+${reward} Sassy Coins`;
+    $("winnerReward").classList.remove("hidden");
+  } else {
+    $("winnerReward").classList.add("hidden");
+  }
+
+  $("winnerOverlay").classList.remove("hidden");
+}
+
+$("closeWinnerOverlay").onclick = () => $("winnerOverlay").classList.add("hidden");
+
+function drawWaitingState() {
+  const active = game.status === "playing";
+
+  $("waitingPanel").classList.toggle("hidden", active);
+  $("liveGamePanel").classList.toggle("hidden", !active);
+  $("ticketTitle").closest(".ticket-panel").classList.toggle("hidden", !active);
+  $("claimBingoButton").classList.toggle("hidden", !active);
+
+  if (!active) {
+    const messages = [
+      "General Sassy is preparing the battlefield.",
+      "The numbers are being emotionally prepared for duty.",
+      "Joining is open. Confidence is optional.",
+      "General Sassy is pretending this is all under control."
+    ];
+    $("waitingMessage").textContent = messages[Math.floor(Math.random() * messages.length)];
+  }
+}
+
+function detectAchievementToasts(nextProfile) {
+  const current = new Set(Object.keys(nextProfile?.achievements || {}));
+
+  current.forEach(id => {
+    if (!previousAchievements.has(id)) {
+      const achievement = ACHIEVEMENTS.find(a => a.id === id);
+      if (achievement) {
+        toast("Achievement Unlocked", `${achievement.icon} ${achievement.name}`, "🏅");
+      }
+    }
+  });
+
+  previousAchievements = current;
+}
+
+function detectCoinChange(nextProfile) {
+  const nextCoins = Number(nextProfile?.coins || 0);
+
+  if (previousCoinBalance !== null && nextCoins > previousCoinBalance) {
+    toast(
+      "Sassy Coins Added",
+      `+${nextCoins - previousCoinBalance} coins`,
+      "🪙"
+    );
+  }
+
+  previousCoinBalance = nextCoins;
+}
+
 function drawProfile(){
   if(!profile)return;
   $("welcomeName").textContent=`Hi, ${profile.username}`;
@@ -21,17 +124,55 @@ function drawProfile(){
   $("winsCount").textContent=profile.stats?.wins||0;
   $("fullHouseCount").textContent=profile.stats?.fullHouses||0;
   $("lifetimeCoins").textContent=coins(profile.lifetimeCoins);
+  applyCosmetics();
 }
 function drawShop(){
   $("shopList").innerHTML="";
+
   SHOP_ITEMS.forEach(item=>{
     const owned=Boolean(profile?.inventory?.[item.id]);
-    const row=document.createElement("div");row.className="shop-item";
+    const equipped = Object.values(profile?.cosmetics || {}).includes(item.id);
+
+    const row=document.createElement("div");
+    row.className="shop-item";
     row.innerHTML=`<div class="shop-icon">${item.icon}</div><div><strong>${item.name}</strong><small>${item.price} 🪙</small></div>`;
-    const btn=document.createElement("button");btn.textContent=owned?"Owned":`Buy`;
-    btn.disabled=owned;btn.onclick=()=>buyItem(item);
-    row.appendChild(btn);$("shopList").appendChild(row);
+
+    const btn=document.createElement("button");
+
+    if (owned) {
+      btn.textContent = equipped ? "Equipped" : "Equip";
+      btn.disabled = equipped;
+
+      if (!equipped) {
+        btn.onclick = () => equipItem(item);
+      }
+    } else {
+      btn.textContent = "Buy";
+      btn.onclick = () => buyItem(item);
+    }
+
+    row.appendChild(btn);
+    $("shopList").appendChild(row);
   });
+}
+
+async function equipItem(item){
+  const map = {
+    dabber: "dabber",
+    theme: "theme",
+    effect: "effect",
+    nameEffect: "nameEffect"
+  };
+
+  const key = map[item.type];
+  if (!key) return;
+
+  await update(
+    ref(database,`v2/profiles/${user.uid}/cosmetics`),
+    { [key]: item.id }
+  );
+
+  toast("Cosmetic Equipped", item.name, item.icon);
 }
 async function buyItem(item){
   if(Number(profile.coins||0)<item.price){show("shopMessage","Not enough Sassy Coins.","error");return;}
@@ -101,6 +242,7 @@ function drawGame(){
   $("calledCount").textContent=called.length;
   $("cardTypeBadge").textContent=game.mode?.startsWith("90")?"90 BALL":"75 BALL";
   $("ticketTitle").textContent=game.mode?.startsWith("90")?"90-Ball Ticket":"75-Ball Card";
+  drawWaitingState();
   drawCard();
 }
 async function claim(){
@@ -157,7 +299,15 @@ $("saveNameButton").onclick=async()=>{
 
 onAuthStateChanged(auth,async u=>{
   if(!u){location.href="./index.html";return;} user=u;
-  onValue(ref(database,`v2/profiles/${u.uid}`),s=>{profile=s.val();drawProfile();drawShop();drawAchievements();});
+  onValue(ref(database,`v2/profiles/${u.uid}`),s=>{
+    const nextProfile=s.val();
+    detectAchievementToasts(nextProfile);
+    detectCoinChange(nextProfile);
+    profile=nextProfile;
+    drawProfile();
+    drawShop();
+    drawAchievements();
+  });
   onValue(ref(database,"v2/profiles"),s=>drawLeaderboard(s.val()||{}));
   onValue(ref(database,"v2/game"),async s=>{
     game=s.val()||{};
@@ -167,4 +317,27 @@ onAuthStateChanged(auth,async u=>{
     drawGame();
   });
   onValue(ref(database,`v2/gamePlayers/${u.uid}`),s=>{if(s.exists()){card=s.val().card||[];marked=s.val().marked||[];drawGame();}});
+
+  onValue(ref(database,"v2/claims"),s=>{
+    const claims=s.val()||{};
+    const rid=game.roundId;
+    const st=stage();
+
+    if(!rid) return;
+
+    const stageClaims=claims?.[rid]?.[st]||{};
+    const winners=Object.values(stageClaims);
+
+    if(!winners.length) return;
+
+    const key=`${rid}-${st}-${Object.keys(stageClaims).sort().join(",")}`;
+
+    if(key===previousWinnerKey) return;
+    previousWinnerKey=key;
+
+    const names=winners.map(w=>w.name||"Player");
+    const reward=st==="one-line"?100:st==="two-lines"?200:500;
+
+    showWinnerOverlay(stageName(st),names,names.includes(profile?.username)?reward:0);
+  });
 });

@@ -48,7 +48,18 @@
     </aside>
 
     <section id="viewGame" class="mobile-view active">
-      <article class="panel game-status-panel">
+
+      <article id="waitingPanel" class="panel waiting-panel">
+        <div class="waiting-icon">🎖️</div>
+        <span class="panel-kicker">General Sassy Command</span>
+        <h2>Waiting for the next round</h2>
+        <p id="waitingMessage">
+          General Sassy is preparing the battlefield. Try not to spend all your coins before we start.
+        </p>
+        <div class="waiting-pulse">●</div>
+      </article>
+
+      <article id="liveGamePanel" class="panel game-status-panel hidden">
         <div class="stage-row">
           <span id="gameModeBadge" class="status-badge">WAITING</span>
           <strong id="gameStageText">Waiting for host</strong>
@@ -82,6 +93,11 @@
           <div><span>Wins</span><strong id="winsCount">0</strong></div>
           <div><span>Full Houses</span><strong id="fullHouseCount">0</strong></div>
           <div><span>Lifetime coins</span><strong id="lifetimeCoins">25</strong></div>
+        </div>
+        <div class="equipped-grid">
+          <div><span>Dabber</span><strong id="equippedDabber">Default</strong></div>
+          <div><span>Theme</span><strong id="equippedTheme">Default</strong></div>
+          <div><span>Name Effect</span><strong id="equippedNameEffect">Default</strong></div>
         </div>
         <button id="editNameButton" class="secondary-button" type="button">✏️ Change Name</button>
         <button id="logoutButton" class="ghost-button full-width" type="button">Sign Out</button>
@@ -126,6 +142,20 @@
       <div id="profileMessage" class="message-box"></div>
     </div>
   </div>
+
+
+  <div id="winnerOverlay" class="winner-overlay hidden">
+    <div class="winner-modal">
+      <div class="winner-icon">🏆</div>
+      <span class="panel-kicker">Bingo Winner</span>
+      <h2 id="winnerTitle">We have a winner!</h2>
+      <div id="winnerNames" class="winner-names"></div>
+      <div id="winnerReward" class="winner-reward hidden"></div>
+      <button id="closeWinnerOverlay" class="primary-button" type="button">Continue</button>
+    </div>
+  </div>
+
+  <div id="toastStack" class="toast-stack"></div>
 
   <script type="module" src="./player.js"></script>
 </body>

@@ -1,0 +1,19 @@
+V2 Polish Build
+
+Added:
+- Proper waiting screen before host starts a round
+- Winner overlay on player devices
+- Multiple winner display
+- Visible Sassy Coin reward popup
+- Achievement unlock toasts
+- Shop cosmetics can be equipped
+- Blue / Gold dabbers
+- Neon card theme
+- VIP name glow
+- Equipped cosmetics shown in Profile
+- Host winner panel
+- Host-controlled Progressive stage continuation
+- Cleaner winner/new-round flow
+
+No final Firebase/admin lock-down has been done yet.
+That remains the final deployment step.
