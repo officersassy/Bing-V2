@@ -1,0 +1,93 @@
+REPLACE YOUR CURRENT "v2" RULES BLOCK WITH THIS PHASE 2 VERSION.
+KEEP YOUR EXISTING V1 "bingo" RULES.
+
+Your complete structure should look like:
+
+{
+  "rules": {
+    "bingo": {
+      ".read": true,
+      ".write": true
+    },
+
+    "v2": {
+      "admins": {
+        "$uid": {
+          ".read": "auth != null && auth.uid === $uid",
+          ".write": false
+        }
+      },
+
+      "profiles": {
+        ".read": "auth != null && root.child('v2/admins').child(auth.uid).val() === true",
+
+        "$uid": {
+          ".read": "auth != null && auth.uid === $uid",
+
+          ".write": "auth != null && (auth.uid === $uid || root.child('v2/admins').child(auth.uid).val() === true)",
+
+          "uid": {
+            ".validate": "newData.val() === $uid"
+          },
+
+          "username": {
+            ".validate": "newData.isString() && newData.val().length >= 2 && newData.val().length <= 24"
+          },
+
+          "email": {
+            ".validate": "newData.isString()"
+          },
+
+          "coins": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && (root.child('v2/admins').child(auth.uid).val() === true || ((!data.exists() && newData.val() === 25) || (data.exists() && newData.val() === data.val())))"
+          },
+
+          "lifetimeCoins": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && (root.child('v2/admins').child(auth.uid).val() === true || ((!data.exists() && newData.val() === 25) || (data.exists() && newData.val() === data.val())))"
+          },
+
+          "role": {
+            ".validate": "newData.val() === 'player'"
+          },
+
+          "createdAt": {
+            ".validate": "newData.isNumber()"
+          },
+
+          "updatedAt": {
+            ".validate": "newData.isNumber()"
+          },
+
+          "$other": {
+            ".validate": false
+          }
+        }
+      },
+
+      "transactions": {
+        "$uid": {
+          ".read": "auth != null && (auth.uid === $uid || root.child('v2/admins').child(auth.uid).val() === true)",
+          ".write": "auth != null && root.child('v2/admins').child(auth.uid).val() === true"
+        }
+      }
+    }
+  }
+}
+
+ONE-TIME HOST ADMIN SETUP
+
+1. Upload Phase 2 to GitHub.
+2. Open:
+   https://YOUR-USERNAME.github.io/Bingo-V2/host-setup.html
+3. Sign in with the account you want to be the host.
+4. Copy the UID shown.
+5. Firebase Console -> Realtime Database -> Data.
+6. Expand/create:
+   v2
+     admins
+       YOUR-UID
+7. Set YOUR-UID to boolean true.
+8. Publish/use the Phase 2 rules above.
+9. Open host.html.
+
+This is safer than putting the admin password or coin authority in the website code.

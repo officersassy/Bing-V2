@@ -20,6 +20,7 @@ const memberSince = document.getElementById("memberSince");
 const profileInitial = document.getElementById("profileInitial");
 const coinBalance = document.getElementById("coinBalance");
 const bigCoinBalance = document.getElementById("bigCoinBalance");
+const transactionList = document.getElementById("transactionList");
 
 const logoutButton = document.getElementById("logoutButton");
 const editNameButton = document.getElementById("editNameButton");
@@ -45,6 +46,61 @@ function formatDate(timestamp) {
     month: "short",
     year: "numeric"
   }).format(new Date(timestamp));
+}
+
+
+function formatTransactionDate(timestamp) {
+  if (!timestamp) return "";
+
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit"
+  }).format(new Date(timestamp));
+}
+
+function drawTransactions(transactionsObject) {
+  if (!transactionList) return;
+
+  const items = Object.values(transactionsObject || {})
+    .sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0))
+    .slice(0, 20);
+
+  transactionList.innerHTML = "";
+
+  if (!items.length) {
+    transactionList.textContent = "No coin activity yet.";
+    return;
+  }
+
+  items.forEach((item) => {
+    const row = document.createElement("div");
+    row.className = "transaction-row";
+
+    const left = document.createElement("div");
+
+    const title = document.createElement("strong");
+    title.textContent = item.reason || "Sassy Coins";
+
+    const date = document.createElement("small");
+    date.textContent = formatTransactionDate(item.createdAt);
+
+    left.append(title, date);
+
+    const amount = document.createElement("strong");
+    amount.className =
+      Number(item.amount || 0) >= 0
+        ? "transaction-positive"
+        : "transaction-negative";
+
+    const numericAmount = Number(item.amount || 0);
+    amount.textContent =
+      `${numericAmount >= 0 ? "+" : ""}${numericAmount.toLocaleString("en-GB")} 🪙`;
+
+    row.append(left, amount);
+    transactionList.appendChild(row);
+  });
 }
 
 function drawProfile(profile) {
@@ -129,6 +185,13 @@ onAuthStateChanged(auth, async (user) => {
     if (!profileSnapshot.exists()) return;
     drawProfile(profileSnapshot.val());
   });
+
+  onValue(
+    ref(database, `v2/transactions/${user.uid}`),
+    (transactionSnapshot) => {
+      drawTransactions(transactionSnapshot.val() || {});
+    }
+  );
 });
 
 logoutButton.addEventListener("click", async () => {

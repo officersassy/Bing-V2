@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Host Setup | General Sassy Bingo V2</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <div class="background"></div>
+
+  <main class="auth-shell single-column">
+    <section class="auth-card setup-card">
+      <span class="eyebrow">One-time setup</span>
+      <h1>🎖️ General Sassy Host Setup</h1>
+      <p>
+        Sign in using the account you want to use as the V2 host. This page will
+        show your Firebase UID so you can make that account an administrator.
+      </p>
+
+      <div id="setupSignedOut">
+        <label>
+          Email
+          <input id="setupEmail" type="email" placeholder="Host email">
+        </label>
+
+        <label>
+          Password
+          <input id="setupPassword" type="password" placeholder="Password">
+        </label>
+
+        <button id="setupLoginButton" class="primary-button" type="button">
+          Sign In
+        </button>
+      </div>
+
+      <div id="setupSignedIn" class="hidden">
+        <p>Signed in as <strong id="setupAccount"></strong></p>
+
+        <div class="uid-box">
+          <span>Your Host UID</span>
+          <code id="hostUid">Loading...</code>
+        </div>
+
+        <button id="copyUidButton" class="primary-button" type="button">
+          📋 Copy UID
+        </button>
+
+        <p class="setup-help">
+          In Firebase Realtime Database → Data, create:
+          <br><br>
+          <code>v2 → admins → YOUR_UID = true</code>
+        </p>
+
+        <a class="link-button" href="./host.html">Open Host Economy Panel →</a>
+      </div>
+
+      <div id="setupMessage" class="message-box"></div>
+    </section>
+  </main>
+
+  <script type="module" src="./host-setup.js"></script>
+</body>
+</html>

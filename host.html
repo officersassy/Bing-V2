@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Host Economy | General Sassy Bingo V2</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <div class="background"></div>
+
+  <main class="dashboard-shell">
+    <header class="topbar">
+      <div>
+        <span class="eyebrow">General Sassy Treasury</span>
+        <h1>🪙 Host Economy Panel</h1>
+      </div>
+
+      <div class="topbar-actions">
+        <a class="ghost-link" href="./player.html">Player Hub</a>
+        <button id="hostLogoutButton" class="ghost-button" type="button">Sign Out</button>
+      </div>
+    </header>
+
+    <section id="hostDenied" class="auth-card hidden">
+      <h2>🚫 General Sassy says no.</h2>
+      <p>
+        This account is not an administrator yet. Open
+        <a href="./host-setup.html">Host Setup</a> and finish the one-time Firebase step.
+      </p>
+    </section>
+
+    <section id="hostDashboard" class="host-economy-grid hidden">
+      <article class="panel host-player-panel">
+        <div class="panel-heading">
+          <div>
+            <span class="panel-kicker">Registered accounts</span>
+            <h2>👥 Players</h2>
+          </div>
+          <span id="hostPlayerCount" class="status-badge">0</span>
+        </div>
+
+        <input id="playerSearch" type="search" placeholder="Search player name or email">
+
+        <div id="hostPlayerList" class="host-player-list">
+          Loading players...
+        </div>
+      </article>
+
+      <article class="panel host-wallet-panel">
+        <div id="noPlayerSelected">
+          <span class="panel-kicker">Treasury controls</span>
+          <h2>Select a player</h2>
+          <p>Choose a registered player to manage their Sassy Coins.</p>
+        </div>
+
+        <div id="selectedPlayerPanel" class="hidden">
+          <span class="panel-kicker">Selected player</span>
+          <h2 id="selectedPlayerName">Player</h2>
+          <p id="selectedPlayerEmail"></p>
+
+          <div class="host-balance">
+            <span>Current Balance</span>
+            <strong id="selectedPlayerCoins">0 🪙</strong>
+          </div>
+
+          <div class="reward-buttons">
+            <button data-reward="25" data-reason="General Sassy Bonus" type="button">+25 Bonus</button>
+            <button data-reward="100" data-reason="One Line Win" type="button">🏆 +100 One Line</button>
+            <button data-reward="200" data-reason="Two Lines Win" type="button">🏆 +200 Two Lines</button>
+            <button data-reward="500" data-reason="Full House Win" type="button">🏆 +500 Full House</button>
+          </div>
+
+          <div class="custom-award">
+            <input id="customCoinAmount" type="number" min="-100000" max="100000" step="1" placeholder="Custom amount">
+            <input id="customCoinReason" type="text" maxlength="60" placeholder="Reason">
+            <button id="customAwardButton" class="primary-button" type="button">Apply Coins</button>
+          </div>
+
+          <div id="hostEconomyMessage" class="message-box"></div>
+        </div>
+      </article>
+
+      <article class="panel host-stats-panel">
+        <span class="panel-kicker">Economy overview</span>
+        <h2>📊 V2 Economy</h2>
+
+        <div class="host-stats">
+          <div><span>Players</span><strong id="economyPlayers">0</strong></div>
+          <div><span>Coins in wallets</span><strong id="economyCoins">0</strong></div>
+          <div><span>Lifetime coins issued</span><strong id="economyLifetime">0</strong></div>
+        </div>
+      </article>
+
+      <article class="panel host-sassy-panel">
+        <span class="panel-kicker">Treasury department</span>
+        <h2>🎖️ General Sassy</h2>
+        <blockquote id="hostSassyQuote">
+          “I have been placed in charge of the economy. This seems irresponsible.”
+        </blockquote>
+      </article>
+    </section>
+  </main>
+
+  <script type="module" src="./host.js"></script>
+</body>
+</html>
