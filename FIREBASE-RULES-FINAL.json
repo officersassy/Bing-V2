@@ -4,10 +4,8 @@
       ".read": true,
       ".write": true
     },
-
     "v2": {
       ".read": "auth != null",
-
       "adminBootstrap": {
         ".write": "auth != null && !data.child('claimed').exists() && newData.child('claimed').val() === true && newData.child('uid').val() === auth.uid",
         "claimed": {
@@ -20,18 +18,15 @@
           ".validate": false
         }
       },
-
       "admins": {
         "$uid": {
           ".write": "auth != null && auth.uid === $uid && !root.child('v2/adminBootstrap/claimed').exists() && newData.val() === true",
           ".validate": "newData.val() === true"
         }
       },
-
       "profiles": {
         "$uid": {
           ".write": "auth != null && (root.child('v2/admins').child(auth.uid).val() === true || (auth.uid === $uid && (!data.exists() || (newData.child('coins').val() === data.child('coins').val() && newData.child('lifetimeCoins').val() === data.child('lifetimeCoins').val()))))",
-
           "uid": {
             ".validate": "newData.val() === $uid"
           },
@@ -45,7 +40,7 @@
             ".validate": "newData.isNumber() && newData.val() >= 0 && ((!data.exists() && newData.val() === 25) || data.exists() || root.child('v2/admins').child(auth.uid).val() === true)"
           },
           "lifetimeCoins": {
-            ".validate": "newData.isNumber() && newData.val() >= 0 && ((!data.exists() && newData.val() === 25) || data.exists() || root.child('v2/admins').child(auth.uid).val() === true)"
+            ".validate": "newData.isNumber() && newData.val() >= 0 && ((!data.exists() && newData.val() === 25) || root.child('v2/admins').child(auth.uid).val() === true || (data.exists() && newData.val() === data.val()))"
           },
           "role": {
             ".validate": "newData.val() === 'player'"
@@ -56,47 +51,37 @@
           "updatedAt": {
             ".validate": "newData.isNumber()"
           },
-
           "stats": {
             ".write": "auth != null && root.child('v2/admins').child(auth.uid).val() === true"
           },
-
           "inventory": {
             ".write": "auth != null && auth.uid === $uid"
           },
-
           "cosmetics": {
             ".write": "auth != null && auth.uid === $uid"
           },
-
           "achievements": {
             ".write": "auth != null && (auth.uid === $uid || root.child('v2/admins').child(auth.uid).val() === true)"
           }
         }
       },
-
       "game": {
         ".write": "auth != null && root.child('v2/admins').child(auth.uid).val() === true"
       },
-
       "gamePlayers": {
         "$uid": {
           ".write": "auth != null && (root.child('v2/admins').child(auth.uid).val() === true || auth.uid === $uid)",
-
           "card": {
             ".write": "auth != null && root.child('v2/admins').child(auth.uid).val() === true"
           },
-
           "roundId": {
             ".write": "auth != null && root.child('v2/admins').child(auth.uid).val() === true"
           },
-
           "marked": {
             ".write": "auth != null && (auth.uid === $uid || root.child('v2/admins').child(auth.uid).val() === true)"
           }
         }
       },
-
       "claims": {
         "$roundId": {
           "$stage": {
@@ -106,7 +91,6 @@
           }
         }
       },
-
       "transactions": {
         "$uid": {
           "$transactionId": {
@@ -114,11 +98,9 @@
           }
         }
       },
-
       "rewards": {
         ".write": "auth != null && root.child('v2/admins').child(auth.uid).val() === true"
       },
-
       "kicks": {
         "$uid": {
           ".read": "auth != null && (auth.uid === $uid || root.child('v2/admins').child(auth.uid).val() === true)",

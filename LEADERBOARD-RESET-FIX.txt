@@ -1,0 +1,17 @@
+Leaderboard Reset Fix
+
+What was wrong:
+The reset used one huge multi-path update. With the newer protected V2 Firebase rules,
+one rejected child write could make the whole reset fail.
+
+What changed:
+- Each player's stats/profile reset is now handled individually.
+- Gameplay achievements are removed explicitly.
+- Current spendable coin balance is preserved.
+- lifetimeCoins is reset to the player's CURRENT wallet balance.
+- Accounts, shop purchases, cosmetics and account-created achievement are preserved.
+- Old claims and reward locks are cleared afterward.
+- Errors now show a useful message instead of silently doing nothing.
+
+IMPORTANT:
+Republish FIREBASE-RULES-FINAL.json from THIS ZIP after uploading the website files.

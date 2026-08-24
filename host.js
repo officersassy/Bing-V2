@@ -1,6 +1,6 @@
 import { auth,database } from "./firebase.js";
 import { onAuthStateChanged,signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { ref,get,set,update,onValue,push,runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { ref,get,set,update,onValue,push,runTransaction,remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { create75Card,create90Card,shuffle,missingCount,validWin } from "./game-engine.js";
 
 const $=id=>document.getElementById(id);
@@ -171,39 +171,58 @@ $("newRoundButton").onclick=async()=>{
 
 async function resetLeaderboard(){
   const confirmed = window.confirm(
-    "Reset leaderboard testing stats for ALL players? Accounts, coin balances and purchased cosmetics will stay intact."
+    "Reset leaderboard testing stats for ALL players? Accounts, current coin balances and purchased cosmetics will stay intact."
   );
 
   if(!confirmed) return;
 
-  const updates = {};
+  const button = $("resetLeaderboardButton");
+  button.disabled = true;
 
-  Object.entries(profiles).forEach(([uid, profile]) => {
-    updates[`v2/profiles/${uid}/stats`] = {
-      gamesPlayed: 0,
-      wins: 0,
-      fullHouses: 0
-    };
+  try {
+    const jobs = [];
 
-    // Reset lifetime leaderboard total to current wallet balance so test rewards
-    // no longer leave the account miles ahead, while preserving spendable coins.
-    updates[`v2/profiles/${uid}/lifetimeCoins`] = Number(profile.coins || 0);
+    Object.entries(profiles).forEach(([uid, profile]) => {
+      const currentCoins = Number(profile.coins || 0);
 
-    // Remove gameplay achievements that came from testing.
-    updates[`v2/profiles/${uid}/achievements/first-game`] = null;
-    updates[`v2/profiles/${uid}/achievements/first-win`] = null;
-    updates[`v2/profiles/${uid}/achievements/five-wins`] = null;
-    updates[`v2/profiles/${uid}/achievements/full-house`] = null;
-    updates[`v2/profiles/${uid}/achievements/coin-1000`] = null;
-  });
+      jobs.push(
+        update(
+          ref(database, `v2/profiles/${uid}`),
+          {
+            stats: {
+              gamesPlayed: 0,
+              wins: 0,
+              fullHouses: 0
+            },
+            lifetimeCoins: currentCoins,
+            updatedAt: Date.now()
+          }
+        )
+      );
 
-  // Clear old test claims/rewards so they cannot affect future rounds.
-  updates["v2/claims"] = null;
-  updates["v2/rewards"] = null;
+      // Keep account-created achievement, remove gameplay/testing achievements.
+      jobs.push(remove(ref(database, `v2/profiles/${uid}/achievements/first-game`)));
+      jobs.push(remove(ref(database, `v2/profiles/${uid}/achievements/first-win`)));
+      jobs.push(remove(ref(database, `v2/profiles/${uid}/achievements/five-wins`)));
+      jobs.push(remove(ref(database, `v2/profiles/${uid}/achievements/full-house`)));
+      jobs.push(remove(ref(database, `v2/profiles/${uid}/achievements/coin-1000`)));
+    });
 
-  await update(ref(database), updates);
+    await Promise.all(jobs);
 
-  alert("Leaderboard and gameplay test stats reset.");
+    // Clear historical test claims/reward locks after profile resets complete.
+    await remove(ref(database, "v2/claims"));
+    await remove(ref(database, "v2/rewards"));
+
+    alert("Leaderboard and gameplay test stats reset successfully.");
+  } catch (error) {
+    console.error("Leaderboard reset failed:", error);
+    alert(
+      "Leaderboard reset failed. Make sure the latest Firebase rules are published, then try again."
+    );
+  } finally {
+    button.disabled = false;
+  }
 }
 
 async function kickSelectedPlayer(){
