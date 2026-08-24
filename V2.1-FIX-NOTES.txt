@@ -1,0 +1,28 @@
+V2.1 STORE / AVATAR FIX
+
+FIXED
+- New premium cosmetics now use the same host-processed purchase pipeline as old items.
+- Purchase processing uses catalog.js, so every paid item in the catalog is supported.
+- Equip now checks ownership and shows Firebase errors clearly.
+- Free avatars can be equipped immediately.
+- Premium avatars can be bought once and equipped forever.
+- Avatars now have their OWN clearly labelled section at the top of the Shop page.
+
+WHERE ARE AVATARS?
+Open:
+☰ -> Shop
+
+The first panel is now:
+👤 AVATARS
+
+FREE:
+🎱 😄 ⭐ 🍀 👑
+
+PREMIUM:
+👑 🪩 🔥 💎 💀 🎰 🫡
+
+IMPORTANT
+The HOST PAGE MUST BE OPEN for paid purchases.
+The host browser is what securely processes Sassy Coin purchases.
+
+Also republish FIREBASE-RULES-FINAL.json from THIS ZIP.

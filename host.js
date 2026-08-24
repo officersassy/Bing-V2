@@ -537,14 +537,15 @@ onAuthStateChanged(auth,async u=>{
 
     for(const [uid,userRequests] of Object.entries(requests)){
       for(const [requestId,request] of Object.entries(userRequests||{})){
-        if(request?.status!=="pending")continue;
+        if(request?.status!=="pending") continue;
 
         const item=SHOP_ITEMS.find(entry=>entry.id===request.itemId);
 
-        if(!item){
+        if(!item || item.price<=0){
           await update(ref(database,`v2/purchaseRequests/${uid}/${requestId}`),{
             status:"rejected",
-            processedAt:Date.now()
+            processedAt:Date.now(),
+            reason:"Invalid shop item"
           });
           continue;
         }
@@ -552,7 +553,7 @@ onAuthStateChanged(auth,async u=>{
         const profileRef=ref(database,`v2/profiles/${uid}`);
 
         const result=await runTransaction(profileRef,current=>{
-          if(!current)return;
+          if(!current) return;
 
           current.inventory=current.inventory||{};
 
@@ -560,11 +561,13 @@ onAuthStateChanged(auth,async u=>{
             return current;
           }
 
-          if(Number(current.coins||0)<item.price){
+          const balance=Number(current.coins||0);
+
+          if(balance<item.price){
             return;
           }
 
-          current.coins=Number(current.coins||0)-item.price;
+          current.coins=balance-item.price;
           current.inventory[item.id]=Date.now();
           current.updatedAt=Date.now();
 
@@ -582,12 +585,14 @@ onAuthStateChanged(auth,async u=>{
 
           await update(ref(database,`v2/purchaseRequests/${uid}/${requestId}`),{
             status:"complete",
+            itemId:item.id,
             processedAt:Date.now()
           });
         }else{
           await update(ref(database,`v2/purchaseRequests/${uid}/${requestId}`),{
             status:"rejected",
-            processedAt:Date.now()
+            processedAt:Date.now(),
+            reason:"Insufficient coins or profile unavailable"
           });
         }
       }

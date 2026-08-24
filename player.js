@@ -33,6 +33,24 @@ function cosmeticName(id) {
   const item = SHOP_ITEMS.find(x => x.id === id);
   return item ? item.name : "Default";
 }
+function isOwned(item) {
+  return item.price === 0 || Boolean(profile?.inventory?.[item.id]);
+}
+
+function isEquipped(item) {
+  const c = profile?.cosmetics || {};
+
+  const map = {
+    dabber: c.dabber,
+    theme: c.theme,
+    effect: c.effect,
+    nameEffect: c.nameEffect,
+    avatar: c.avatar || "avatar-ball"
+  };
+
+  return map[item.type] === item.id;
+}
+
 
 function applyCosmetics() {
   const dabber = profile?.cosmetics?.dabber || "default";
@@ -177,32 +195,48 @@ function drawProfile(){
   applyCosmetics();
 }
 function drawShop(){
-  $("shopList").innerHTML="";
+  const avatarArea = $("avatarShopList");
+  const cosmeticArea = $("shopList");
+
+  avatarArea.innerHTML = "";
+  cosmeticArea.innerHTML = "";
 
   SHOP_ITEMS.forEach(item=>{
-    const owned=item.price===0 || Boolean(profile?.inventory?.[item.id]);
-    const equipped = Object.values(profile?.cosmetics || {}).includes(item.id);
+    const owned = isOwned(item);
+    const equipped = isEquipped(item);
 
     const row=document.createElement("div");
-    row.className="shop-item";
-    row.innerHTML=`<div class="shop-icon">${item.icon}</div><div><strong>${item.name}</strong><small>${item.price} 🪙</small></div>`;
+    row.className=`shop-item ${item.type==="avatar" ? "avatar-store-item" : ""}`;
+
+    row.innerHTML=`
+      <div class="shop-icon">${item.icon}</div>
+      <div>
+        <strong>${item.name}</strong>
+        <small>${item.price===0 ? "FREE" : `${item.price} 🪙`}</small>
+      </div>
+    `;
 
     const btn=document.createElement("button");
 
-    if (owned) {
-      btn.textContent = equipped ? "Equipped" : "Equip";
-      btn.disabled = equipped;
+    if(owned){
+      btn.textContent=equipped ? "Equipped" : "Equip";
+      btn.disabled=equipped;
 
-      if (!equipped) {
-        btn.onclick = () => equipItem(item);
+      if(!equipped){
+        btn.onclick=()=>equipItem(item);
       }
-    } else {
-      btn.textContent = "Buy";
-      btn.onclick = () => buyItem(item);
+    }else{
+      btn.textContent=`Buy ${item.price}`;
+      btn.onclick=()=>buyItem(item);
     }
 
     row.appendChild(btn);
-    $("shopList").appendChild(row);
+
+    if(item.type==="avatar"){
+      avatarArea.appendChild(row);
+    }else{
+      cosmeticArea.appendChild(row);
+    }
   });
 }
 
@@ -216,16 +250,36 @@ async function equipItem(item){
   };
 
   const key = map[item.type];
-  if (!key) return;
+  if(!key) return;
 
-  await update(
-    ref(database,`v2/profiles/${user.uid}/cosmetics`),
-    { [key]: item.id }
-  );
+  if(!isOwned(item)){
+    show("shopMessage","You need to buy that first.","error");
+    return;
+  }
 
-  toast("Cosmetic Equipped", item.name, item.icon);
+  try{
+    await update(
+      ref(database,`v2/profiles/${user.uid}/cosmetics`),
+      { [key]: item.id }
+    );
+
+    toast("Cosmetic Equipped",item.name,item.icon);
+    show("shopMessage",`${item.name} equipped.`,"success");
+  }catch(error){
+    console.error("Equip failed:",error);
+    show(
+      "shopMessage",
+      "Could not equip that item. Make sure the latest Firebase rules are published.",
+      "error"
+    );
+  }
 }
 async function buyItem(item){
+  if(isOwned(item)){
+    await equipItem(item);
+    return;
+  }
+
   if(Number(profile.coins||0)<item.price){
     show("shopMessage","Not enough Sassy Coins.","error");
     return;
@@ -236,18 +290,23 @@ async function buyItem(item){
 
     await set(requestRef,{
       itemId:item.id,
+      price:item.price,
       status:"pending",
       createdAt:Date.now()
     });
 
     show(
       "shopMessage",
-      "Purchase sent to General Sassy's treasury...",
+      `Buying ${item.name}... keep the host page open for a moment.`,
       "success"
     );
   }catch(error){
-    console.error(error);
-    show("shopMessage","Purchase request failed.","error");
+    console.error("Purchase request failed:",error);
+    show(
+      "shopMessage",
+      "Purchase request failed. Make sure the host is online.",
+      "error"
+    );
   }
 }
 function drawAchievements(){

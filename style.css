@@ -1767,3 +1767,41 @@ body[data-name-effect="name-rainbow"] #profileName{
 body[data-name-effect="name-royal"] #welcomeName,
 body[data-name-effect="name-royal"] #profileName{color:#fde68a!important;text-shadow:0 0 8px #facc15,0 0 22px #a855f7!important}
 @keyframes nameRainbow{to{background-position:250% center}}
+
+
+/* ===== V2.1 AVATAR SHOP FIX ===== */
+#viewShop.active{
+  gap:14px;
+}
+
+.avatar-shop-grid{
+  grid-template-columns:repeat(2,minmax(0,1fr));
+}
+
+.avatar-store-item{
+  min-height:88px;
+  background:
+    radial-gradient(circle at 15% 20%,rgba(56,189,248,.08),transparent 40%),
+    rgba(255,255,255,.035);
+}
+
+.avatar-store-item .shop-icon{
+  width:54px;
+  height:54px;
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  background:rgba(255,255,255,.06);
+  font-size:2rem;
+  box-shadow:inset 0 0 14px rgba(255,255,255,.035);
+}
+
+.avatar-store-item button{
+  min-width:78px;
+}
+
+@media(max-width:560px){
+  .avatar-shop-grid{
+    grid-template-columns:1fr;
+  }
+}
