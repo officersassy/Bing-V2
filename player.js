@@ -8,6 +8,7 @@ import {
 import {
   ref,
   get,
+  set,
   update,
   onValue
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
@@ -67,6 +68,38 @@ function profileStatus(message, type = "") {
   profileMessage.className = `message-box ${type}`.trim();
 }
 
+function fallbackPlayerName(user) {
+  const emailName = String(user?.email || "Player")
+    .split("@")[0]
+    .replace(/[^a-zA-Z0-9 _-]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  return (emailName.length >= 2 ? emailName : "Player").slice(0, 24);
+}
+
+async function repairMissingProfile(user) {
+  const now = Date.now();
+
+  const profile = {
+    uid: user.uid,
+    username: fallbackPlayerName(user),
+    email: user.email || "",
+    coins: 25,
+    lifetimeCoins: 25,
+    role: "player",
+    createdAt: now,
+    updatedAt: now
+  };
+
+  await set(
+    ref(database, `v2/profiles/${user.uid}`),
+    profile
+  );
+
+  return profile;
+}
+
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
     window.location.href = "./index.html";
@@ -79,9 +112,15 @@ onAuthStateChanged(auth, async (user) => {
   const snapshot = await get(profileRef);
 
   if (!snapshot.exists()) {
-    await signOut(auth);
-    window.location.href = "./index.html";
-    return;
+    try {
+      await repairMissingProfile(user);
+    } catch (error) {
+      console.error("Unable to repair missing V2 profile:", error);
+      alert(
+        "Your login exists but your V2 profile is blocked by Firebase rules. Enable the V2 database rules, then reload."
+      );
+      return;
+    }
   }
 
   if (unsubscribeProfile) unsubscribeProfile();

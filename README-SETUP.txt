@@ -1,49 +1,39 @@
-GENERAL SASSY BINGO V2 — PHASE 1
+GENERAL SASSY BINGO V2 — PHASE 1.1 ACCOUNT REPAIR
 
-WHAT THIS PACK DOES
-- Email/password player accounts
-- Persistent Firebase player profiles
-- 25 Sassy Coin starter balance
-- Player dashboard
-- Player name editing
-- Sign in / sign out
-- V2 data kept under /v2 so V1 is untouched
+WHY YOUR ACCOUNT WAS CREATED WITHOUT COINS
+Firebase Authentication and Realtime Database are separate systems.
 
-IMPORTANT FIREBASE SETUP
+Your email/password account was successfully created in Authentication.
+Then the website tried to create:
 
-1. Open Firebase Console.
-2. Open your existing bingo-5174e project.
-3. Go to Build -> Authentication.
-4. Click Get started if needed.
-5. Open Sign-in method.
-6. Enable Email/Password.
-7. Save.
+v2/profiles/YOUR-UID
 
-DATABASE RULES
-The file firebase-rules-v2.json contains safe Phase 1 rules.
+with 25 starter coins.
 
-IMPORTANT:
-Do not blindly replace your full existing Realtime Database rules with this file if
-V1 still needs its existing rules.
+Your current Realtime Database rules rejected that second write.
 
-Instead merge the "v2" section into your current top-level "rules" object.
+WHAT PHASE 1.1 FIXES
+- Existing Auth accounts with no V2 profile are automatically repaired.
+- Signing in creates the missing V2 profile.
+- The repaired profile receives the original 25 starter Sassy Coins.
+- New registrations also use the same safe profile creation function.
+- Better error messages tell you if the database rules are the problem.
 
-WHY COINS CANNOT BE CHANGED YET
-Phase 1 deliberately prevents players from editing their own coin balance after the
-25-coin account creation reward.
+WHAT YOU MUST DO IN FIREBASE
+1. Firebase Console -> Realtime Database -> Rules.
+2. KEEP your existing V1 rules.
+3. Add the "v2" block from FIREBASE-RULES-MERGE.txt inside your existing "rules" object.
+4. Click Publish.
 
-Win rewards will be added in Phase 2 using a trusted host/server-side path rather than
-letting a player's browser award itself coins.
+ALSO CHECK
+Firebase Console -> Authentication -> Sign-in method -> Email/Password must be Enabled.
 
-GITHUB
-Upload these files directly to the root of the NEW Bingo-V2 repository:
-- index.html
-- player.html
-- style.css
-- firebase.js
-- auth.js
-- player.js
+THEN
+Upload all files from this ZIP to your Bingo-V2 GitHub repo.
+Hard refresh the site.
+Sign in with the account you already created.
 
-Then enable GitHub Pages on main / root.
+The missing profile and 25 coins should be created automatically.
 
-V1 is not used or modified by this pack.
+PHASE 2
+Once this is working, Phase 2 will add trusted Bingo rewards and host-controlled coin awards.

@@ -1,0 +1,63 @@
+ADD THIS "v2" BLOCK INSIDE YOUR EXISTING TOP-LEVEL "rules" OBJECT.
+
+DO NOT DELETE YOUR V1 RULES.
+
+Example shape:
+
+{
+  "rules": {
+
+    ...KEEP ALL YOUR EXISTING V1 RULES HERE...,
+
+    "v2": {
+      "profiles": {
+        "$uid": {
+          ".read": "auth != null && auth.uid === $uid",
+          ".write": "auth != null && auth.uid === $uid",
+
+          "uid": {
+            ".validate": "newData.val() === auth.uid"
+          },
+
+          "username": {
+            ".validate": "newData.isString() && newData.val().length >= 2 && newData.val().length <= 24"
+          },
+
+          "email": {
+            ".validate": "newData.isString()"
+          },
+
+          "coins": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && ((!data.exists() && newData.val() === 25) || (data.exists() && newData.val() === data.val()))"
+          },
+
+          "lifetimeCoins": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && ((!data.exists() && newData.val() === 25) || (data.exists() && newData.val() === data.val()))"
+          },
+
+          "role": {
+            ".validate": "newData.val() === 'player'"
+          },
+
+          "createdAt": {
+            ".validate": "newData.isNumber()"
+          },
+
+          "updatedAt": {
+            ".validate": "newData.isNumber()"
+          },
+
+          "$other": {
+            ".validate": false
+          }
+        }
+      }
+    }
+  }
+}
+
+After publishing the rules:
+1. Go back to Bingo V2.
+2. Sign in using the account you already created.
+3. V2 will notice you have no profile.
+4. It will automatically create your profile and award the missing 25 Sassy Coins.

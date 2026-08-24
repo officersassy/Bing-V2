@@ -35,6 +35,52 @@ function showMessage(message, type = "") {
   authMessage.className = `message-box ${type}`.trim();
 }
 
+function fallbackPlayerName(user, preferredName = "") {
+  const cleanPreferred = String(preferredName || "").trim();
+
+  if (cleanPreferred.length >= 2) {
+    return cleanPreferred.slice(0, 24);
+  }
+
+  const emailName = String(user?.email || "Player")
+    .split("@")[0]
+    .replace(/[^a-zA-Z0-9 _-]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  return (emailName.length >= 2 ? emailName : "Player").slice(0, 24);
+}
+
+async function ensureProfile(user, preferredName = "") {
+  if (!user) {
+    throw new Error("No authenticated user.");
+  }
+
+  const profileRef = ref(database, `v2/profiles/${user.uid}`);
+  const snapshot = await get(profileRef);
+
+  if (snapshot.exists()) {
+    return snapshot.val();
+  }
+
+  const now = Date.now();
+
+  const profile = {
+    uid: user.uid,
+    username: fallbackPlayerName(user, preferredName),
+    email: user.email || "",
+    coins: 25,
+    lifetimeCoins: 25,
+    role: "player",
+    createdAt: now,
+    updatedAt: now
+  };
+
+  await set(profileRef, profile);
+
+  return profile;
+}
+
 function setMode(mode) {
   const login = mode === "login";
 
@@ -59,7 +105,12 @@ loginForm.addEventListener("submit", async (event) => {
   showMessage("General Sassy is checking your credentials...");
 
   try {
-    await signInWithEmailAndPassword(auth, email, password);
+    const credential = await signInWithEmailAndPassword(auth, email, password);
+
+    showMessage("Checking your V2 player profile...");
+
+    await ensureProfile(credential.user);
+
     window.location.href = "./player.html";
   } catch (error) {
     console.error(error);
@@ -97,22 +148,7 @@ registerForm.addEventListener("submit", async (event) => {
       password
     );
 
-    const uid = credential.user.uid;
-    const profileRef = ref(database, `v2/profiles/${uid}`);
-    const existingProfile = await get(profileRef);
-
-    if (!existingProfile.exists()) {
-      await set(profileRef, {
-        uid,
-        username,
-        email,
-        coins: 25,
-        lifetimeCoins: 25,
-        role: "player",
-        createdAt: Date.now(),
-        updatedAt: Date.now()
-      });
-    }
+    await ensureProfile(credential.user, username);
 
     showMessage(
       "Account created! General Sassy has begrudgingly issued 25 Sassy Coins.",
@@ -125,9 +161,16 @@ registerForm.addEventListener("submit", async (event) => {
   } catch (error) {
     console.error(error);
 
-    let friendly = "Could not create your account.";
+    let friendly = "Could not finish creating your Bingo profile.";
 
-    if (error.code === "auth/email-already-in-use") {
+    if (
+      error.code === "PERMISSION_DENIED" ||
+      error.code === "permission_denied" ||
+      String(error.message || "").toLowerCase().includes("permission")
+    ) {
+      friendly =
+        "Your login account was created, but Firebase blocked the V2 profile. Enable the V2 database rules, then sign in again and your 25 starter coins will be repaired automatically.";
+    } else if (error.code === "auth/email-already-in-use") {
       friendly = "That email already has an account. Try signing in.";
     } else if (error.code === "auth/weak-password") {
       friendly = "Use a stronger password with at least 6 characters.";
@@ -144,11 +187,23 @@ registerForm.addEventListener("submit", async (event) => {
 onAuthStateChanged(auth, async (user) => {
   if (!user) return;
 
-  const profileSnapshot = await get(
-    ref(database, `v2/profiles/${user.uid}`)
-  );
+  try {
+    const profile = await ensureProfile(user);
 
-  if (profileSnapshot.exists()) {
-    window.location.href = "./player.html";
+    if (profile) {
+      window.location.href = "./player.html";
+    }
+  } catch (error) {
+    console.error("Profile check/repair failed:", error);
+
+    if (
+      String(error?.message || "").toLowerCase().includes("permission") ||
+      error?.code === "PERMISSION_DENIED"
+    ) {
+      showMessage(
+        "Your account exists, but Firebase is blocking V2 profiles. Add the V2 database rules, then refresh this page.",
+        "error"
+      );
+    }
   }
 });
