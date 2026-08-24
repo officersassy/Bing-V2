@@ -1,0 +1,12 @@
+Neon Card Glow Upgrade
+
+The Neon Card theme now has:
+- Strong blue/purple outer aura
+- Animated pulsing glow
+- Animated blurred background aura
+- Bright premium border
+- Glowing card title
+- Subtle glow around individual ticket cells
+- Mobile-specific tuning so it still looks dramatic without covering the whole screen
+
+No JavaScript or Bingo logic changed.

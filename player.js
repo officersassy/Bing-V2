@@ -1,6 +1,6 @@
 import { auth,database } from "./firebase.js";
 import { onAuthStateChanged,signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { ref,get,set,update,onValue,runTransaction,push } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { ref,get,set,update,onValue,runTransaction,push,remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { SHOP_ITEMS,ACHIEVEMENTS } from "./catalog.js";
 import { BLANK,validWin } from "./game-engine.js";
 
@@ -367,17 +367,32 @@ onAuthStateChanged(auth,async u=>{
   });
   onValue(ref(database,`v2/gamePlayers/${u.uid}`),s=>{if(s.exists()){card=s.val().card||[];marked=s.val().marked||[];drawGame();}});
 
-  onValue(ref(database,`v2/kicks/${u.uid}`),snap=>{
+  let handlingKick = false;
+
+  onValue(ref(database,`v2/kicks/${u.uid}`),async snap=>{
     const kick = snap.val();
 
-    if(!kick?.kicked) return;
+    if(!kick?.kicked || handlingKick) return;
 
-    alert(
-      kick.reason ||
-      "General Sassy has removed you from the current Bingo session."
-    );
+    handlingKick = true;
 
-    location.href = "./index.html";
+    try {
+      alert(
+        kick.reason ||
+        "General Sassy has removed you from the current Bingo session."
+      );
+
+      // Acknowledge this kick so it cannot fire again on the next login.
+      await remove(ref(database,`v2/kicks/${u.uid}`));
+
+      // Sign out before returning home so index.html does not immediately
+      // redirect the same authenticated account back into player.html.
+      await signOut(auth);
+    } catch (error) {
+      console.error("Kick acknowledgement failed:", error);
+    } finally {
+      location.href = "./index.html";
+    }
   });
 
   onValue(ref(database,"v2/claims"),s=>{

@@ -1,0 +1,17 @@
+Kick Loop Fix
+
+Problem:
+The kick record stayed in Firebase after the player was removed.
+When the same account loaded player.html again, the old kick fired again,
+creating an endless redirect/kick loop.
+
+Fix:
+- The player sees the kick message once.
+- Their own kick record is deleted as an acknowledgement.
+- They are signed out.
+- They return to index.html cleanly.
+- If they later sign back in, the old kick does not fire again.
+- Players can ONLY delete their own kick record; they cannot create or edit kicks.
+
+IMPORTANT:
+Republish the updated FIREBASE-RULES-FINAL.json from this ZIP.

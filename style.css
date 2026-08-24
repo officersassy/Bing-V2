@@ -1555,3 +1555,161 @@ body.cosmetic-dabber-gold .v2-cell.marked {
     grid-column:1/-1;
   }
 }
+
+
+/* =========================
+   NEON CARD — REAL GLOW UPGRADE
+========================= */
+
+body[data-theme="theme-neon"] .ticket-panel,
+body.cosmetic-theme-neon .ticket-panel {
+  position: relative;
+  isolation: isolate;
+
+  border: 2px solid rgba(125,211,252,.9) !important;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(5,18,43,.96),
+      rgba(18,11,52,.96)
+    ) !important;
+
+  box-shadow:
+    0 0 12px rgba(56,189,248,.95),
+    0 0 28px rgba(56,189,248,.75),
+    0 0 52px rgba(168,85,247,.65),
+    0 0 84px rgba(168,85,247,.35),
+    inset 0 0 22px rgba(56,189,248,.10) !important;
+
+  animation: neonCardPulse 2.2s ease-in-out infinite alternate;
+}
+
+/* Outer animated aura */
+body[data-theme="theme-neon"] .ticket-panel::before,
+body.cosmetic-theme-neon .ticket-panel::before {
+  content: "";
+  position: absolute;
+  inset: -14px;
+  z-index: -2;
+  border-radius: inherit;
+
+  background:
+    radial-gradient(circle at 20% 20%, rgba(56,189,248,.75), transparent 42%),
+    radial-gradient(circle at 80% 75%, rgba(168,85,247,.78), transparent 45%),
+    linear-gradient(
+      120deg,
+      rgba(56,189,248,.25),
+      rgba(168,85,247,.25),
+      rgba(14,165,233,.20)
+    );
+
+  filter: blur(18px);
+  opacity: .9;
+
+  animation: neonAuraShift 3.2s ease-in-out infinite alternate;
+}
+
+/* Crisp inner highlight */
+body[data-theme="theme-neon"] .ticket-panel::after,
+body.cosmetic-theme-neon .ticket-panel::after {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  pointer-events: none;
+  border-radius: calc(1em - 4px);
+
+  border:
+    1px solid
+    rgba(196,181,253,.40);
+
+  box-shadow:
+    inset 0 0 18px rgba(56,189,248,.10);
+}
+
+/* Header glow */
+body[data-theme="theme-neon"] .ticket-panel h2,
+body.cosmetic-theme-neon .ticket-panel h2 {
+  color: #e9d5ff !important;
+
+  text-shadow:
+    0 0 7px rgba(196,181,253,.95),
+    0 0 16px rgba(168,85,247,.85),
+    0 0 26px rgba(56,189,248,.65) !important;
+}
+
+/* Make each ticket cell feel premium too */
+body[data-theme="theme-neon"] .v2-cell:not(.blank),
+body.cosmetic-theme-neon .v2-cell:not(.blank) {
+  border-color: rgba(125,211,252,.55) !important;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(11,31,70,.95),
+      rgba(15,23,42,.96)
+    );
+
+  box-shadow:
+    inset 0 0 12px rgba(56,189,248,.10),
+    0 0 7px rgba(56,189,248,.12);
+}
+
+/* Keep marked cells readable while still matching the theme */
+body[data-theme="theme-neon"] .v2-cell.marked,
+body.cosmetic-theme-neon .v2-cell.marked {
+  box-shadow:
+    0 0 8px rgba(34,197,94,.55),
+    0 0 16px rgba(56,189,248,.35) !important;
+}
+
+@keyframes neonCardPulse {
+  from {
+    box-shadow:
+      0 0 10px rgba(56,189,248,.78),
+      0 0 24px rgba(56,189,248,.60),
+      0 0 44px rgba(168,85,247,.48),
+      0 0 70px rgba(168,85,247,.24),
+      inset 0 0 18px rgba(56,189,248,.08);
+  }
+
+  to {
+    box-shadow:
+      0 0 16px rgba(56,189,248,1),
+      0 0 36px rgba(56,189,248,.86),
+      0 0 68px rgba(168,85,247,.78),
+      0 0 110px rgba(168,85,247,.42),
+      inset 0 0 28px rgba(56,189,248,.13);
+  }
+}
+
+@keyframes neonAuraShift {
+  from {
+    transform: scale(.985);
+    opacity: .72;
+  }
+
+  to {
+    transform: scale(1.02);
+    opacity: 1;
+  }
+}
+
+/* On smaller phones keep the effect dramatic without covering the screen */
+@media (max-width: 520px) {
+  body[data-theme="theme-neon"] .ticket-panel,
+  body.cosmetic-theme-neon .ticket-panel {
+    box-shadow:
+      0 0 10px rgba(56,189,248,.95),
+      0 0 22px rgba(56,189,248,.72),
+      0 0 38px rgba(168,85,247,.62),
+      0 0 58px rgba(168,85,247,.32),
+      inset 0 0 18px rgba(56,189,248,.08) !important;
+  }
+
+  body[data-theme="theme-neon"] .ticket-panel::before,
+  body.cosmetic-theme-neon .ticket-panel::before {
+    inset: -9px;
+    filter: blur(13px);
+  }
+}
