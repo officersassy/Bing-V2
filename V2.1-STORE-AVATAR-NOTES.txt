@@ -1,0 +1,23 @@
+GENERAL SASSY BINGO V2.1
+
+ADDED
+- 5 free avatars
+- 7 premium/legendary avatars
+- Avatars appear in Profile, Leaderboard, Host player list and winner popup
+- Premium avatars have visible profile glow
+- Pink + Lucky Green dabbers
+- Luxury Gold, Inferno and Rainbow Riot card themes
+- Fireworks and Coin Rain winner effects
+- Rainbow and Royal name effects
+- 7 additional milestone achievements
+
+FREE AVATARS
+Classic Bingo Ball, Happy Dobber, Lucky Star, Lucky Clover, Little Crown.
+They can be equipped immediately without purchasing.
+
+IMPORTANT
+Publish FIREBASE-RULES-FINAL.json from THIS ZIP after uploading the website.
+The new rules allow the new cosmetic IDs while still requiring ownership for paid cosmetics.
+
+CORE BINGO / AUTH
+No card generation, calling, login, winner validation or 90-ball balancing logic was redesigned for this expansion.

@@ -63,16 +63,19 @@
           "cosmetics": {
             ".write": "auth != null && auth.uid === $uid",
             "dabber": {
-              ".validate": "newData.val() === 'default' || (newData.val() === 'dabber-blue' && root.child('v2/profiles').child($uid).child('inventory/dabber-blue').exists()) || (newData.val() === 'dabber-gold' && root.child('v2/profiles').child($uid).child('inventory/dabber-gold').exists())"
+              ".validate": "newData.val() === 'default' || (newData.val() === 'dabber-blue' && root.child('v2/profiles').child($uid).child('inventory/dabber-blue').exists()) || (newData.val() === 'dabber-pink' && root.child('v2/profiles').child($uid).child('inventory/dabber-pink').exists()) || (newData.val() === 'dabber-green' && root.child('v2/profiles').child($uid).child('inventory/dabber-green').exists()) || (newData.val() === 'dabber-gold' && root.child('v2/profiles').child($uid).child('inventory/dabber-gold').exists())"
             },
             "theme": {
-              ".validate": "newData.val() === 'default' || (newData.val() === 'theme-neon' && root.child('v2/profiles').child($uid).child('inventory/theme-neon').exists())"
+              ".validate": "newData.val() === 'default' || (newData.val() === 'theme-neon' && root.child('v2/profiles').child($uid).child('inventory/theme-neon').exists()) || (newData.val() === 'theme-gold' && root.child('v2/profiles').child($uid).child('inventory/theme-gold').exists()) || (newData.val() === 'theme-fire' && root.child('v2/profiles').child($uid).child('inventory/theme-fire').exists()) || (newData.val() === 'theme-rainbow' && root.child('v2/profiles').child($uid).child('inventory/theme-rainbow').exists())"
             },
             "effect": {
-              ".validate": "newData.val() === 'default' || (newData.val() === 'confetti-party' && root.child('v2/profiles').child($uid).child('inventory/confetti-party').exists())"
+              ".validate": "newData.val() === 'default' || (newData.val() === 'confetti-party' && root.child('v2/profiles').child($uid).child('inventory/confetti-party').exists()) || (newData.val() === 'effect-fireworks' && root.child('v2/profiles').child($uid).child('inventory/effect-fireworks').exists()) || (newData.val() === 'effect-coin-rain' && root.child('v2/profiles').child($uid).child('inventory/effect-coin-rain').exists())"
             },
             "nameEffect": {
-              ".validate": "newData.val() === 'default' || (newData.val() === 'name-vip' && root.child('v2/profiles').child($uid).child('inventory/name-vip').exists())"
+              ".validate": "newData.val() === 'default' || (newData.val() === 'name-vip' && root.child('v2/profiles').child($uid).child('inventory/name-vip').exists()) || (newData.val() === 'name-rainbow' && root.child('v2/profiles').child($uid).child('inventory/name-rainbow').exists()) || (newData.val() === 'name-royal' && root.child('v2/profiles').child($uid).child('inventory/name-royal').exists())"
+            },
+            "avatar": {
+              ".validate": "newData.val() === 'default' || newData.val() === 'avatar-ball' || newData.val() === 'avatar-smile' || newData.val() === 'avatar-star' || newData.val() === 'avatar-clover' || newData.val() === 'avatar-crown' || (newData.val() === 'avatar-gold-crown' && root.child('v2/profiles').child($uid).child('inventory/avatar-gold-crown').exists()) || (newData.val() === 'avatar-disco' && root.child('v2/profiles').child($uid).child('inventory/avatar-disco').exists()) || (newData.val() === 'avatar-fire' && root.child('v2/profiles').child($uid).child('inventory/avatar-fire').exists()) || (newData.val() === 'avatar-diamond' && root.child('v2/profiles').child($uid).child('inventory/avatar-diamond').exists()) || (newData.val() === 'avatar-skull' && root.child('v2/profiles').child($uid).child('inventory/avatar-skull').exists()) || (newData.val() === 'avatar-jackpot' && root.child('v2/profiles').child($uid).child('inventory/avatar-jackpot').exists()) || (newData.val() === 'avatar-sassy' && root.child('v2/profiles').child($uid).child('inventory/avatar-sassy').exists())"
             }
           },
           "achievements": {

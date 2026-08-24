@@ -1,7 +1,7 @@
 import { auth,database } from "./firebase.js";
 import { onAuthStateChanged,signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { ref,get,set,update,onValue,runTransaction,push,remove,onDisconnect } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-import { SHOP_ITEMS,ACHIEVEMENTS } from "./catalog.js";
+import { SHOP_ITEMS,ACHIEVEMENTS,AVATARS } from "./catalog.js";
 import { BLANK,validWin } from "./game-engine.js";
 
 const $=id=>document.getElementById(id);
@@ -39,6 +39,7 @@ function applyCosmetics() {
   const theme = profile?.cosmetics?.theme || "default";
   const nameEffect = profile?.cosmetics?.nameEffect || "default";
   const effect = profile?.cosmetics?.effect || "default";
+  const avatar = profile?.cosmetics?.avatar || "avatar-ball";
 
   document.body.dataset.dabber = dabber;
   document.body.dataset.theme = theme;
@@ -57,17 +58,26 @@ function applyCosmetics() {
   $("equippedDabber").textContent = cosmeticName(dabber);
   $("equippedTheme").textContent = cosmeticName(theme);
   $("equippedNameEffect").textContent = cosmeticName(nameEffect);
+  $("equippedAvatar").textContent = cosmeticName(avatar);
+  const avatarItem=AVATARS.find(item=>item.id===avatar)||AVATARS[0];
+  $("profileAvatar").textContent=avatarItem?.icon||"🎱";
+  $("profileAvatar").dataset.avatar=avatar;
 }
 
 function fireConfettiCannons() {
-  if (profile?.cosmetics?.effect !== "confetti-party") return;
+  if (!["confetti-party","effect-fireworks","effect-coin-rain"].includes(profile?.cosmetics?.effect)) return;
 
   const layer = $("confettiLayer");
   if (!layer) return;
 
   layer.innerHTML = "";
   const pieces = 90;
-  const symbols = ["●", "■", "▲", "★"];
+  const effect=profile?.cosmetics?.effect;
+  const symbols=effect==="effect-fireworks"
+    ? ["✨","💥","🎆","★"]
+    : effect==="effect-coin-rain"
+      ? ["🪙","💰","🪙","✨"]
+      : ["●","■","▲","★"];
 
   for (let i = 0; i < pieces; i++) {
     const piece = document.createElement("span");
@@ -160,7 +170,6 @@ function drawProfile(){
   $("menuCoinBalance").textContent=coins(profile.coins);
   $("profileName").textContent=profile.username;
   $("profileEmail").textContent=profile.email||"";
-  $("profileInitial").textContent=(profile.username||"?")[0].toUpperCase();
   $("gamesPlayed").textContent=profile.stats?.gamesPlayed||0;
   $("winsCount").textContent=profile.stats?.wins||0;
   $("fullHouseCount").textContent=profile.stats?.fullHouses||0;
@@ -171,7 +180,7 @@ function drawShop(){
   $("shopList").innerHTML="";
 
   SHOP_ITEMS.forEach(item=>{
-    const owned=Boolean(profile?.inventory?.[item.id]);
+    const owned=item.price===0 || Boolean(profile?.inventory?.[item.id]);
     const equipped = Object.values(profile?.cosmetics || {}).includes(item.id);
 
     const row=document.createElement("div");
@@ -202,7 +211,8 @@ async function equipItem(item){
     dabber: "dabber",
     theme: "theme",
     effect: "effect",
-    nameEffect: "nameEffect"
+    nameEffect: "nameEffect",
+    avatar: "avatar"
   };
 
   const key = map[item.type];
@@ -254,7 +264,8 @@ function drawLeaderboard(data){
   $("leaderboardList").innerHTML="";
   entries.forEach((p,i)=>{
     const row=document.createElement("div");row.className="leader-row";
-    row.innerHTML=`<strong>${i+1}</strong><div><b>${p.username||"Player"}</b><small>${p.stats?.wins||0} wins</small></div><span>${coins(p.lifetimeCoins)} 🪙</span>`;
+    const avatar=AVATARS.find(a=>a.id===(p.avatar||"avatar-ball"))||AVATARS[0];
+    row.innerHTML=`<strong>${i+1}</strong><span class="mini-avatar">${avatar?.icon||"🎱"}</span><div><b>${p.username||"Player"}</b><small>${p.stats?.wins||0} wins</small></div><span>${coins(p.lifetimeCoins)} 🪙</span>`;
     $("leaderboardList").appendChild(row);
   });
 }
@@ -482,7 +493,10 @@ onAuthStateChanged(auth,async u=>{
     if(key===previousWinnerKey)return;
     previousWinnerKey=key;
 
-    const names=winners.map(w=>w.name||"Player");
+    const names=winners.map(w=>{
+      const av=AVATARS.find(a=>a.id===(w.avatar||"avatar-ball"))||AVATARS[0];
+      return `${av?.icon||"🎱"} ${w.name||"Player"}`;
+    });
     const reward=st==="one-line"?100:st==="two-lines"?200:500;
     const localWinner=winners.some(w=>w.uid===user.uid);
 

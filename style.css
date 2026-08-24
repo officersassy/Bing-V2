@@ -1721,3 +1721,49 @@ body.cosmetic-theme-neon .v2-cell.marked {
   font-size: .74rem;
   line-height: 1.4;
 }
+
+
+/* ===== V2.1 AVATARS + STORE EXPANSION ===== */
+.profile-avatar{
+  display:grid!important;place-items:center;font-size:2.2rem!important;
+  width:78px!important;height:78px!important;border-radius:50%!important;
+  margin:0 auto 10px!important;
+}
+.profile-avatar[data-avatar="avatar-gold-crown"],
+.profile-avatar[data-avatar="avatar-diamond"],
+.profile-avatar[data-avatar="avatar-sassy"]{
+  box-shadow:0 0 14px rgba(250,204,21,.8),0 0 32px rgba(168,85,247,.55)!important;
+  animation:avatarPremiumPulse 1.8s ease-in-out infinite alternate;
+}
+.profile-avatar[data-avatar="avatar-disco"],
+.profile-avatar[data-avatar="avatar-fire"],
+.profile-avatar[data-avatar="avatar-skull"],
+.profile-avatar[data-avatar="avatar-jackpot"]{
+  box-shadow:0 0 14px rgba(56,189,248,.75),0 0 30px rgba(244,63,94,.45)!important;
+}
+@keyframes avatarPremiumPulse{to{transform:scale(1.06);filter:brightness(1.2)}}
+.mini-avatar{font-size:1.45rem;line-height:1;filter:drop-shadow(0 0 5px rgba(255,255,255,.25))}
+.shop-item{position:relative}
+.shop-item:has(.shop-icon){overflow:hidden}
+
+/* New dabbers */
+body[data-dabber="dabber-pink"] .v2-cell.marked{background:linear-gradient(145deg,#db2777,#fb7185)!important}
+body[data-dabber="dabber-green"] .v2-cell.marked{background:linear-gradient(145deg,#15803d,#4ade80)!important;color:#07140b!important}
+
+/* Luxury themes */
+body[data-theme="theme-gold"] .ticket-panel{border:2px solid #facc15!important;box-shadow:0 0 18px rgba(250,204,21,.8),0 0 48px rgba(245,158,11,.45)!important}
+body[data-theme="theme-fire"] .ticket-panel{border:2px solid #fb7185!important;box-shadow:0 0 18px rgba(239,68,68,.9),0 0 55px rgba(249,115,22,.55)!important;animation:fireCardPulse 1.5s ease-in-out infinite alternate}
+body[data-theme="theme-rainbow"] .ticket-panel{border:2px solid #fff!important;animation:rainbowCard 3s linear infinite}
+@keyframes fireCardPulse{to{box-shadow:0 0 25px rgba(239,68,68,1),0 0 75px rgba(249,115,22,.75)}}
+@keyframes rainbowCard{0%{box-shadow:0 0 38px #ef4444}25%{box-shadow:0 0 38px #eab308}50%{box-shadow:0 0 38px #22c55e}75%{box-shadow:0 0 38px #3b82f6}100%{box-shadow:0 0 38px #a855f7}}
+
+/* New name effects */
+body[data-name-effect="name-rainbow"] #welcomeName,
+body[data-name-effect="name-rainbow"] #profileName{
+  background:linear-gradient(90deg,#f87171,#facc15,#4ade80,#38bdf8,#c084fc);
+  background-size:250% auto;-webkit-background-clip:text;background-clip:text;color:transparent!important;
+  animation:nameRainbow 2.5s linear infinite;
+}
+body[data-name-effect="name-royal"] #welcomeName,
+body[data-name-effect="name-royal"] #profileName{color:#fde68a!important;text-shadow:0 0 8px #facc15,0 0 22px #a855f7!important}
+@keyframes nameRainbow{to{background-position:250% center}}

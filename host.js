@@ -2,7 +2,7 @@ import { auth,database } from "./firebase.js";
 import { onAuthStateChanged,signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { ref,get,set,update,onValue,push,runTransaction,remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { create75Card,create90Card,shuffle,missingCount,validWin,createBalanced90Draw } from "./game-engine.js";
-import { SHOP_ITEMS } from "./catalog.js";
+import { SHOP_ITEMS,AVATARS } from "./catalog.js";
 
 const $=id=>document.getElementById(id);
 let host=null,profiles={},lobby={},selectedUid=null,game={},called=[],hostDrawOrder=[];
@@ -65,7 +65,8 @@ function drawPlayers(){
     .forEach(([uid,p])=>{
       const row=document.createElement("button");
       row.className=`host-player-row ${uid===selectedUid?"selected":""}`;
-      row.innerHTML=`<div><strong>${p.username}</strong><small>${p.email}</small></div><b>${Number(p.coins||0).toLocaleString("en-GB")} 🪙</b>`;
+      const av=AVATARS.find(a=>a.id===(p.cosmetics?.avatar||"avatar-ball"))||AVATARS[0];
+      row.innerHTML=`<span class="mini-avatar">${av?.icon||"🎱"}</span><div><strong>${p.username}</strong><small>${p.email||"Username account"}</small></div><b>${Number(p.coins||0).toLocaleString("en-GB")} 🪙</b>`;
       row.onclick=()=>{selectedUid=uid;drawPlayers();drawEconomy();};
       $("hostPlayerList").appendChild(row);
     });
@@ -108,9 +109,10 @@ async function award(amount,reason,targetUid=selectedUid){
 
   const profile=result.snapshot.val()||{};
 
-  if(Number(profile.lifetimeCoins||0)>=1000){
-    await set(ref(database,`v2/profiles/${targetUid}/achievements/coin-1000`),Date.now());
-  }
+  const lifetime=Number(profile.lifetimeCoins||0);
+  if(lifetime>=1000) await set(ref(database,`v2/profiles/${targetUid}/achievements/coin-1000`),Date.now());
+  if(lifetime>=2500) await set(ref(database,`v2/profiles/${targetUid}/achievements/coin-2500`),Date.now());
+  if(lifetime>=5000) await set(ref(database,`v2/profiles/${targetUid}/achievements/coin-5000`),Date.now());
 
   return true;
 }
@@ -390,6 +392,31 @@ async function kickSelectedPlayer(){
 $("resetLeaderboardButton").onclick = resetLeaderboard;
 $("kickSelectedPlayerButton").onclick = kickSelectedPlayer;
 
+
+async function evaluateMilestoneAchievements(uid,p){
+  if(!p)return;
+  const games=Number(p.stats?.gamesPlayed||0);
+  const wins=Number(p.stats?.wins||0);
+  const houses=Number(p.stats?.fullHouses||0);
+  const lifetime=Number(p.lifetimeCoins||0);
+  const unlocks={};
+  const now=Date.now();
+
+  if(games>=10)unlocks["games-10"]=now;
+  if(games>=25)unlocks["games-25"]=now;
+  if(wins>=10)unlocks["ten-wins"]=now;
+  if(wins>=25)unlocks["wins-25"]=now;
+  if(houses>=5)unlocks["fullhouse-5"]=now;
+  if(lifetime>=2500)unlocks["coin-2500"]=now;
+  if(lifetime>=5000)unlocks["coin-5000"]=now;
+
+  for(const [id,time] of Object.entries(unlocks)){
+    if(!p.achievements?.[id]){
+      await set(ref(database,`v2/profiles/${uid}/achievements/${id}`),time);
+    }
+  }
+}
+
 onAuthStateChanged(auth,async u=>{
   if(!u){location.href="./index.html";return;}host=u;
   const a=await get(ref(database,`v2/admins/${u.uid}`));if(!a.exists()||a.val()!==true){$("hostDenied").classList.remove("hidden");return;}
@@ -403,9 +430,11 @@ onAuthStateChanged(auth,async u=>{
     Object.entries(profiles).forEach(([uid,p])=>{
       updates[`v2/publicProfiles/${uid}`]={
         username:p.username||"Player",
+        avatar:p.cosmetics?.avatar||"avatar-ball",
         lifetimeCoins:Number(p.lifetimeCoins||0),
         stats:p.stats||{gamesPlayed:0,wins:0,fullHouses:0}
       };
+      evaluateMilestoneAchievements(uid,p);
     });
 
     if(Object.keys(updates).length){
@@ -443,6 +472,7 @@ onAuthStateChanged(auth,async u=>{
       verifiedMap[w.uid]={
         uid:w.uid,
         name:profiles[w.uid]?.username||w.name||"Player",
+        avatar:profiles[w.uid]?.cosmetics?.avatar||"avatar-ball",
         stage,
         verifiedAt:Date.now()
       };
@@ -487,16 +517,18 @@ onAuthStateChanged(auth,async u=>{
 
       await set(ref(database,`v2/profiles/${w.uid}/achievements/first-win`),Date.now());
 
-      if(wins>=5){
-        await set(ref(database,`v2/profiles/${w.uid}/achievements/five-wins`),Date.now());
-      }
+      if(wins>=5) await set(ref(database,`v2/profiles/${w.uid}/achievements/five-wins`),Date.now());
+      if(wins>=10) await set(ref(database,`v2/profiles/${w.uid}/achievements/ten-wins`),Date.now());
+      if(wins>=25) await set(ref(database,`v2/profiles/${w.uid}/achievements/wins-25`),Date.now());
 
       if(stage==="full-house"){
-        await runTransaction(
+        const houseResult=await runTransaction(
           ref(database,`v2/profiles/${w.uid}/stats/fullHouses`),
           value=>Number(value||0)+1
         );
+        const houses=Number(houseResult.snapshot.val()||0);
         await set(ref(database,`v2/profiles/${w.uid}/achievements/full-house`),Date.now());
+        if(houses>=5) await set(ref(database,`v2/profiles/${w.uid}/achievements/fullhouse-5`),Date.now());
       }
     }
   });
