@@ -1,0 +1,33 @@
+GENERAL SASSY BINGO V2 — AUTOMATED AUDIT
+
+Found and fixed:
+1. 90-ball pacing had regressed to pure random. Balanced Quick/Standard/Slow drum restored.
+2. Host lobby counted every registered account, including offline accounts. Live lobby/presence added.
+3. Offline accounts were receiving cards and games-played stats. Now only live lobby players do.
+4. Players joining mid-round could see a live round with no card. They now wait for the next round.
+5. Draw order was readable by every authenticated player. It is now stored in admin-only adminState.
+6. Every player's private card was readable because V2 had a broad root read rule. Game cards are now self/admin only.
+7. Player winner popup trusted raw submitted claims. It now displays host-verified winners only.
+8. First winner could close Progressive before tied players claimed. A 5-second tie claim window is now supported.
+9. Failed coin deductions could still create a transaction record. Transactions now log only after a committed balance change.
+10. Shop purchases attempted to modify protected coin balances directly. They now use purchase requests processed by the admin host.
+11. Inventory could be edited directly by players. It is now admin-only.
+12. Players could equip cosmetics they had not bought. Rules now validate equipped cosmetics against owned inventory.
+13. Five-wins and 1,000-lifetime-coins achievements existed but never unlocked. They are now awarded.
+14. 75-ball Two Lines mode was missing. It has been restored.
+
+Automated tests:
+- JavaScript syntax validation
+- HTML/JS element ID checks
+- 100,000 75-ball cards validated
+- 100,000 90-ball cards validated
+- One Line / Two Lines / Full House win checks validated
+- 90-ball timing simulations run for 1 / 5 / 10 / 20 player rooms
+
+Limit:
+A true live Firebase deployment across real browsers/phones cannot be completely emulated here.
+The build still needs one short real-device smoke test after publishing the updated Firebase rules.
+
+Additional hardening:
+- Public leaderboard rows can now only be written by the admin host.
+- Progressive Continue button is locally locked during the 5-second tie window, even before Firebase state round-trips back to the host UI.

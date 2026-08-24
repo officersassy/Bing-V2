@@ -16,12 +16,14 @@ async function ensureProfile(user,name=""){
   if(snap.exists()) return;
   const clean=(name||user.email?.split("@")[0]||"Player").trim().slice(0,24);
   const now=Date.now();
-  await set(pRef,{
+  const profile={
     uid:user.uid,username:clean,email:user.email||"",coins:25,lifetimeCoins:25,role:"player",
     createdAt:now,updatedAt:now,stats:{gamesPlayed:0,wins:0,fullHouses:0},
-    cosmetics:{dabber:"default",theme:"default",nameEffect:"default"},
+    cosmetics:{dabber:"default",theme:"default",nameEffect:"default",effect:"default"},
     inventory:{},achievements:{"account-created":now}
-  });
+  };
+
+  await set(pRef,profile);
 }
 
 loginForm.onsubmit=async e=>{

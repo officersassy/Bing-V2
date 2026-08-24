@@ -1,41 +1,74 @@
 import { auth,database } from "./firebase.js";
 import { onAuthStateChanged,signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { ref,get,set,update,onValue,push,runTransaction,remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-import { create75Card,create90Card,shuffle,missingCount,validWin } from "./game-engine.js";
+import { create75Card,create90Card,shuffle,missingCount,validWin,createBalanced90Draw } from "./game-engine.js";
+import { SHOP_ITEMS } from "./catalog.js";
 
 const $=id=>document.getElementById(id);
-let host=null,profiles={},selectedUid=null,game={},called=[];
+let host=null,profiles={},lobby={},selectedUid=null,game={},called=[],hostDrawOrder=[];
+const TIE_WINDOW_MS=5000;
 let currentStageWinners=[];
+let localTieLockUntil=0;
+let tieButtonTimer=null;
 
 function stageName(s){return({"one-line":"One Line","two-lines":"Two Lines","full-house":"Full House"})[s]||s;}
-function currentStage(){return game.mode==="90-progressive"?(game.stage||"one-line"):(game.mode==="90-full-house"?"full-house":"one-line");}
+function currentStage(){
+  if(game.mode==="90-progressive")return game.stage||"one-line";
+  if(game.mode==="90-full-house")return "full-house";
+  if(game.mode==="75-two-lines")return "two-lines";
+  return "one-line";
+}
 function maxBall(){return game.mode?.startsWith("90")?90:75;}
 function displayCall(n){if(game.mode?.startsWith("90"))return String(n);return `${n<=15?"B":n<=30?"I":n<=45?"N":n<=60?"G":"O"} ${n}`;}
 
-async function createCardsForPlayers(mode){
+async function createCardsForPlayers(mode,activeUids,roundId){
   const updates={};
-  Object.keys(profiles).forEach(uid=>{
-    updates[`v2/gamePlayers/${uid}`]={card:mode.startsWith("90")?create90Card():create75Card(),marked:[],roundId:game.roundId||null};
+  const cards=[];
+
+  activeUids.forEach(uid=>{
+    const card=mode.startsWith("90")?create90Card():create75Card();
+    cards.push(card);
+    updates[`v2/gamePlayers/${uid}`]={card,marked:[],roundId};
   });
+
+  // Remove stale game cards for accounts that are not in this live lobby.
+  Object.keys(window.gamePlayers||{}).forEach(uid=>{
+    if(!activeUids.includes(uid)){
+      updates[`v2/gamePlayers/${uid}`]=null;
+    }
+  });
+
   await update(ref(database),updates);
+  return cards;
 }
 function drawHost(){
   $("hostGameStatus").textContent=(game.status||"waiting").toUpperCase();
   $("hostCurrentCall").textContent=game.currentCall||"--";
-  $("hostPlayersCount").textContent=Object.keys(profiles).length;
+  $("hostPlayersCount").textContent=activePlayerEntries().length;
   $("hostCalledCount").textContent=called.length;
   $("hostStage").textContent=stageName(currentStage());
   $("hostCalledNumbers").innerHTML="";
   called.slice().reverse().forEach(n=>{const e=document.createElement("span");e.textContent=displayCall(n);$("hostCalledNumbers").appendChild(e);});
 }
+function activePlayerEntries(){
+  return Object.keys(lobby)
+    .map(uid=>[uid,profiles[uid]])
+    .filter(([,profile])=>Boolean(profile));
+}
+
 function drawPlayers(){
   const q=$("playerSearch").value.toLowerCase();
   $("hostPlayerList").innerHTML="";
-  Object.entries(profiles).filter(([,p])=>!q||p.username?.toLowerCase().includes(q)||p.email?.toLowerCase().includes(q)).forEach(([uid,p])=>{
-    const row=document.createElement("button");row.className=`host-player-row ${uid===selectedUid?"selected":""}`;
-    row.innerHTML=`<div><strong>${p.username}</strong><small>${p.email}</small></div><b>${Number(p.coins||0).toLocaleString("en-GB")} 🪙</b>`;
-    row.onclick=()=>{selectedUid=uid;drawPlayers();drawEconomy();};$("hostPlayerList").appendChild(row);
-  });
+
+  activePlayerEntries()
+    .filter(([,p])=>!q||p.username?.toLowerCase().includes(q)||p.email?.toLowerCase().includes(q))
+    .forEach(([uid,p])=>{
+      const row=document.createElement("button");
+      row.className=`host-player-row ${uid===selectedUid?"selected":""}`;
+      row.innerHTML=`<div><strong>${p.username}</strong><small>${p.email}</small></div><b>${Number(p.coins||0).toLocaleString("en-GB")} 🪙</b>`;
+      row.onclick=()=>{selectedUid=uid;drawPlayers();drawEconomy();};
+      $("hostPlayerList").appendChild(row);
+    });
 }
 function drawEconomy(){
   const p=profiles[selectedUid];
@@ -52,13 +85,34 @@ function drawEconomy(){
   $("economyControls").classList.remove("hidden");
   $("kickSelectedPlayerButton").classList.remove("hidden");
 }
-async function award(amount,reason){
-  if(!selectedUid)return;
-  await runTransaction(ref(database,`v2/profiles/${selectedUid}`),p=>{
-    if(!p)return p; const next=Number(p.coins||0)+amount;if(next<0)return;
-    p.coins=next;if(amount>0)p.lifetimeCoins=Number(p.lifetimeCoins||0)+amount;p.updatedAt=Date.now();return p;
+async function award(amount,reason,targetUid=selectedUid){
+  if(!targetUid)return false;
+
+  const result=await runTransaction(ref(database,`v2/profiles/${targetUid}`),p=>{
+    if(!p)return;
+    const next=Number(p.coins||0)+amount;
+    if(next<0)return;
+
+    p.coins=next;
+    if(amount>0)p.lifetimeCoins=Number(p.lifetimeCoins||0)+amount;
+    p.updatedAt=Date.now();
+    return p;
   });
-  await set(push(ref(database,`v2/transactions/${selectedUid}`)),{amount,reason,createdAt:Date.now(),createdBy:host.uid});
+
+  if(!result.committed)return false;
+
+  await set(push(ref(database,`v2/transactions/${targetUid}`)),{
+    amount,reason,createdAt:Date.now(),createdBy:host.uid,
+    type:amount>=0?"award":"deduction"
+  });
+
+  const profile=result.snapshot.val()||{};
+
+  if(Number(profile.lifetimeCoins||0)>=1000){
+    await set(ref(database,`v2/profiles/${targetUid}/achievements/coin-1000`),Date.now());
+  }
+
+  return true;
 }
 document.querySelectorAll("[data-reward]").forEach(b=>b.onclick=()=>award(Number(b.dataset.reward),b.dataset.reason));
 
@@ -106,19 +160,65 @@ $("hostLogoutButton").onclick=async()=>{await signOut(auth);location.href="./ind
 
 $("openGameButton").onclick=async()=>{await update(ref(database,"v2/game"),{status:"joining"});};
 $("startGameButton").onclick=async()=>{
-  const mode=$("hostGameMode").value,roundId=`round-${Date.now()}`;
+  const mode=$("hostGameMode").value;
+  const roundId=`round-${Date.now()}`;
+  const activeUids=activePlayerEntries().map(([uid])=>uid);
+
+  if(!activeUids.length){
+    alert("No active players are in the lobby.");
+    return;
+  }
+
   game={mode,roundId,stage:"one-line"};
-  await set(ref(database,"v2/game"),{mode,roundId,stage:"one-line",status:"playing",currentCall:"",called:{},drawOrder:shuffle(mode.startsWith("90")?90:75),startedAt:Date.now()});
-  await createCardsForPlayers(mode);
-  for(const uid of Object.keys(profiles)){
+  localTieLockUntil=0;
+  const cards=await createCardsForPlayers(mode,activeUids,roundId);
+
+  const draw=mode.startsWith("90")
+    ? createBalanced90Draw(cards)
+    : {order:shuffle(75),profile:"random"};
+
+  hostDrawOrder=draw.order;
+
+  await set(ref(database,"v2/adminState"),{
+    roundId,
+    drawOrder:draw.order,
+    paceProfile:draw.profile
+  });
+
+  await set(ref(database,"v2/game"),{
+    mode,
+    roundId,
+    stage:"one-line",
+    status:"playing",
+    currentCall:"",
+    called:{},
+    startedAt:Date.now(),
+    stageWinnerAt:null,
+    claimWindowClosesAt:null
+  });
+
+  await remove(ref(database,`v2/verifiedWinners/${roundId}`));
+
+  for(const uid of activeUids){
     await runTransaction(ref(database,`v2/profiles/${uid}/stats/gamesPlayed`),v=>Number(v||0)+1);
     await set(ref(database,`v2/profiles/${uid}/achievements/first-game`),Date.now());
   }
 };
 $("callNumberButton").onclick=async()=>{
-  if(game.status!=="playing")return; const order=game.drawOrder||[]; if(called.length>=order.length)return;
-  const n=Number(order[called.length]);
-  await update(ref(database,"v2/game"),{currentCall:displayCall(n),[`called/${called.length}`]:n});
+  if(game.status!=="playing")return;
+
+  if(!hostDrawOrder.length){
+    const drawSnap=await get(ref(database,"v2/adminState/drawOrder"));
+    hostDrawOrder=drawSnap.val()||[];
+  }
+
+  if(called.length>=hostDrawOrder.length)return;
+
+  const n=Number(hostDrawOrder[called.length]);
+  await update(ref(database,"v2/game"),{
+    currentCall:displayCall(n),
+    [`called/${called.length}`]:n
+  });
 };
 $("resetGameButton").onclick=async()=>{if(confirm("Reset the current round?"))await set(ref(database,"v2/game"),{status:"joining"});};
 
@@ -146,19 +246,52 @@ function renderHostWinners(stage,winners){
 
   const progressive=game.mode==="90-progressive"&&stage!=="full-house";
   $("continueStageButton").classList.toggle("hidden",!progressive);
-  $("continueStageButton").textContent=
-    stage==="one-line"?"Continue to Two Lines":"Continue to Full House";
+
+  if(tieButtonTimer){
+    clearTimeout(tieButtonTimer);
+    tieButtonTimer=null;
+  }
+
+  if(progressive){
+    const firebaseClose=Number(game.claimWindowClosesAt||0);
+    const closeAt=Math.max(firebaseClose,localTieLockUntil);
+    const remaining=Math.max(0,closeAt-Date.now());
+
+    if(remaining>0){
+      $("continueStageButton").disabled=true;
+      $("continueStageButton").textContent="Collecting tied claims…";
+      tieButtonTimer=setTimeout(()=>{
+        $("continueStageButton").disabled=false;
+        $("continueStageButton").textContent=
+          stage==="one-line"?"Continue to Two Lines":"Continue to Full House";
+        tieButtonTimer=null;
+      },remaining);
+    }else{
+      $("continueStageButton").disabled=false;
+      $("continueStageButton").textContent=
+        stage==="one-line"?"Continue to Two Lines":"Continue to Full House";
+    }
+  }
 }
 
 $("continueStageButton").onclick=async()=>{
   const st=currentStage();
   if(game.mode!=="90-progressive"||st==="full-house")return;
 
+  const tieClose=Math.max(Number(game.claimWindowClosesAt||0),localTieLockUntil);
+  if(tieClose>Date.now()){
+    alert("Still collecting tied Bingo claims for a few seconds.");
+    return;
+  }
+
   const next=st==="one-line"?"two-lines":"full-house";
 
+  localTieLockUntil=0;
   await update(ref(database,"v2/game"),{
     stage:next,
-    status:"playing"
+    status:"playing",
+    stageWinnerAt:null,
+    claimWindowClosesAt:null
   });
 };
 
@@ -247,6 +380,7 @@ async function kickSelectedPlayer(){
   });
 
   await set(ref(database,`v2/gamePlayers/${uid}`),null);
+  await set(ref(database,`v2/lobby/${uid}`),null);
 
   selectedUid = null;
   drawPlayers();
@@ -260,45 +394,172 @@ onAuthStateChanged(auth,async u=>{
   if(!u){location.href="./index.html";return;}host=u;
   const a=await get(ref(database,`v2/admins/${u.uid}`));if(!a.exists()||a.val()!==true){$("hostDenied").classList.remove("hidden");return;}
   $("hostDashboard").classList.remove("hidden");
-  onValue(ref(database,"v2/profiles"),s=>{profiles=s.val()||{};drawPlayers();drawEconomy();});
+  onValue(ref(database,"v2/profiles"),async s=>{
+    profiles=s.val()||{};
+    drawPlayers();
+    drawEconomy();
+
+    const updates={};
+    Object.entries(profiles).forEach(([uid,p])=>{
+      updates[`v2/publicProfiles/${uid}`]={
+        username:p.username||"Player",
+        lifetimeCoins:Number(p.lifetimeCoins||0),
+        stats:p.stats||{gamesPlayed:0,wins:0,fullHouses:0}
+      };
+    });
+
+    if(Object.keys(updates).length){
+      await update(ref(database),updates);
+    }
+  });
+  onValue(ref(database,"v2/lobby"),s=>{lobby=s.val()||{};drawPlayers();drawHost();});
+  onValue(ref(database,"v2/adminState/drawOrder"),s=>{hostDrawOrder=s.val()||[];});
   onValue(ref(database,"v2/game"),s=>{game=s.val()||{};called=Object.values(game.called||{}).map(Number);drawHost();drawNear();});
   onValue(ref(database,"v2/gamePlayers"),s=>{window.gamePlayers=s.val()||{};drawNear();});
   onValue(ref(database,"v2/claims"),async s=>{
-    const claims=s.val()||{},rid=game.roundId,stage=currentStage();const stageClaims=claims?.[rid]?.[stage]||{};
+    const claims=s.val()||{};
+    const rid=game.roundId;
+    const stage=currentStage();
+    const stageClaims=claims?.[rid]?.[stage]||{};
     const submitted=Object.values(stageClaims);
 
-    // Never trust a player claim by itself. Re-check the claimed card against
-    // the authoritative called numbers before displaying or rewarding it.
     const winners=submitted.filter(w=>{
       const gp=window.gamePlayers?.[w.uid];
-      if(!gp || !Array.isArray(gp.card)) return false;
+
+      if(!gp || gp.roundId!==rid || !Array.isArray(gp.card))return false;
 
       return validWin(
         gp.card,
-        gp.marked || [],
+        gp.marked||[],
         called,
         game.mode,
         stage
       );
     });
 
+    // Only host-verified winners are published to player devices.
+    const verifiedMap={};
+    winners.forEach(w=>{
+      verifiedMap[w.uid]={
+        uid:w.uid,
+        name:profiles[w.uid]?.username||w.name||"Player",
+        stage,
+        verifiedAt:Date.now()
+      };
+    });
+
+    await set(ref(database,`v2/verifiedWinners/${rid}/${stage}`),verifiedMap||{});
+
+    if(winners.length && !game.stageWinnerAt && localTieLockUntil<=Date.now()){
+      localTieLockUntil=Date.now()+TIE_WINDOW_MS;
+    }
+
     renderHostWinners(stage,winners);
+
     if(!winners.length)return;
+
+    // First genuine winner freezes calling but opens a short tie window.
+    if(!game.stageWinnerAt){
+      const now=Date.now();
+      await update(ref(database,"v2/game"),{
+        status:stage==="full-house"||game.mode!=="90-progressive"?"winner":"stage-winner",
+        stageWinnerAt:now,
+        claimWindowClosesAt:now+TIE_WINDOW_MS
+      });
+    }
+
     for(const w of winners){
       const reward=stage==="one-line"?100:stage==="two-lines"?200:500;
       const rewardKey=`${rid}-${stage}`;
       const already=await get(ref(database,`v2/rewards/${w.uid}/${rewardKey}`));
+
       if(already.exists())continue;
+
       await set(ref(database,`v2/rewards/${w.uid}/${rewardKey}`),true);
-      selectedUid=w.uid;await award(reward,`${stageName(stage)} Win`);
-      await runTransaction(ref(database,`v2/profiles/${w.uid}/stats/wins`),v=>Number(v||0)+1);
+      await award(reward,`${stageName(stage)} Win`,w.uid);
+
+      const winsResult=await runTransaction(
+        ref(database,`v2/profiles/${w.uid}/stats/wins`),
+        value=>Number(value||0)+1
+      );
+
+      const wins=Number(winsResult.snapshot.val()||0);
+
       await set(ref(database,`v2/profiles/${w.uid}/achievements/first-win`),Date.now());
-      if(stage==="full-house"){await runTransaction(ref(database,`v2/profiles/${w.uid}/stats/fullHouses`),v=>Number(v||0)+1);await set(ref(database,`v2/profiles/${w.uid}/achievements/full-house`),Date.now());}
+
+      if(wins>=5){
+        await set(ref(database,`v2/profiles/${w.uid}/achievements/five-wins`),Date.now());
+      }
+
+      if(stage==="full-house"){
+        await runTransaction(
+          ref(database,`v2/profiles/${w.uid}/stats/fullHouses`),
+          value=>Number(value||0)+1
+        );
+        await set(ref(database,`v2/profiles/${w.uid}/achievements/full-house`),Date.now());
+      }
     }
-    await update(ref(database,"v2/game"),{
-      status: stage==="full-house" || game.mode!=="90-progressive"
-        ? "winner"
-        : "stage-winner"
-    });
   });
+  onValue(ref(database,"v2/purchaseRequests"),async snapshot=>{
+    const requests=snapshot.val()||{};
+
+    for(const [uid,userRequests] of Object.entries(requests)){
+      for(const [requestId,request] of Object.entries(userRequests||{})){
+        if(request?.status!=="pending")continue;
+
+        const item=SHOP_ITEMS.find(entry=>entry.id===request.itemId);
+
+        if(!item){
+          await update(ref(database,`v2/purchaseRequests/${uid}/${requestId}`),{
+            status:"rejected",
+            processedAt:Date.now()
+          });
+          continue;
+        }
+
+        const profileRef=ref(database,`v2/profiles/${uid}`);
+
+        const result=await runTransaction(profileRef,current=>{
+          if(!current)return;
+
+          current.inventory=current.inventory||{};
+
+          if(current.inventory[item.id]){
+            return current;
+          }
+
+          if(Number(current.coins||0)<item.price){
+            return;
+          }
+
+          current.coins=Number(current.coins||0)-item.price;
+          current.inventory[item.id]=Date.now();
+          current.updatedAt=Date.now();
+
+          return current;
+        });
+
+        if(result.committed){
+          await set(push(ref(database,`v2/transactions/${uid}`)),{
+            amount:-item.price,
+            reason:`Bought ${item.name}`,
+            createdAt:Date.now(),
+            createdBy:host.uid,
+            type:"purchase"
+          });
+
+          await update(ref(database,`v2/purchaseRequests/${uid}/${requestId}`),{
+            status:"complete",
+            processedAt:Date.now()
+          });
+        }else{
+          await update(ref(database,`v2/purchaseRequests/${uid}/${requestId}`),{
+            status:"rejected",
+            processedAt:Date.now()
+          });
+        }
+      }
+    }
+  });
+
 });

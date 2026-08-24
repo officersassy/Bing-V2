@@ -72,7 +72,9 @@ export function validWin(card, marked, called, mode, stage="one-line") {
 
   if(mode==="75-corners") return [0,4,20,24].every(i=>complete(card[i]));
   const rows=[0,1,2,3,4].map(r=>card.slice(r*5,r*5+5));
-  return rows.some(row=>row.every(complete));
+  const completed=rows.filter(row=>row.every(complete)).length;
+  if(mode==="75-two-lines") return completed>=2;
+  return completed>=1;
 }
 
 export function missingCount(card, marked, called, mode, stage="one-line") {
@@ -91,5 +93,74 @@ export function missingCount(card, marked, called, mode, stage="one-line") {
     return rows[0];
   }
   if(mode==="75-corners") return [0,4,20,24].reduce((s,i)=>s+miss(card[i]),0);
-  return Math.min(...[0,1,2,3,4].map(r=>card.slice(r*5,r*5+5).reduce((s,v)=>s+miss(v),0)));
+  const rows=[0,1,2,3,4].map(r=>card.slice(r*5,r*5+5).reduce((s,v)=>s+miss(v),0)).sort((a,b)=>a-b);
+  if(mode==="75-two-lines") return rows[0]+rows[1];
+  return rows[0];
+}
+
+function card90Milestones(card,order){
+  const position=new Map(order.map((number,index)=>[number,index+1]));
+  const rows=[0,1,2].map(row=>
+    card.slice(row*9,row*9+9).filter(value=>value!==BLANK&&value!=="")
+  );
+
+  const finishes=rows.map(row=>
+    Math.max(...row.map(number=>position.get(Number(number))||90))
+  ).sort((a,b)=>a-b);
+
+  return {
+    oneLine:finishes[0],
+    twoLines:finishes[1],
+    fullHouse:finishes[2]
+  };
+}
+
+function distanceToRange(value,range){
+  if(value<range[0])return range[0]-value;
+  if(value>range[1])return value-range[1];
+  return 0;
+}
+
+export function createBalanced90Draw(cards){
+  const usable=(cards||[]).filter(card=>Array.isArray(card)&&card.length===27);
+
+  if(!usable.length){
+    return {order:shuffle(90),profile:"random"};
+  }
+
+  const roll=Math.random();
+  const profile=
+    roll<.25
+      ? {name:"quick",oneLine:[25,42],twoLines:[45,62],fullHouse:[65,80]}
+      : roll<.75
+        ? {name:"standard",oneLine:[35,52],twoLines:[52,68],fullHouse:[70,84]}
+        : {name:"slow",oneLine:[45,60],twoLines:[60,75],fullHouse:[78,89]};
+
+  let best=shuffle(90);
+  let bestScore=Infinity;
+
+  for(let attempt=0;attempt<3500;attempt+=1){
+    const order=shuffle(90);
+    const milestones=usable.map(card=>card90Milestones(card,order));
+
+    const earliest={
+      oneLine:Math.min(...milestones.map(item=>item.oneLine)),
+      twoLines:Math.min(...milestones.map(item=>item.twoLines)),
+      fullHouse:Math.min(...milestones.map(item=>item.fullHouse))
+    };
+
+    const score=
+      distanceToRange(earliest.oneLine,profile.oneLine)**2+
+      distanceToRange(earliest.twoLines,profile.twoLines)**2+
+      distanceToRange(earliest.fullHouse,profile.fullHouse)**2;
+
+    if(score<bestScore){
+      bestScore=score;
+      best=order;
+    }
+
+    if(score===0)break;
+  }
+
+  return {order:best,profile:profile.name};
 }

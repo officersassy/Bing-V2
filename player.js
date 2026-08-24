@@ -1,11 +1,11 @@
 import { auth,database } from "./firebase.js";
 import { onAuthStateChanged,signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { ref,get,set,update,onValue,runTransaction,push,remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { ref,get,set,update,onValue,runTransaction,push,remove,onDisconnect } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { SHOP_ITEMS,ACHIEVEMENTS } from "./catalog.js";
 import { BLANK,validWin } from "./game-engine.js";
 
 const $=id=>document.getElementById(id);
-let user=null,profile=null,game={},card=[],marked=[],called=[];
+let user=null,profile=null,game={},card=[],marked=[],called=[],playerRoundId=null;
 let previousAchievements = new Set();
 let previousCoinBalance = null;
 let previousWinnerKey = null;
@@ -106,7 +106,7 @@ function showWinnerOverlay(stageLabel, names, reward = 0) {
 $("closeWinnerOverlay").onclick = () => $("winnerOverlay").classList.add("hidden");
 
 function drawWaitingState() {
-  const active = game.status === "playing";
+  const active = game.status === "playing" && playerRoundId === game.roundId && card.length > 0;
 
   $("waitingPanel").classList.toggle("hidden", active);
   $("liveGamePanel").classList.toggle("hidden", !active);
@@ -216,21 +216,29 @@ async function equipItem(item){
   toast("Cosmetic Equipped", item.name, item.icon);
 }
 async function buyItem(item){
-  if(Number(profile.coins||0)<item.price){show("shopMessage","Not enough Sassy Coins.","error");return;}
+  if(Number(profile.coins||0)<item.price){
+    show("shopMessage","Not enough Sassy Coins.","error");
+    return;
+  }
+
   try{
-    const pRef=ref(database,`v2/profiles/${user.uid}`);
-    const result=await runTransaction(pRef,current=>{
-      if(!current||Number(current.coins||0)<item.price)return;
-      current.coins=Number(current.coins||0)-item.price;
-      current.inventory=current.inventory||{};
-      current.inventory[item.id]=Date.now();
-      current.updatedAt=Date.now();
-      return current;
+    const requestRef=push(ref(database,`v2/purchaseRequests/${user.uid}`));
+
+    await set(requestRef,{
+      itemId:item.id,
+      status:"pending",
+      createdAt:Date.now()
     });
-    if(!result.committed){show("shopMessage","Purchase could not be completed.","error");return;}
-    await set(push(ref(database,`v2/transactions/${user.uid}`)),{amount:-item.price,reason:`Bought ${item.name}`,createdAt:Date.now(),type:"purchase"});
-    show("shopMessage",`${item.name} unlocked!`,"success");
-  }catch(e){console.error(e);show("shopMessage","Purchase failed.","error");}
+
+    show(
+      "shopMessage",
+      "Purchase sent to General Sassy's treasury...",
+      "success"
+    );
+  }catch(error){
+    console.error(error);
+    show("shopMessage","Purchase request failed.","error");
+  }
 }
 function drawAchievements(){
   $("achievementList").innerHTML="";
@@ -274,7 +282,12 @@ function drawCard(){
   });
   $("markedCount").textContent=marked.length;
 }
-function stage(){return game.mode==="90-progressive"?(game.stage||"one-line"):(game.mode==="90-full-house"?"full-house":"one-line");}
+function stage(){
+  if(game.mode==="90-progressive")return game.stage||"one-line";
+  if(game.mode==="90-full-house")return "full-house";
+  if(game.mode==="75-two-lines")return "two-lines";
+  return "one-line";
+}
 function stageName(s){return({"one-line":"One Line","two-lines":"Two Lines","full-house":"Full House"})[s]||s;}
 function drawGame(){
   $("gameModeBadge").textContent=(game.mode||"WAITING").replaceAll("-"," ").toUpperCase();
@@ -287,10 +300,41 @@ function drawGame(){
   drawCard();
 }
 async function claim(){
-  if(game.status!=="playing"){show("gameMessage","The round is not active.","error");return;}
-  if(!validWin(card,marked,called,game.mode,stage())){show("gameMessage",`Not a valid ${stageName(stage())} yet.`,"error");return;}
-  await set(ref(database,`v2/claims/${game.roundId}/${stage()}/${user.uid}`),{uid:user.uid,name:profile.username,stage:stage(),claimedAt:Date.now()});
-  show("gameMessage","Bingo claim sent!","success");
+  const tieWindowOpen=
+    ["stage-winner","winner"].includes(game.status) &&
+    Number(game.claimWindowClosesAt||0)>=Date.now();
+
+  if(game.status!=="playing"&&!tieWindowOpen){
+    show("gameMessage","The round is not accepting Bingo claims.","error");
+    return;
+  }
+
+  if(playerRoundId!==game.roundId){
+    show("gameMessage","You are waiting for the next round.","error");
+    return;
+  }
+
+  if(!validWin(card,marked,called,game.mode,stage())){
+    show("gameMessage",`Not a valid ${stageName(stage())} yet.`,"error");
+    return;
+  }
+
+  try{
+    await set(
+      ref(database,`v2/claims/${game.roundId}/${stage()}/${user.uid}`),
+      {
+        uid:user.uid,
+        name:profile.username,
+        stage:stage(),
+        claimedAt:Date.now()
+      }
+    );
+
+    show("gameMessage","Bingo claim sent!","success");
+  }catch(error){
+    console.error(error);
+    show("gameMessage","Your claim could not be submitted.","error");
+  }
 }
 $("claimBingoButton").onclick=claim;
 
@@ -340,6 +384,13 @@ $("saveNameButton").onclick=async()=>{
 
 onAuthStateChanged(auth,async u=>{
   if(!u){location.href="./index.html";return;} user=u;
+  const lobbyRef=ref(database,`v2/lobby/${u.uid}`);
+  await set(lobbyRef,{
+    online:true,
+    joinedAt:Date.now()
+  });
+  onDisconnect(lobbyRef).remove();
+
   const adminSnap = await get(ref(database,`v2/admins/${u.uid}`));
   if (adminSnap.exists() && adminSnap.val() === true) {
     $("hostPanelButton").classList.remove("hidden");
@@ -357,15 +408,34 @@ onAuthStateChanged(auth,async u=>{
     drawShop();
     drawAchievements();
   });
-  onValue(ref(database,"v2/profiles"),s=>drawLeaderboard(s.val()||{}));
+  onValue(ref(database,"v2/publicProfiles"),s=>drawLeaderboard(s.val()||{}));
   onValue(ref(database,"v2/game"),async s=>{
     game=s.val()||{};
     called=Object.values(game.called||{}).map(Number);
     const gp=await get(ref(database,`v2/gamePlayers/${u.uid}`));
-    if(gp.exists()){card=gp.val().card||[];marked=gp.val().marked||[];}
+    if(gp.exists()){
+      card=gp.val().card||[];
+      marked=gp.val().marked||[];
+      playerRoundId=gp.val().roundId||null;
+    }else{
+      card=[];
+      marked=[];
+      playerRoundId=null;
+    }
     drawGame();
   });
-  onValue(ref(database,`v2/gamePlayers/${u.uid}`),s=>{if(s.exists()){card=s.val().card||[];marked=s.val().marked||[];drawGame();}});
+  onValue(ref(database,`v2/gamePlayers/${u.uid}`),s=>{
+    if(s.exists()){
+      card=s.val().card||[];
+      marked=s.val().marked||[];
+      playerRoundId=s.val().roundId||null;
+    }else{
+      card=[];
+      marked=[];
+      playerRoundId=null;
+    }
+    drawGame();
+  });
 
   let handlingKick = false;
 
@@ -395,31 +465,44 @@ onAuthStateChanged(auth,async u=>{
     }
   });
 
-  onValue(ref(database,"v2/claims"),s=>{
-    const claims=s.val()||{};
+  onValue(ref(database,"v2/verifiedWinners"),s=>{
+    const tree=s.val()||{};
     const rid=game.roundId;
     const st=stage();
 
-    if(!rid) return;
+    if(!rid)return;
 
-    const stageClaims=claims?.[rid]?.[st]||{};
-    const winners=Object.values(stageClaims);
+    const stageWinners=tree?.[rid]?.[st]||{};
+    const winners=Object.values(stageWinners);
 
-    if(!winners.length) return;
+    if(!winners.length)return;
 
-    const key=`${rid}-${st}-${Object.keys(stageClaims).sort().join(",")}`;
+    const key=`${rid}-${st}-${Object.keys(stageWinners).sort().join(",")}`;
 
-    if(key===previousWinnerKey) return;
+    if(key===previousWinnerKey)return;
     previousWinnerKey=key;
 
     const names=winners.map(w=>w.name||"Player");
     const reward=st==="one-line"?100:st==="two-lines"?200:500;
+    const localWinner=winners.some(w=>w.uid===user.uid);
 
-    const localWinner = winners.some(w => w.uid === user.uid);
-    showWinnerOverlay(stageName(st), names, localWinner ? reward : 0);
+    showWinnerOverlay(stageName(st),names,localWinner?reward:0);
 
-    if (localWinner) {
+    if(localWinner){
       fireConfettiCannons();
     }
   });
+  onValue(ref(database,`v2/purchaseRequests/${u.uid}`),snapshot=>{
+    const requests=Object.values(snapshot.val()||{});
+    const latest=requests.sort((a,b)=>Number(b.createdAt||0)-Number(a.createdAt||0))[0];
+
+    if(!latest)return;
+
+    if(latest.status==="complete"){
+      show("shopMessage","Purchase complete. Item unlocked!","success");
+    }else if(latest.status==="rejected"){
+      show("shopMessage","Purchase was rejected — check your coin balance.","error");
+    }
+  });
+
 });

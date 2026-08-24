@@ -5,8 +5,8 @@
       ".write": true
     },
     "v2": {
-      ".read": "auth != null",
       "adminBootstrap": {
+        ".read": "auth != null",
         ".write": "auth != null && !data.child('claimed').exists() && newData.child('claimed').val() === true && newData.child('uid').val() === auth.uid",
         "claimed": {
           ".validate": "newData.val() === true"
@@ -20,12 +20,15 @@
       },
       "admins": {
         "$uid": {
+          ".read": "auth != null && auth.uid === $uid",
           ".write": "auth != null && auth.uid === $uid && !root.child('v2/adminBootstrap/claimed').exists() && newData.val() === true",
           ".validate": "newData.val() === true"
         }
       },
       "profiles": {
+        ".read": "auth != null && root.child('v2/admins').child(auth.uid).val() === true",
         "$uid": {
+          ".read": "auth != null && auth.uid === $uid",
           ".write": "auth != null && (root.child('v2/admins').child(auth.uid).val() === true || (auth.uid === $uid && (!data.exists() || (newData.child('coins').val() === data.child('coins').val() && newData.child('lifetimeCoins').val() === data.child('lifetimeCoins').val()))))",
           "uid": {
             ".validate": "newData.val() === $uid"
@@ -37,7 +40,7 @@
             ".validate": "newData.isString()"
           },
           "coins": {
-            ".validate": "newData.isNumber() && newData.val() >= 0 && ((!data.exists() && newData.val() === 25) || data.exists() || root.child('v2/admins').child(auth.uid).val() === true)"
+            ".validate": "newData.isNumber() && newData.val() >= 0 && ((!data.exists() && newData.val() === 25) || root.child('v2/admins').child(auth.uid).val() === true || (data.exists() && newData.val() === data.val()))"
           },
           "lifetimeCoins": {
             ".validate": "newData.isNumber() && newData.val() >= 0 && ((!data.exists() && newData.val() === 25) || root.child('v2/admins').child(auth.uid).val() === true || (data.exists() && newData.val() === data.val()))"
@@ -55,50 +58,90 @@
             ".write": "auth != null && root.child('v2/admins').child(auth.uid).val() === true"
           },
           "inventory": {
-            ".write": "auth != null && auth.uid === $uid"
+            ".write": "auth != null && root.child('v2/admins').child(auth.uid).val() === true"
           },
           "cosmetics": {
-            ".write": "auth != null && auth.uid === $uid"
+            ".write": "auth != null && auth.uid === $uid",
+            "dabber": {
+              ".validate": "newData.val() === 'default' || (newData.val() === 'dabber-blue' && root.child('v2/profiles').child($uid).child('inventory/dabber-blue').exists()) || (newData.val() === 'dabber-gold' && root.child('v2/profiles').child($uid).child('inventory/dabber-gold').exists())"
+            },
+            "theme": {
+              ".validate": "newData.val() === 'default' || (newData.val() === 'theme-neon' && root.child('v2/profiles').child($uid).child('inventory/theme-neon').exists())"
+            },
+            "effect": {
+              ".validate": "newData.val() === 'default' || (newData.val() === 'confetti-party' && root.child('v2/profiles').child($uid).child('inventory/confetti-party').exists())"
+            },
+            "nameEffect": {
+              ".validate": "newData.val() === 'default' || (newData.val() === 'name-vip' && root.child('v2/profiles').child($uid).child('inventory/name-vip').exists())"
+            }
           },
           "achievements": {
-            ".write": "auth != null && (auth.uid === $uid || root.child('v2/admins').child(auth.uid).val() === true)"
+            ".write": "auth != null && root.child('v2/admins').child(auth.uid).val() === true"
           }
         }
       },
+      "publicProfiles": {
+        ".read": "auth != null",
+        "$uid": {
+          ".write": "auth != null && root.child('v2/admins').child(auth.uid).val() === true"
+        }
+      },
+      "lobby": {
+        ".read": "auth != null && root.child('v2/admins').child(auth.uid).val() === true",
+        "$uid": {
+          ".read": "auth != null && auth.uid === $uid",
+          ".write": "auth != null && (auth.uid === $uid || root.child('v2/admins').child(auth.uid).val() === true)"
+        }
+      },
       "game": {
+        ".read": "auth != null",
+        ".write": "auth != null && root.child('v2/admins').child(auth.uid).val() === true"
+      },
+      "adminState": {
+        ".read": "auth != null && root.child('v2/admins').child(auth.uid).val() === true",
         ".write": "auth != null && root.child('v2/admins').child(auth.uid).val() === true"
       },
       "gamePlayers": {
+        ".read": "auth != null && root.child('v2/admins').child(auth.uid).val() === true",
         "$uid": {
-          ".write": "auth != null && (root.child('v2/admins').child(auth.uid).val() === true || auth.uid === $uid)",
-          "card": {
-            ".write": "auth != null && root.child('v2/admins').child(auth.uid).val() === true"
-          },
-          "roundId": {
-            ".write": "auth != null && root.child('v2/admins').child(auth.uid).val() === true"
-          },
+          ".read": "auth != null && auth.uid === $uid",
+          ".write": "auth != null && root.child('v2/admins').child(auth.uid).val() === true",
           "marked": {
-            ".write": "auth != null && (auth.uid === $uid || root.child('v2/admins').child(auth.uid).val() === true)"
+            ".write": "auth != null && auth.uid === $uid"
           }
         }
       },
       "claims": {
+        ".read": "auth != null && root.child('v2/admins').child(auth.uid).val() === true",
         "$roundId": {
           "$stage": {
             "$uid": {
-              ".write": "auth != null && auth.uid === $uid && !data.exists() && newData.child('uid').val() === auth.uid && newData.child('name').isString() && newData.child('claimedAt').isNumber()"
+              ".write": "auth != null && (root.child('v2/admins').child(auth.uid).val() === true || (auth.uid === $uid && !data.exists() && newData.child('uid').val() === auth.uid && newData.child('name').isString() && newData.child('claimedAt').isNumber()))"
             }
+          }
+        }
+      },
+      "verifiedWinners": {
+        ".read": "auth != null",
+        ".write": "auth != null && root.child('v2/admins').child(auth.uid).val() === true"
+      },
+      "purchaseRequests": {
+        ".read": "auth != null && root.child('v2/admins').child(auth.uid).val() === true",
+        "$uid": {
+          ".read": "auth != null && auth.uid === $uid",
+          "$requestId": {
+            ".write": "auth != null && (root.child('v2/admins').child(auth.uid).val() === true || (auth.uid === $uid && !data.exists() && newData.child('status').val() === 'pending' && newData.child('itemId').isString() && newData.child('createdAt').isNumber()))"
           }
         }
       },
       "transactions": {
         "$uid": {
-          "$transactionId": {
-            ".write": "auth != null && (root.child('v2/admins').child(auth.uid).val() === true || (auth.uid === $uid && newData.child('type').val() === 'purchase' && newData.child('amount').isNumber() && newData.child('amount').val() < 0))"
-          }
+          ".read": "auth != null && (auth.uid === $uid || root.child('v2/admins').child(auth.uid).val() === true)",
+          ".write": "auth != null && root.child('v2/admins').child(auth.uid).val() === true"
         }
       },
       "rewards": {
+        ".read": "auth != null && root.child('v2/admins').child(auth.uid).val() === true",
         ".write": "auth != null && root.child('v2/admins').child(auth.uid).val() === true"
       },
       "kicks": {
