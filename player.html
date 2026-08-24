@@ -10,12 +10,42 @@
   <div class="background"></div>
   <main class="mobile-app-shell">
     <header class="mobile-topbar">
-      <div>
+      <button id="menuButton" class="hamburger-button" type="button" aria-label="Open menu">☰</button>
+
+      <div class="mobile-title-block">
         <span class="eyebrow">General Sassy Bingo V2</span>
         <h1 id="welcomeName">Loading...</h1>
       </div>
+
       <div class="coin-pill"><span>🪙</span><strong id="coinBalance">--</strong><small>Coins</small></div>
     </header>
+
+    <div id="menuOverlay" class="menu-overlay hidden"></div>
+
+    <aside id="sideMenu" class="side-menu" aria-hidden="true">
+      <div class="side-menu-header">
+        <div>
+          <span class="eyebrow">General Sassy</span>
+          <h2>Menu</h2>
+        </div>
+        <button id="closeMenuButton" class="menu-close-button" type="button" aria-label="Close menu">✕</button>
+      </div>
+
+      <nav class="side-menu-nav">
+        <button data-view="Game" class="active">🎱 <span>Game</span></button>
+        <button data-view="Shop">🛍️ <span>Shop</span></button>
+        <button data-view="Achievements">🏅 <span>Achievements</span></button>
+        <button data-view="Leaderboard">🏆 <span>Leaderboard</span></button>
+        <button data-view="Profile">👤 <span>Profile</span></button>
+      </nav>
+
+      <div class="side-menu-footer">
+        <div class="side-menu-balance">
+          <span>Balance</span>
+          <strong>🪙 <span id="menuCoinBalance">--</span></strong>
+        </div>
+      </div>
+    </aside>
 
     <section id="viewGame" class="mobile-view active">
       <article class="panel game-status-panel">
@@ -83,13 +113,6 @@
       </article>
     </section>
 
-    <nav class="mobile-bottom-nav">
-      <button data-view="Game" class="active">🎱<span>Game</span></button>
-      <button data-view="Shop">🛍️<span>Shop</span></button>
-      <button data-view="Achievements">🏅<span>Badges</span></button>
-      <button data-view="Leaderboard">🏆<span>Leaders</span></button>
-      <button data-view="Profile">👤<span>Profile</span></button>
-    </nav>
   </main>
 
   <div id="nameModal" class="modal hidden">

@@ -1,0 +1,15 @@
+Mobile navigation redesign
+
+Player mobile navigation now uses a hamburger button (☰) in the top-left.
+
+The menu slides in from the left and contains:
+- Game
+- Shop
+- Achievements
+- Leaderboard
+- Profile
+- Current Sassy Coin balance
+
+The old bottom navigation bar has been removed so the Bingo card gets more screen space.
+
+Only the player navigation/layout was changed. Bingo game logic is unchanged.

@@ -870,3 +870,310 @@ button,input,select { touch-action:manipulation; }
   .coin-pill{min-width:106px;padding:8px 9px;}
   .host-action-grid{grid-template-columns:1fr;}
 }
+
+
+/* =========================
+   PLAYER MOBILE SIDE MENU
+========================= */
+
+.mobile-app-shell {
+  padding-bottom: calc(18px + env(safe-area-inset-bottom)) !important;
+}
+
+.mobile-topbar {
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center !important;
+  gap: 9px !important;
+}
+
+.mobile-title-block {
+  min-width: 0;
+}
+
+.mobile-title-block h1 {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hamburger-button,
+.menu-close-button {
+  width: 46px;
+  height: 46px;
+  min-width: 46px;
+  border: 1px solid rgba(125, 211, 252, .18);
+  border-radius: 13px;
+  background: rgba(8, 23, 52, .88);
+  color: white;
+  display: grid;
+  place-items: center;
+  font-size: 1.45rem;
+  font-weight: 900;
+  padding: 0;
+}
+
+.menu-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 89;
+  background: rgba(2, 6, 23, .68);
+  backdrop-filter: blur(5px);
+}
+
+.side-menu {
+  position: fixed;
+  z-index: 90;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: min(84vw, 320px);
+  padding:
+    calc(18px + env(safe-area-inset-top))
+    14px
+    calc(16px + env(safe-area-inset-bottom));
+  background:
+    linear-gradient(
+      180deg,
+      rgba(7, 26, 61, .995),
+      rgba(2, 8, 23, .995)
+    );
+  border-right: 1px solid rgba(125, 211, 252, .16);
+  box-shadow: 20px 0 55px rgba(0, 0, 0, .45);
+  transform: translateX(-105%);
+  transition: transform .22s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.side-menu.open {
+  transform: translateX(0);
+}
+
+.side-menu-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 4px 2px 18px;
+  border-bottom: 1px solid rgba(255,255,255,.07);
+}
+
+.side-menu-header h2 {
+  margin: 3px 0 0;
+}
+
+.side-menu-nav {
+  display: grid;
+  gap: 7px;
+  padding: 15px 0;
+}
+
+.side-menu-nav button {
+  min-height: 54px;
+  width: 100%;
+  border: 1px solid transparent;
+  border-radius: 13px;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: transparent;
+  color: #c7d8ee;
+  text-align: left;
+  font-size: 1rem;
+  font-weight: 850;
+}
+
+.side-menu-nav button.active {
+  color: white;
+  border-color: rgba(96, 165, 250, .2);
+  background: linear-gradient(
+    135deg,
+    rgba(37, 99, 235, .24),
+    rgba(14, 165, 233, .12)
+  );
+}
+
+.side-menu-footer {
+  margin-top: auto;
+  padding-top: 15px;
+  border-top: 1px solid rgba(255,255,255,.07);
+}
+
+.side-menu-balance {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px;
+  border-radius: 13px;
+  background: rgba(250, 204, 21, .07);
+  border: 1px solid rgba(250, 204, 21, .16);
+}
+
+.side-menu-balance span {
+  color: var(--muted);
+  font-size: .78rem;
+}
+
+.side-menu-balance strong {
+  color: #fde68a;
+}
+
+body.menu-open {
+  overflow: hidden;
+}
+
+/* The old bottom bar is intentionally disabled. */
+.mobile-bottom-nav {
+  display: none !important;
+}
+
+@media (max-width: 480px) {
+  .mobile-topbar .eyebrow {
+    font-size: .58rem;
+  }
+
+  .mobile-topbar h1 {
+    font-size: 1.05rem;
+  }
+
+  .mobile-topbar .coin-pill {
+    min-width: 90px;
+    padding: 7px 8px;
+  }
+
+  .mobile-topbar .coin-pill small {
+    font-size: .58rem;
+  }
+
+  .mobile-topbar .coin-pill strong {
+    font-size: .95rem;
+  }
+
+  .hamburger-button {
+    width: 42px;
+    height: 42px;
+    min-width: 42px;
+  }
+
+  .mobile-current-ball {
+    width: min(34vw, 135px);
+  }
+
+  .ticket-panel {
+    padding: 10px;
+  }
+
+  .claim-button {
+    position: static !important;
+    min-height: 54px;
+  }
+}
+
+
+/* =========================
+   SIDE MENU — ALL DEVICES
+========================= */
+
+@media (min-width: 481px) {
+  .mobile-app-shell {
+    width: min(100% - 24px, 980px);
+    padding-top: 16px;
+    padding-bottom: 24px !important;
+  }
+
+  .mobile-topbar {
+    min-height: 78px;
+    grid-template-columns: auto minmax(0, 1fr) auto !important;
+  }
+
+  .hamburger-button {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+  }
+
+  .side-menu {
+    width: min(360px, 34vw);
+  }
+
+  .mobile-view.active {
+    display: grid;
+    gap: 14px;
+  }
+
+  #viewGame.active {
+    grid-template-columns: minmax(0, .78fr) minmax(420px, 1.22fr);
+    align-items: start;
+  }
+
+  #viewGame .game-status-panel {
+    grid-column: 1;
+  }
+
+  #viewGame .ticket-panel {
+    grid-column: 2;
+    grid-row: 1 / span 3;
+  }
+
+  #viewGame .claim-button,
+  #viewGame #gameMessage {
+    grid-column: 1;
+  }
+
+  .mobile-current-ball {
+    width: min(22vw, 180px);
+  }
+
+  .ticket-panel {
+    min-height: 100%;
+  }
+
+  .v2-card.card75 {
+    gap: 7px;
+  }
+
+  .v2-card.card90 {
+    gap: 6px;
+  }
+
+  .v2-cell {
+    font-size: clamp(.9rem, 1.8vw, 1.2rem);
+  }
+
+  .card90 .v2-cell {
+    font-size: clamp(.78rem, 1.4vw, 1rem);
+  }
+
+  .claim-button {
+    position: static !important;
+  }
+
+  #viewShop.active,
+  #viewAchievements.active,
+  #viewLeaderboard.active,
+  #viewProfile.active {
+    grid-template-columns: minmax(0, 760px);
+    justify-content: center;
+  }
+}
+
+@media (min-width: 1100px) {
+  .mobile-app-shell {
+    width: min(100% - 40px, 1180px);
+  }
+
+  .side-menu {
+    width: 380px;
+  }
+
+  #viewGame.active {
+    grid-template-columns: minmax(320px, .7fr) minmax(560px, 1.3fr);
+  }
+
+  .mobile-current-ball {
+    width: 190px;
+  }
+}

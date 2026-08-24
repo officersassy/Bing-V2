@@ -1,0 +1,16 @@
+The hamburger side menu is now used on all screen sizes.
+
+Desktop:
+- Same ☰ menu as mobile
+- Game view uses a two-column layout
+- Current ball / status on the left
+- Bingo card on the right
+- No permanent desktop navigation clutter
+
+Mobile:
+- Same slide-out side menu
+- Single-column game layout
+- Large tap targets
+- No bottom navigation bar
+
+No game logic was changed.

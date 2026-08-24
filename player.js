@@ -13,6 +13,7 @@ function drawProfile(){
   if(!profile)return;
   $("welcomeName").textContent=`Hi, ${profile.username}`;
   $("coinBalance").textContent=coins(profile.coins);
+  $("menuCoinBalance").textContent=coins(profile.coins);
   $("profileName").textContent=profile.username;
   $("profileEmail").textContent=profile.email||"";
   $("profileInitial").textContent=(profile.username||"?")[0].toUpperCase();
@@ -110,10 +111,39 @@ async function claim(){
 }
 $("claimBingoButton").onclick=claim;
 
-document.querySelectorAll(".mobile-bottom-nav button").forEach(btn=>btn.onclick=()=>{
-  document.querySelectorAll(".mobile-bottom-nav button").forEach(b=>b.classList.remove("active"));
-  document.querySelectorAll(".mobile-view").forEach(v=>v.classList.remove("active"));
-  btn.classList.add("active"); $(`view${btn.dataset.view}`).classList.add("active");
+const sideMenu = $("sideMenu");
+const menuOverlay = $("menuOverlay");
+const menuButton = $("menuButton");
+const closeMenuButton = $("closeMenuButton");
+
+function openMenu() {
+  sideMenu.classList.add("open");
+  sideMenu.setAttribute("aria-hidden", "false");
+  menuOverlay.classList.remove("hidden");
+  document.body.classList.add("menu-open");
+}
+
+function closeMenu() {
+  sideMenu.classList.remove("open");
+  sideMenu.setAttribute("aria-hidden", "true");
+  menuOverlay.classList.add("hidden");
+  document.body.classList.remove("menu-open");
+}
+
+menuButton.onclick = openMenu;
+closeMenuButton.onclick = closeMenu;
+menuOverlay.onclick = closeMenu;
+
+document.querySelectorAll(".side-menu-nav button").forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll(".side-menu-nav button").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".mobile-view").forEach(v => v.classList.remove("active"));
+
+    btn.classList.add("active");
+    $(`view${btn.dataset.view}`).classList.add("active");
+
+    closeMenu();
+  };
 });
 
 $("logoutButton").onclick=async()=>{await signOut(auth);location.href="./index.html";};
