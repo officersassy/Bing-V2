@@ -39,10 +39,18 @@ function drawPlayers(){
 }
 function drawEconomy(){
   const p=profiles[selectedUid];
-  if(!p){$("selectedPlayerEconomy").textContent="Select a player above.";$("economyControls").classList.add("hidden");return;}
+
+  if(!p){
+    $("selectedPlayerEconomy").textContent="Select a player above.";
+    $("economyControls").classList.add("hidden");
+    $("kickSelectedPlayerButton").classList.add("hidden");
+    return;
+  }
+
   $("selectedPlayerEconomy").innerHTML=`<strong>${p.username}</strong><br><small>${p.email}</small>`;
   $("selectedCoins").textContent=`${Number(p.coins||0).toLocaleString("en-GB")} 🪙`;
   $("economyControls").classList.remove("hidden");
+  $("kickSelectedPlayerButton").classList.remove("hidden");
 }
 async function award(amount,reason){
   if(!selectedUid)return;
@@ -53,6 +61,46 @@ async function award(amount,reason){
   await set(push(ref(database,`v2/transactions/${selectedUid}`)),{amount,reason,createdAt:Date.now(),createdBy:host.uid});
 }
 document.querySelectorAll("[data-reward]").forEach(b=>b.onclick=()=>award(Number(b.dataset.reward),b.dataset.reason));
+
+$("customAddCoins").onclick = async () => {
+  const amount = Math.floor(Number($("customCoinAmount").value));
+
+  if (!selectedUid || !Number.isFinite(amount) || amount <= 0) {
+    alert("Select a player and enter a valid amount.");
+    return;
+  }
+
+  await award(amount, "Custom General Sassy Credit");
+  $("customCoinAmount").value = "";
+};
+
+$("customDeductCoins").onclick = async () => {
+  const amount = Math.floor(Number($("customCoinAmount").value));
+
+  if (!selectedUid || !Number.isFinite(amount) || amount <= 0) {
+    alert("Select a player and enter a valid amount.");
+    return;
+  }
+
+  const player = profiles[selectedUid];
+  const available = Number(player?.coins || 0);
+  const deduction = Math.min(amount, available);
+
+  if (deduction <= 0) {
+    alert("That player has no coins to deduct.");
+    return;
+  }
+
+  const confirmed = window.confirm(
+    `Deduct ${deduction} Sassy Coins from ${player.username}?`
+  );
+
+  if (!confirmed) return;
+
+  await award(-deduction, "Custom General Sassy Deduction");
+  $("customCoinAmount").value = "";
+};
+
 $("playerSearch").oninput=drawPlayers;
 $("hostLogoutButton").onclick=async()=>{await signOut(auth);location.href="./index.html";};
 
@@ -119,6 +167,75 @@ $("newRoundButton").onclick=async()=>{
   await set(ref(database,"v2/game"),{status:"joining"});
   $("hostWinnerPanel").classList.add("hidden");
 };
+
+
+async function resetLeaderboard(){
+  const confirmed = window.confirm(
+    "Reset leaderboard testing stats for ALL players? Accounts, coin balances and purchased cosmetics will stay intact."
+  );
+
+  if(!confirmed) return;
+
+  const updates = {};
+
+  Object.entries(profiles).forEach(([uid, profile]) => {
+    updates[`v2/profiles/${uid}/stats`] = {
+      gamesPlayed: 0,
+      wins: 0,
+      fullHouses: 0
+    };
+
+    // Reset lifetime leaderboard total to current wallet balance so test rewards
+    // no longer leave the account miles ahead, while preserving spendable coins.
+    updates[`v2/profiles/${uid}/lifetimeCoins`] = Number(profile.coins || 0);
+
+    // Remove gameplay achievements that came from testing.
+    updates[`v2/profiles/${uid}/achievements/first-game`] = null;
+    updates[`v2/profiles/${uid}/achievements/first-win`] = null;
+    updates[`v2/profiles/${uid}/achievements/five-wins`] = null;
+    updates[`v2/profiles/${uid}/achievements/full-house`] = null;
+    updates[`v2/profiles/${uid}/achievements/coin-1000`] = null;
+  });
+
+  // Clear old test claims/rewards so they cannot affect future rounds.
+  updates["v2/claims"] = null;
+  updates["v2/rewards"] = null;
+
+  await update(ref(database), updates);
+
+  alert("Leaderboard and gameplay test stats reset.");
+}
+
+async function kickSelectedPlayer(){
+  const p = profiles[selectedUid];
+
+  if(!p || !selectedUid) return;
+
+  const confirmed = window.confirm(
+    `Kick ${p.username || "this player"} from the current Bingo session? Their account and coins will NOT be deleted.`
+  );
+
+  if(!confirmed) return;
+
+  const uid = selectedUid;
+
+  // Removal is session-only. The profile/account remains.
+  await set(ref(database,`v2/kicks/${uid}`),{
+    kicked: true,
+    kickedAt: Date.now(),
+    kickedBy: host.uid,
+    reason: "Removed by General Sassy"
+  });
+
+  await set(ref(database,`v2/gamePlayers/${uid}`),null);
+
+  selectedUid = null;
+  drawPlayers();
+  drawEconomy();
+}
+
+$("resetLeaderboardButton").onclick = resetLeaderboard;
+$("kickSelectedPlayerButton").onclick = kickSelectedPlayer;
 
 onAuthStateChanged(auth,async u=>{
   if(!u){location.href="./index.html";return;}host=u;

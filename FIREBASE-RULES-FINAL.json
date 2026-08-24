@@ -117,6 +117,13 @@
 
       "rewards": {
         ".write": "auth != null && root.child('v2/admins').child(auth.uid).val() === true"
+      },
+
+      "kicks": {
+        "$uid": {
+          ".read": "auth != null && (auth.uid === $uid || root.child('v2/admins').child(auth.uid).val() === true)",
+          ".write": "auth != null && root.child('v2/admins').child(auth.uid).val() === true"
+        }
       }
     }
   }

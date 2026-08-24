@@ -1495,3 +1495,63 @@ body.cosmetic-dabber-gold .v2-cell.marked {
 .side-menu-nav .host-panel-menu-button:hover {
   background: rgba(250,204,21,.13);
 }
+
+
+/* =========================
+   ADMIN CONTROLS
+========================= */
+
+.host-admin-panel .admin-help {
+  margin: 12px 0 0;
+  line-height: 1.5;
+  font-size: .78rem;
+}
+
+.host-admin-panel .danger-button {
+  min-height: 48px;
+}
+
+
+
+/* Coin management */
+.coin-deduct-button {
+  background: rgba(220,38,38,.16) !important;
+  border: 1px solid rgba(248,113,113,.18) !important;
+}
+
+.custom-coin-control {
+  display: grid;
+  grid-template-columns: minmax(100px,1fr) auto auto;
+  gap: 7px;
+  margin-top: 10px;
+}
+
+.custom-coin-control input {
+  min-width: 0;
+  min-height: 44px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: rgba(3,14,35,.8);
+  color: white;
+  padding: 0 10px;
+}
+
+.custom-coin-control button {
+  min-height: 44px;
+  border-radius: 10px;
+  border: 0;
+  padding: 0 12px;
+  color: white;
+  font-weight: 850;
+  background: rgba(37,99,235,.22);
+}
+
+@media(max-width:520px){
+  .custom-coin-control {
+    grid-template-columns:1fr 1fr;
+  }
+
+  .custom-coin-control input {
+    grid-column:1/-1;
+  }
+}

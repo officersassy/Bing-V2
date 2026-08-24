@@ -367,6 +367,19 @@ onAuthStateChanged(auth,async u=>{
   });
   onValue(ref(database,`v2/gamePlayers/${u.uid}`),s=>{if(s.exists()){card=s.val().card||[];marked=s.val().marked||[];drawGame();}});
 
+  onValue(ref(database,`v2/kicks/${u.uid}`),snap=>{
+    const kick = snap.val();
+
+    if(!kick?.kicked) return;
+
+    alert(
+      kick.reason ||
+      "General Sassy has removed you from the current Bingo session."
+    );
+
+    location.href = "./index.html";
+  });
+
   onValue(ref(database,"v2/claims"),s=>{
     const claims=s.val()||{};
     const rid=game.roundId;

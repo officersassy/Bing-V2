@@ -1,0 +1,22 @@
+Admin Controls Added
+
+RESET LEADERBOARD
+- Admin-only host button.
+- Resets games played, wins and Full Houses for all players.
+- Resets lifetime leaderboard total to the player's CURRENT wallet balance.
+- Keeps accounts.
+- Keeps current spendable coin balances.
+- Keeps purchased shop inventory/cosmetics.
+- Removes gameplay achievements from testing.
+- Clears old claims/reward records.
+
+KICK PLAYER
+- Select a player in the host player list.
+- Click Kick Selected Player.
+- Removes them from the current game session.
+- Does NOT delete their account, profile, coins or purchased cosmetics.
+- Player receives an explicit removal message and returns to the login/home page.
+
+IMPORTANT
+FIREBASE-RULES-FINAL.json was also updated with admin-only kick permissions.
+Republish the updated final rules in Firebase after uploading this build.

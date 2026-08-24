@@ -1,0 +1,12 @@
+Host Coin Controls
+
+Added:
+- -25 coin button
+- -100 coin button
+- Custom amount field
+- Custom Add button
+- Custom Deduct button
+
+Deductions never push a player's balance below zero.
+Every adjustment continues to be recorded in the transaction history data.
+Only the host/admin can use these controls under the existing final Firebase rules.
