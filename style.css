@@ -1805,3 +1805,9 @@ body[data-name-effect="name-royal"] #profileName{color:#fde68a!important;text-sh
     grid-template-columns:1fr;
   }
 }
+
+.build-badge{
+  display:inline-block;margin-left:8px;padding:3px 7px;border-radius:999px;
+  background:rgba(250,204,21,.1);border:1px solid rgba(250,204,21,.2);
+  color:#fde68a;font-size:.62rem;font-weight:900;vertical-align:middle;
+}

@@ -1,0 +1,24 @@
+WHY OLD PAID ITEMS WORKED BUT NEW ONES DID NOT
+
+The host browser is the secure shop cashier.
+
+If host.html stayed open while V2.1 was uploaded, that tab still had the OLD
+catalog.js loaded in memory. Old products were known, so they worked.
+New V2.1 products were unknown to the stale host tab, so they were rejected.
+
+FIXES IN THIS BUILD
+- player.js / host.js use a V2.1.2 cache-busting URL.
+- catalog.js imports use a V2.1.2 cache-busting URL.
+- A stale/new mismatch no longer deletes unknown purchase requests.
+- Host page visibly shows "V2.1.2 STORE" when the new host code is loaded.
+
+AFTER UPLOADING
+1. Close every open Host tab.
+2. Open host.html again.
+3. Confirm "V2.1.2 STORE" appears beside General Sassy Command Centre.
+4. On player device hard refresh once.
+5. Try buying one NEW premium avatar again.
+
+Any old request already marked rejected needs to be bought again.
+No Firebase rules change is needed if you already published the rules from the
+previous V2.1 fixed pack; this ZIP includes the same latest rules anyway.

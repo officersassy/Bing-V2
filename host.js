@@ -2,7 +2,7 @@ import { auth,database } from "./firebase.js";
 import { onAuthStateChanged,signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { ref,get,set,update,onValue,push,runTransaction,remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { create75Card,create90Card,shuffle,missingCount,validWin,createBalanced90Draw } from "./game-engine.js";
-import { SHOP_ITEMS,AVATARS } from "./catalog.js";
+import { SHOP_ITEMS,AVATARS } from "./catalog.js?v=2.1.2";
 
 const $=id=>document.getElementById(id);
 let host=null,profiles={},lobby={},selectedUid=null,game={},called=[],hostDrawOrder=[];
@@ -541,11 +541,22 @@ onAuthStateChanged(auth,async u=>{
 
         const item=SHOP_ITEMS.find(entry=>entry.id===request.itemId);
 
-        if(!item || item.price<=0){
+        if(!item){
+          // Do not destroy a purchase request just because this host tab is
+          // running an older catalogue. A refreshed host can process it.
+          console.warn(
+            "Unknown shop item on this host build:",
+            request.itemId,
+            "Refresh the host page."
+          );
+          continue;
+        }
+
+        if(item.price<=0){
           await update(ref(database,`v2/purchaseRequests/${uid}/${requestId}`),{
             status:"rejected",
             processedAt:Date.now(),
-            reason:"Invalid shop item"
+            reason:"Free items do not require purchase"
           });
           continue;
         }
