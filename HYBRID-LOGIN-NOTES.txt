@@ -1,0 +1,16 @@
+HYBRID LOGIN FIX
+
+Login now accepts BOTH:
+
+1. Existing email-based accounts:
+   your-real-email@example.com + existing password
+
+2. New username-based accounts:
+   username + password
+
+Registration remains username + password only for new players.
+
+Your existing General Sassy/admin Firebase account, UID, permissions,
+coins, purchases and profile are NOT changed.
+
+No Firebase rules changes are required for this login fix.

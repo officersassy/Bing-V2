@@ -1713,3 +1713,11 @@ body.cosmetic-theme-neon .v2-cell.marked {
     filter: blur(13px);
   }
 }
+
+
+.login-hint {
+  margin: -6px 0 2px;
+  color: var(--muted);
+  font-size: .74rem;
+  line-height: 1.4;
+}

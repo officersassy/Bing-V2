@@ -32,8 +32,9 @@
       <form id="loginForm" class="auth-form">
         <span class="eyebrow">Welcome back</span>
         <h2>Sign in</h2>
-        <label>Username<input id="loginUsername" type="text" autocomplete="username" required minlength="2" maxlength="24" pattern="[A-Za-z0-9._-]+" placeholder="Your username"></label>
+        <label>Username or Email<input id="loginUsername" type="text" autocomplete="username" required placeholder="Username or existing email"></label>
         <label>Password<input id="loginPassword" type="password" autocomplete="current-password" required minlength="6" placeholder="Password"></label>
+        <p class="login-hint">Existing admin/older accounts can sign in with their email. New players use their username.</p>
         <button id="loginButton" class="primary-button" type="submit">🎱 Sign In</button>
       </form>
 

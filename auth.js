@@ -55,26 +55,48 @@ loginForm.onsubmit=async e=>{
   submitting=true;
 
   try{
-    const username=cleanUsername($("loginUsername").value);
+    const entered=$("loginUsername").value.trim();
+    const isEmail=entered.includes("@");
 
-    if(!validUsername(username)){
-      msg("Username can use letters, numbers, dots, dashes and underscores.","error");
-      return;
+    let firebaseLogin;
+    let profileName="";
+
+    if(isEmail){
+      // Existing V2/admin accounts created before username login continue
+      // using their original Firebase email address.
+      firebaseLogin=entered.toLowerCase();
+    }else{
+      const username=cleanUsername(entered);
+
+      if(!validUsername(username)){
+        msg(
+          "Username can use letters, numbers, dots, dashes and underscores.",
+          "error"
+        );
+        return;
+      }
+
+      firebaseLogin=usernameEmail(username);
+      profileName=username;
     }
 
     msg("Signing in...");
 
     const c=await signInWithEmailAndPassword(
       auth,
-      usernameEmail(username),
+      firebaseLogin,
       $("loginPassword").value
     );
 
-    await ensureProfile(c.user,username);
+    await ensureProfile(c.user,profileName);
+
     location.href="./player.html";
   }catch(err){
     console.error(err);
-    msg("Could not sign in. Check your username and password.","error");
+    msg(
+      "Could not sign in. Check your username/email and password.",
+      "error"
+    );
   }finally{
     submitting=false;
   }
