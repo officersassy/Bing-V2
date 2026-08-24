@@ -1,0 +1,80 @@
+GENERAL SASSY BINGO V2 — EVENT READY SETUP
+
+DO THESE STEPS ONCE, IN THIS ORDER.
+
+1. UPLOAD THE WEBSITE
+   Upload/replace the files in your Bingo-V2 GitHub repository.
+   Wait for GitHub Pages to finish deploying.
+
+2. FIREBASE RULES
+   Firebase Console
+   -> Realtime Database
+   -> Rules
+
+   Delete the rules currently in the editor.
+   Copy EVERYTHING from:
+   FIREBASE-RULES-FINAL.json
+
+   Paste it into Firebase and click Publish.
+
+   These rules keep the old "bingo" V1 database path working.
+
+3. CREATE GENERAL SASSY ADMIN
+   Open:
+   https://YOUR-GITHUB-USERNAME.github.io/Bingo-V2/host-setup.html
+
+   Sign in with the account that should be the host.
+   Click:
+   "Make This Account General Sassy Admin"
+
+   Confirm it.
+
+   This is a one-time action.
+
+4. OPEN HOST
+   Open:
+   https://YOUR-GITHUB-USERNAME.github.io/Bingo-V2/host.html
+
+5. TEST A PLAYER
+   Open the normal site in another browser/private window.
+   Create/sign in to a player account.
+   Confirm:
+   - 25 starter coins appear.
+   - Hamburger menu opens.
+   - Waiting screen appears before a round.
+
+6. TEST A ROUND
+   Host:
+   - Choose a mode.
+   - Open joining.
+   - Start.
+   - Confirm player card appears.
+   - Call numbers.
+   - Player can only dob called numbers.
+   - Claim Bingo when valid.
+
+7. 90-BALL PROGRESSIVE
+   Progressive runs:
+   One Line -> Two Lines -> Full House.
+
+   After a stage winner, the host controls when the next stage begins.
+
+8. IMPORTANT
+   Do not delete:
+   v2/admins
+   v2/adminBootstrap
+
+   Those nodes are what lock the host/admin role.
+
+SECURITY PASS INCLUDED
+- Players cannot make themselves admins after bootstrap.
+- Players cannot directly increase their coin balance.
+- Players cannot change their own game card.
+- Game calling/reset is host-only.
+- Host re-validates submitted Bingo claims against the player's actual card,
+  marked numbers and authoritative called numbers before awarding coins.
+- Duplicate reward keys prevent the same stage reward being issued repeatedly.
+
+NOTE
+This is a static GitHub Pages + Firebase application. The host browser is still
+part of the reward-processing flow, so keep the host page open during games.

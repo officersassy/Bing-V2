@@ -1,7 +1,7 @@
 import { auth,database } from "./firebase.js";
 import { onAuthStateChanged,signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { ref,get,set,update,onValue,push,runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-import { create75Card,create90Card,shuffle,missingCount } from "./game-engine.js";
+import { create75Card,create90Card,shuffle,missingCount,validWin } from "./game-engine.js";
 
 const $=id=>document.getElementById(id);
 let host=null,profiles={},selectedUid=null,game={},called=[];
@@ -129,7 +129,23 @@ onAuthStateChanged(auth,async u=>{
   onValue(ref(database,"v2/gamePlayers"),s=>{window.gamePlayers=s.val()||{};drawNear();});
   onValue(ref(database,"v2/claims"),async s=>{
     const claims=s.val()||{},rid=game.roundId,stage=currentStage();const stageClaims=claims?.[rid]?.[stage]||{};
-    const winners=Object.values(stageClaims);
+    const submitted=Object.values(stageClaims);
+
+    // Never trust a player claim by itself. Re-check the claimed card against
+    // the authoritative called numbers before displaying or rewarding it.
+    const winners=submitted.filter(w=>{
+      const gp=window.gamePlayers?.[w.uid];
+      if(!gp || !Array.isArray(gp.card)) return false;
+
+      return validWin(
+        gp.card,
+        gp.marked || [],
+        called,
+        game.mode,
+        stage
+      );
+    });
+
     renderHostWinners(stage,winners);
     if(!winners.length)return;
     for(const w of winners){

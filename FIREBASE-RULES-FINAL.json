@@ -1,0 +1,123 @@
+{
+  "rules": {
+    "bingo": {
+      ".read": true,
+      ".write": true
+    },
+
+    "v2": {
+      ".read": "auth != null",
+
+      "adminBootstrap": {
+        ".write": "auth != null && !data.child('claimed').exists() && newData.child('claimed').val() === true && newData.child('uid').val() === auth.uid",
+        "claimed": {
+          ".validate": "newData.val() === true"
+        },
+        "uid": {
+          ".validate": "newData.val() === auth.uid"
+        },
+        "$other": {
+          ".validate": false
+        }
+      },
+
+      "admins": {
+        "$uid": {
+          ".write": "auth != null && auth.uid === $uid && !root.child('v2/adminBootstrap/claimed').exists() && newData.val() === true",
+          ".validate": "newData.val() === true"
+        }
+      },
+
+      "profiles": {
+        "$uid": {
+          ".write": "auth != null && (root.child('v2/admins').child(auth.uid).val() === true || (auth.uid === $uid && (!data.exists() || (newData.child('coins').val() === data.child('coins').val() && newData.child('lifetimeCoins').val() === data.child('lifetimeCoins').val()))))",
+
+          "uid": {
+            ".validate": "newData.val() === $uid"
+          },
+          "username": {
+            ".validate": "newData.isString() && newData.val().length >= 2 && newData.val().length <= 24"
+          },
+          "email": {
+            ".validate": "newData.isString()"
+          },
+          "coins": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && ((!data.exists() && newData.val() === 25) || data.exists() || root.child('v2/admins').child(auth.uid).val() === true)"
+          },
+          "lifetimeCoins": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && ((!data.exists() && newData.val() === 25) || data.exists() || root.child('v2/admins').child(auth.uid).val() === true)"
+          },
+          "role": {
+            ".validate": "newData.val() === 'player'"
+          },
+          "createdAt": {
+            ".validate": "newData.isNumber()"
+          },
+          "updatedAt": {
+            ".validate": "newData.isNumber()"
+          },
+
+          "stats": {
+            ".write": "auth != null && root.child('v2/admins').child(auth.uid).val() === true"
+          },
+
+          "inventory": {
+            ".write": "auth != null && auth.uid === $uid"
+          },
+
+          "cosmetics": {
+            ".write": "auth != null && auth.uid === $uid"
+          },
+
+          "achievements": {
+            ".write": "auth != null && (auth.uid === $uid || root.child('v2/admins').child(auth.uid).val() === true)"
+          }
+        }
+      },
+
+      "game": {
+        ".write": "auth != null && root.child('v2/admins').child(auth.uid).val() === true"
+      },
+
+      "gamePlayers": {
+        "$uid": {
+          ".write": "auth != null && (root.child('v2/admins').child(auth.uid).val() === true || auth.uid === $uid)",
+
+          "card": {
+            ".write": "auth != null && root.child('v2/admins').child(auth.uid).val() === true"
+          },
+
+          "roundId": {
+            ".write": "auth != null && root.child('v2/admins').child(auth.uid).val() === true"
+          },
+
+          "marked": {
+            ".write": "auth != null && (auth.uid === $uid || root.child('v2/admins').child(auth.uid).val() === true)"
+          }
+        }
+      },
+
+      "claims": {
+        "$roundId": {
+          "$stage": {
+            "$uid": {
+              ".write": "auth != null && auth.uid === $uid && !data.exists() && newData.child('uid').val() === auth.uid && newData.child('name').isString() && newData.child('claimedAt').isNumber()"
+            }
+          }
+        }
+      },
+
+      "transactions": {
+        "$uid": {
+          "$transactionId": {
+            ".write": "auth != null && (root.child('v2/admins').child(auth.uid).val() === true || (auth.uid === $uid && newData.child('type').val() === 'purchase' && newData.child('amount').isNumber() && newData.child('amount').val() < 0))"
+          }
+        }
+      },
+
+      "rewards": {
+        ".write": "auth != null && root.child('v2/admins').child(auth.uid).val() === true"
+      }
+    }
+  }
+}
