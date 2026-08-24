@@ -1,0 +1,110 @@
+PASTE THIS ENTIRE RULESET INTO:
+Firebase Console → Realtime Database → Rules
+
+Then click Publish.
+
+{
+  "rules": {
+    "bingo": {
+      ".read": true,
+      ".write": true
+    },
+
+    "v2": {
+      "adminBootstrap": {
+        ".read": "auth != null",
+
+        ".write": "auth != null && !data.child('claimed').exists() && newData.child('claimed').val() === true && newData.child('uid').val() === auth.uid",
+
+        "claimed": {
+          ".validate": "newData.val() === true"
+        },
+
+        "uid": {
+          ".validate": "newData.val() === auth.uid"
+        },
+
+        "$other": {
+          ".validate": false
+        }
+      },
+
+      "admins": {
+        "$uid": {
+          ".read": "auth != null && auth.uid === $uid",
+
+          ".write": "auth != null && auth.uid === $uid && !root.child('v2/adminBootstrap/claimed').exists() && newData.val() === true",
+
+          ".validate": "newData.val() === true"
+        }
+      },
+
+      "profiles": {
+        ".read": "auth != null && root.child('v2/admins').child(auth.uid).val() === true",
+
+        "$uid": {
+          ".read": "auth != null && auth.uid === $uid",
+
+          ".write": "auth != null && (auth.uid === $uid || root.child('v2/admins').child(auth.uid).val() === true)",
+
+          "uid": {
+            ".validate": "newData.val() === $uid"
+          },
+
+          "username": {
+            ".validate": "newData.isString() && newData.val().length >= 2 && newData.val().length <= 24"
+          },
+
+          "email": {
+            ".validate": "newData.isString()"
+          },
+
+          "coins": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && (root.child('v2/admins').child(auth.uid).val() === true || ((!data.exists() && newData.val() === 25) || (data.exists() && newData.val() === data.val())))"
+          },
+
+          "lifetimeCoins": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && (root.child('v2/admins').child(auth.uid).val() === true || ((!data.exists() && newData.val() === 25) || (data.exists() && newData.val() === data.val())))"
+          },
+
+          "role": {
+            ".validate": "newData.val() === 'player'"
+          },
+
+          "createdAt": {
+            ".validate": "newData.isNumber()"
+          },
+
+          "updatedAt": {
+            ".validate": "newData.isNumber()"
+          },
+
+          "$other": {
+            ".validate": false
+          }
+        }
+      },
+
+      "transactions": {
+        "$uid": {
+          ".read": "auth != null && (auth.uid === $uid || root.child('v2/admins').child(auth.uid).val() === true)",
+
+          ".write": "auth != null && root.child('v2/admins').child(auth.uid).val() === true"
+        }
+      }
+    }
+  }
+}
+
+AFTER PUBLISHING:
+
+1. Upload all Phase 2.1 files to GitHub.
+2. Open:
+   https://YOUR-USERNAME.github.io/Bingo-V2/host-setup.html
+3. Sign in with YOUR host account.
+4. Press:
+   "Make This Account General Sassy Admin"
+5. Confirm.
+6. That's it.
+
+You do NOT need to manually create admins in the Firebase Data tab anymore.

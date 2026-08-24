@@ -1,273 +1,112 @@
-import { auth, database } from "./firebase.js";
+import { auth,database } from "./firebase.js";
+import { onAuthStateChanged,signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { ref,get,set,update,onValue,push,runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { create75Card,create90Card,shuffle,missingCount } from "./game-engine.js";
 
-import {
-  onAuthStateChanged,
-  signOut
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+const $=id=>document.getElementById(id);
+let host=null,profiles={},selectedUid=null,game={},called=[];
 
-import {
-  ref,
-  get,
-  onValue,
-  runTransaction,
-  push,
-  set
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+function stageName(s){return({"one-line":"One Line","two-lines":"Two Lines","full-house":"Full House"})[s]||s;}
+function currentStage(){return game.mode==="90-progressive"?(game.stage||"one-line"):(game.mode==="90-full-house"?"full-house":"one-line");}
+function maxBall(){return game.mode?.startsWith("90")?90:75;}
+function displayCall(n){if(game.mode?.startsWith("90"))return String(n);return `${n<=15?"B":n<=30?"I":n<=45?"N":n<=60?"G":"O"} ${n}`;}
 
-const denied = document.getElementById("hostDenied");
-const dashboard = document.getElementById("hostDashboard");
-const logoutButton = document.getElementById("hostLogoutButton");
-
-const playerCount = document.getElementById("hostPlayerCount");
-const playerList = document.getElementById("hostPlayerList");
-const playerSearch = document.getElementById("playerSearch");
-
-const noSelection = document.getElementById("noPlayerSelected");
-const selectedPanel = document.getElementById("selectedPlayerPanel");
-const selectedName = document.getElementById("selectedPlayerName");
-const selectedEmail = document.getElementById("selectedPlayerEmail");
-const selectedCoins = document.getElementById("selectedPlayerCoins");
-const economyMessage = document.getElementById("hostEconomyMessage");
-
-const customAmount = document.getElementById("customCoinAmount");
-const customReason = document.getElementById("customCoinReason");
-const customAwardButton = document.getElementById("customAwardButton");
-
-const economyPlayers = document.getElementById("economyPlayers");
-const economyCoins = document.getElementById("economyCoins");
-const economyLifetime = document.getElementById("economyLifetime");
-
-let hostUser = null;
-let profiles = {};
-let selectedUid = null;
-
-function isAdminSnapshot(snapshot) {
-  return snapshot.exists() && snapshot.val() === true;
+async function createCardsForPlayers(mode){
+  const updates={};
+  Object.keys(profiles).forEach(uid=>{
+    updates[`v2/gamePlayers/${uid}`]={card:mode.startsWith("90")?create90Card():create75Card(),marked:[],roundId:game.roundId||null};
+  });
+  await update(ref(database),updates);
 }
-
-function displayCoins(value) {
-  return Number(value || 0).toLocaleString("en-GB");
+function drawHost(){
+  $("hostGameStatus").textContent=(game.status||"waiting").toUpperCase();
+  $("hostCurrentCall").textContent=game.currentCall||"--";
+  $("hostPlayersCount").textContent=Object.keys(profiles).length;
+  $("hostCalledCount").textContent=called.length;
+  $("hostStage").textContent=stageName(currentStage());
+  $("hostCalledNumbers").innerHTML="";
+  called.slice().reverse().forEach(n=>{const e=document.createElement("span");e.textContent=displayCall(n);$("hostCalledNumbers").appendChild(e);});
 }
-
-function showHostMessage(text, type = "") {
-  economyMessage.textContent = text;
-  economyMessage.className = `message-box ${type}`.trim();
-}
-
-function selectedProfile() {
-  return selectedUid ? profiles[selectedUid] || null : null;
-}
-
-function drawEconomyStats() {
-  const values = Object.values(profiles);
-
-  economyPlayers.textContent = String(values.length);
-  economyCoins.textContent = displayCoins(
-    values.reduce((sum, profile) => sum + Number(profile.coins || 0), 0)
-  );
-  economyLifetime.textContent = displayCoins(
-    values.reduce((sum, profile) => sum + Number(profile.lifetimeCoins || 0), 0)
-  );
-}
-
-function drawSelectedPlayer() {
-  const profile = selectedProfile();
-
-  if (!profile) {
-    noSelection.classList.remove("hidden");
-    selectedPanel.classList.add("hidden");
-    return;
-  }
-
-  noSelection.classList.add("hidden");
-  selectedPanel.classList.remove("hidden");
-
-  selectedName.textContent = profile.username || "Player";
-  selectedEmail.textContent = profile.email || "";
-  selectedCoins.textContent = `${displayCoins(profile.coins)} 🪙`;
-}
-
-function drawPlayerList() {
-  const query = playerSearch.value.trim().toLowerCase();
-
-  const entries = Object.entries(profiles)
-    .filter(([, profile]) => {
-      if (!query) return true;
-
-      return (
-        String(profile.username || "").toLowerCase().includes(query) ||
-        String(profile.email || "").toLowerCase().includes(query)
-      );
-    })
-    .sort(([, a], [, b]) =>
-      String(a.username || "").localeCompare(String(b.username || ""))
-    );
-
-  playerCount.textContent = String(Object.keys(profiles).length);
-  playerList.innerHTML = "";
-
-  if (!entries.length) {
-    playerList.textContent = "No matching players.";
-    return;
-  }
-
-  entries.forEach(([uid, profile]) => {
-    const row = document.createElement("button");
-    row.type = "button";
-    row.className = "host-player-row";
-
-    if (uid === selectedUid) {
-      row.classList.add("selected");
-    }
-
-    const identity = document.createElement("div");
-
-    const name = document.createElement("strong");
-    name.textContent = profile.username || "Player";
-
-    const email = document.createElement("small");
-    email.textContent = profile.email || "";
-
-    identity.append(name, email);
-
-    const balance = document.createElement("strong");
-    balance.textContent = `${displayCoins(profile.coins)} 🪙`;
-
-    row.append(identity, balance);
-
-    row.addEventListener("click", () => {
-      selectedUid = uid;
-      drawPlayerList();
-      drawSelectedPlayer();
-      showHostMessage("");
-    });
-
-    playerList.appendChild(row);
+function drawPlayers(){
+  const q=$("playerSearch").value.toLowerCase();
+  $("hostPlayerList").innerHTML="";
+  Object.entries(profiles).filter(([,p])=>!q||p.username?.toLowerCase().includes(q)||p.email?.toLowerCase().includes(q)).forEach(([uid,p])=>{
+    const row=document.createElement("button");row.className=`host-player-row ${uid===selectedUid?"selected":""}`;
+    row.innerHTML=`<div><strong>${p.username}</strong><small>${p.email}</small></div><b>${Number(p.coins||0).toLocaleString("en-GB")} 🪙</b>`;
+    row.onclick=()=>{selectedUid=uid;drawPlayers();drawEconomy();};$("hostPlayerList").appendChild(row);
   });
 }
+function drawEconomy(){
+  const p=profiles[selectedUid];
+  if(!p){$("selectedPlayerEconomy").textContent="Select a player above.";$("economyControls").classList.add("hidden");return;}
+  $("selectedPlayerEconomy").innerHTML=`<strong>${p.username}</strong><br><small>${p.email}</small>`;
+  $("selectedCoins").textContent=`${Number(p.coins||0).toLocaleString("en-GB")} 🪙`;
+  $("economyControls").classList.remove("hidden");
+}
+async function award(amount,reason){
+  if(!selectedUid)return;
+  await runTransaction(ref(database,`v2/profiles/${selectedUid}`),p=>{
+    if(!p)return p; const next=Number(p.coins||0)+amount;if(next<0)return;
+    p.coins=next;if(amount>0)p.lifetimeCoins=Number(p.lifetimeCoins||0)+amount;p.updatedAt=Date.now();return p;
+  });
+  await set(push(ref(database,`v2/transactions/${selectedUid}`)),{amount,reason,createdAt:Date.now(),createdBy:host.uid});
+}
+document.querySelectorAll("[data-reward]").forEach(b=>b.onclick=()=>award(Number(b.dataset.reward),b.dataset.reason));
+$("playerSearch").oninput=drawPlayers;
+$("hostLogoutButton").onclick=async()=>{await signOut(auth);location.href="./index.html";};
 
-async function awardCoins(amount, reason) {
-  const profile = selectedProfile();
-
-  if (!profile || !selectedUid) {
-    showHostMessage("Select a player first.", "error");
-    return;
+$("openGameButton").onclick=async()=>{await update(ref(database,"v2/game"),{status:"joining"});};
+$("startGameButton").onclick=async()=>{
+  const mode=$("hostGameMode").value,roundId=`round-${Date.now()}`;
+  game={mode,roundId,stage:"one-line"};
+  await set(ref(database,"v2/game"),{mode,roundId,stage:"one-line",status:"playing",currentCall:"",called:{},drawOrder:shuffle(mode.startsWith("90")?90:75),startedAt:Date.now()});
+  await createCardsForPlayers(mode);
+  for(const uid of Object.keys(profiles)){
+    await runTransaction(ref(database,`v2/profiles/${uid}/stats/gamesPlayed`),v=>Number(v||0)+1);
+    await set(ref(database,`v2/profiles/${uid}/achievements/first-game`),Date.now());
   }
+};
+$("callNumberButton").onclick=async()=>{
+  if(game.status!=="playing")return; const order=game.drawOrder||[]; if(called.length>=order.length)return;
+  const n=Number(order[called.length]);
+  await update(ref(database,"v2/game"),{currentCall:displayCall(n),[`called/${called.length}`]:n});
+};
+$("resetGameButton").onclick=async()=>{if(confirm("Reset the current round?"))await set(ref(database,"v2/game"),{status:"joining"});};
 
-  const numericAmount = Math.trunc(Number(amount));
-
-  if (!Number.isFinite(numericAmount) || numericAmount === 0) {
-    showHostMessage("Enter a valid non-zero coin amount.", "error");
-    return;
-  }
-
-  const currentBalance = Number(profile.coins || 0);
-
-  if (currentBalance + numericAmount < 0) {
-    showHostMessage("That would make the player's balance negative.", "error");
-    return;
-  }
-
-  const profileRef = ref(database, `v2/profiles/${selectedUid}`);
-
-  try {
-    await runTransaction(profileRef, (current) => {
-      if (!current) return current;
-
-      const existingCoins = Number(current.coins || 0);
-      const nextCoins = existingCoins + numericAmount;
-
-      if (nextCoins < 0) {
-        return;
-      }
-
-      current.coins = nextCoins;
-
-      if (numericAmount > 0) {
-        current.lifetimeCoins =
-          Number(current.lifetimeCoins || existingCoins) + numericAmount;
-      }
-
-      current.updatedAt = Date.now();
-
-      return current;
-    });
-
-    const transactionRef = push(
-      ref(database, `v2/transactions/${selectedUid}`)
-    );
-
-    await set(transactionRef, {
-      amount: numericAmount,
-      reason: String(reason || "Host adjustment").slice(0, 60),
-      createdAt: Date.now(),
-      createdBy: hostUser.uid,
-      type: numericAmount > 0 ? "award" : "deduction"
-    });
-
-    showHostMessage(
-      `${numericAmount > 0 ? "+" : ""}${numericAmount} Sassy Coins applied to ${profile.username}.`,
-      "success"
-    );
-  } catch (error) {
-    console.error(error);
-    showHostMessage("Could not update the player's coins.", "error");
-  }
+function drawNear(){
+  $("nearWinnerList").innerHTML="";
+  const rows=Object.entries(profiles).map(([uid,p])=>{
+    const gp=window.gamePlayers?.[uid]; if(!gp)return null;
+    return {uid,name:p.username,missing:missingCount(gp.card||[],gp.marked||[],called,game.mode,currentStage())};
+  }).filter(Boolean).sort((a,b)=>a.missing-b.missing).slice(0,5);
+  rows.forEach((r,i)=>{const e=document.createElement("div");e.className="leader-row";e.innerHTML=`<strong>${i+1}</strong><div><b>${r.name}</b><small>${r.missing} away</small></div><span>${r.missing===1?"🔥":""}</span>`;$("nearWinnerList").appendChild(e);});
 }
 
-document.querySelectorAll("[data-reward]").forEach((button) => {
-  button.addEventListener("click", () => {
-    awardCoins(
-      Number(button.dataset.reward),
-      button.dataset.reason
-    );
-  });
-});
-
-customAwardButton.addEventListener("click", () => {
-  awardCoins(
-    customAmount.value,
-    customReason.value.trim() || "Host adjustment"
-  );
-});
-
-playerSearch.addEventListener("input", drawPlayerList);
-
-logoutButton.addEventListener("click", async () => {
-  await signOut(auth);
-  window.location.href = "./index.html";
-});
-
-onAuthStateChanged(auth, async (user) => {
-  if (!user) {
-    window.location.href = "./index.html";
-    return;
-  }
-
-  hostUser = user;
-
-  const adminSnapshot = await get(
-    ref(database, `v2/admins/${user.uid}`)
-  );
-
-  if (!isAdminSnapshot(adminSnapshot)) {
-    denied.classList.remove("hidden");
-    dashboard.classList.add("hidden");
-    return;
-  }
-
-  denied.classList.add("hidden");
-  dashboard.classList.remove("hidden");
-
-  onValue(ref(database, "v2/profiles"), (snapshot) => {
-    profiles = snapshot.val() || {};
-
-    if (selectedUid && !profiles[selectedUid]) {
-      selectedUid = null;
+onAuthStateChanged(auth,async u=>{
+  if(!u){location.href="./index.html";return;}host=u;
+  const a=await get(ref(database,`v2/admins/${u.uid}`));if(!a.exists()||a.val()!==true){$("hostDenied").classList.remove("hidden");return;}
+  $("hostDashboard").classList.remove("hidden");
+  onValue(ref(database,"v2/profiles"),s=>{profiles=s.val()||{};drawPlayers();drawEconomy();});
+  onValue(ref(database,"v2/game"),s=>{game=s.val()||{};called=Object.values(game.called||{}).map(Number);drawHost();drawNear();});
+  onValue(ref(database,"v2/gamePlayers"),s=>{window.gamePlayers=s.val()||{};drawNear();});
+  onValue(ref(database,"v2/claims"),async s=>{
+    const claims=s.val()||{},rid=game.roundId,stage=currentStage();const stageClaims=claims?.[rid]?.[stage]||{};
+    const winners=Object.values(stageClaims);if(!winners.length)return;
+    for(const w of winners){
+      const reward=stage==="one-line"?100:stage==="two-lines"?200:500;
+      const rewardKey=`${rid}-${stage}`;
+      const already=await get(ref(database,`v2/rewards/${w.uid}/${rewardKey}`));
+      if(already.exists())continue;
+      await set(ref(database,`v2/rewards/${w.uid}/${rewardKey}`),true);
+      selectedUid=w.uid;await award(reward,`${stageName(stage)} Win`);
+      await runTransaction(ref(database,`v2/profiles/${w.uid}/stats/wins`),v=>Number(v||0)+1);
+      await set(ref(database,`v2/profiles/${w.uid}/achievements/first-win`),Date.now());
+      if(stage==="full-house"){await runTransaction(ref(database,`v2/profiles/${w.uid}/stats/fullHouses`),v=>Number(v||0)+1);await set(ref(database,`v2/profiles/${w.uid}/achievements/full-house`),Date.now());}
     }
-
-    drawPlayerList();
-    drawSelectedPlayer();
-    drawEconomyStats();
+    if(game.mode==="90-progressive"&&stage!=="full-house"){
+      await update(ref(database,"v2/game"),{stage:stage==="one-line"?"two-lines":"full-house"});
+    }else{
+      await update(ref(database,"v2/game"),{status:"winner"});
+    }
   });
 });

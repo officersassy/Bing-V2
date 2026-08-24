@@ -13,49 +13,69 @@
     <section class="auth-card setup-card">
       <span class="eyebrow">One-time setup</span>
       <h1>🎖️ General Sassy Host Setup</h1>
-      <p>
-        Sign in using the account you want to use as the V2 host. This page will
-        show your Firebase UID so you can make that account an administrator.
-      </p>
 
       <div id="setupSignedOut">
+        <p>
+          Sign in using the account that should permanently become the
+          General Sassy administrator.
+        </p>
+
         <label>
           Email
-          <input id="setupEmail" type="email" placeholder="Host email">
+          <input id="setupEmail" type="email" autocomplete="email" placeholder="Host email">
         </label>
 
         <label>
           Password
-          <input id="setupPassword" type="password" placeholder="Password">
+          <input id="setupPassword" type="password" autocomplete="current-password" placeholder="Password">
         </label>
 
         <button id="setupLoginButton" class="primary-button" type="button">
-          Sign In
+          🔐 Sign In
         </button>
       </div>
 
       <div id="setupSignedIn" class="hidden">
-        <p>Signed in as <strong id="setupAccount"></strong></p>
-
-        <div class="uid-box">
-          <span>Your Host UID</span>
-          <code id="hostUid">Loading...</code>
-        </div>
-
-        <button id="copyUidButton" class="primary-button" type="button">
-          📋 Copy UID
-        </button>
-
-        <p class="setup-help">
-          In Firebase Realtime Database → Data, create:
-          <br><br>
-          <code>v2 → admins → YOUR_UID = true</code>
+        <p>
+          Signed in as <strong id="setupAccount"></strong>
         </p>
 
-        <a class="link-button" href="./host.html">Open Host Economy Panel →</a>
+        <div id="alreadyAdminBox" class="hidden">
+          <div class="locked-feature">
+            ✅ This account is already the General Sassy administrator.
+          </div>
+
+          <a class="link-button" href="./host.html">
+            Open Host Economy Panel →
+          </a>
+        </div>
+
+        <div id="claimAdminBox" class="hidden">
+          <div class="warning-card">
+            <strong>⚠️ One-time action</strong>
+            <p>
+              The first account to press this button becomes the V2 administrator.
+              Firebase will block every other account from claiming admin afterward.
+            </p>
+          </div>
+
+          <button id="claimAdminButton" class="primary-button" type="button">
+            🎖️ Make This Account General Sassy Admin
+          </button>
+        </div>
+
+        <div id="adminTakenBox" class="hidden">
+          <div class="locked-feature">
+            🔒 A General Sassy administrator has already been registered.
+          </div>
+        </div>
+
+        <button id="setupLogoutButton" class="ghost-button" type="button">
+          Sign Out
+        </button>
       </div>
 
-      <div id="setupMessage" class="message-box"></div>
+      <div id="setupMessage" class="message-box" aria-live="polite"></div>
     </section>
   </main>
 

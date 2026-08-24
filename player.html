@@ -2,140 +2,94 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Player Hub | General Sassy Bingo V2</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+  <title>Player Hub | Bingo V2</title>
   <link rel="stylesheet" href="./style.css">
 </head>
 <body>
   <div class="background"></div>
-
-  <main class="dashboard-shell">
-    <header class="topbar">
+  <main class="mobile-app-shell">
+    <header class="mobile-topbar">
       <div>
         <span class="eyebrow">General Sassy Bingo V2</span>
-        <h1 id="welcomeName">Loading profile...</h1>
+        <h1 id="welcomeName">Loading...</h1>
       </div>
-
-      <div class="topbar-actions">
-        <div class="coin-pill">
-          <span>🪙</span>
-          <strong id="coinBalance">--</strong>
-          <small>Sassy Coins</small>
-        </div>
-
-        <button id="logoutButton" class="ghost-button" type="button">Sign Out</button>
-      </div>
+      <div class="coin-pill"><span>🪙</span><strong id="coinBalance">--</strong><small>Coins</small></div>
     </header>
 
-    <section class="dashboard-grid">
-      <article class="panel profile-panel">
-        <div class="panel-heading">
-          <div>
-            <span class="panel-kicker">Player profile</span>
-            <h2>👤 Your Account</h2>
-          </div>
-          <span class="status-badge">ACTIVE</span>
+    <section id="viewGame" class="mobile-view active">
+      <article class="panel game-status-panel">
+        <div class="stage-row">
+          <span id="gameModeBadge" class="status-badge">WAITING</span>
+          <strong id="gameStageText">Waiting for host</strong>
         </div>
+        <div id="currentCall" class="mobile-current-ball">--</div>
+        <div class="game-meta">
+          <span>Called <strong id="calledCount">0</strong></span>
+          <span>Marked <strong id="markedCount">0</strong></span>
+        </div>
+      </article>
 
+      <article class="panel ticket-panel">
+        <div class="panel-heading">
+          <div><span class="panel-kicker">Your ticket</span><h2 id="ticketTitle">Bingo Card</h2></div>
+          <span id="cardTypeBadge" class="status-badge">--</span>
+        </div>
+        <div id="bingoCard" class="v2-card"></div>
+      </article>
+
+      <button id="claimBingoButton" class="claim-button" type="button">🎉 CLAIM BINGO</button>
+      <div id="gameMessage" class="message-box"></div>
+    </section>
+
+    <section id="viewProfile" class="mobile-view">
+      <article class="panel">
         <div class="profile-avatar" id="profileInitial">?</div>
-
+        <h2 id="profileName">--</h2>
+        <p id="profileEmail" class="muted-text">--</p>
         <div class="profile-details">
-          <div>
-            <span>Player name</span>
-            <strong id="profileName">--</strong>
-          </div>
-          <div>
-            <span>Email</span>
-            <strong id="profileEmail">--</strong>
-          </div>
-          <div>
-            <span>Member since</span>
-            <strong id="memberSince">--</strong>
-          </div>
+          <div><span>Games played</span><strong id="gamesPlayed">0</strong></div>
+          <div><span>Wins</span><strong id="winsCount">0</strong></div>
+          <div><span>Full Houses</span><strong id="fullHouseCount">0</strong></div>
+          <div><span>Lifetime coins</span><strong id="lifetimeCoins">25</strong></div>
         </div>
-
-        <button id="editNameButton" class="secondary-button" type="button">✏️ Change Player Name</button>
+        <button id="editNameButton" class="secondary-button" type="button">✏️ Change Name</button>
+        <button id="logoutButton" class="ghost-button full-width" type="button">Sign Out</button>
       </article>
+    </section>
 
-      <article class="panel economy-panel">
-        <div class="panel-heading">
-          <div>
-            <span class="panel-kicker">General Sassy Treasury</span>
-            <h2>🪙 Sassy Coins</h2>
-          </div>
-        </div>
-
-        <div class="big-balance">
-          <span>🪙</span>
-          <strong id="bigCoinBalance">--</strong>
-        </div>
-
-        <p>
-          Your balance is attached to your account and survives refreshes and
-          signing out.
-        </p>
-
-        <div class="reward-preview">
-          <div><span>Account created</span><strong>+25</strong></div>
-          <div><span>One Line win</span><strong>+100</strong></div>
-          <div><span>Two Lines win</span><strong>+200</strong></div>
-          <div><span>Full House win</span><strong>+500</strong></div>
-        </div>
-
-        <div class="locked-feature">
-          🔒 Win rewards connect in Phase 2.
-        </div>
-      </article>
-
-      <article class="panel coming-panel">
-        <span class="panel-kicker">Coming next</span>
+    <section id="viewShop" class="mobile-view">
+      <article class="panel">
+        <span class="panel-kicker">Spend responsibly-ish</span>
         <h2>🛍️ Sassy Shop</h2>
-        <p>
-          Spend coins on dabber colours, card themes, confetti and ridiculous
-          name effects.
-        </p>
-        <div class="preview-items">
-          <span>💙 Blue Dabber</span>
-          <span>✨ Neon Card</span>
-          <span>👑 VIP Name Glow</span>
-        </div>
+        <div id="shopList" class="shop-grid"></div>
+        <div id="shopMessage" class="message-box"></div>
       </article>
+    </section>
 
-      <article class="panel coming-panel">
-        <span class="panel-kicker">Coming next</span>
+    <section id="viewAchievements" class="mobile-view">
+      <article class="panel">
+        <span class="panel-kicker">Bragging rights</span>
         <h2>🏅 Achievements</h2>
-        <p>
-          Wins, streaks, Full Houses and special General Sassy achievements
-          will live here.
-        </p>
-        <div class="preview-items">
-          <span>🎉 First Bingo</span>
-          <span>🏠 Full House</span>
-          <span>🔥 Hot Streak</span>
-        </div>
+        <div id="achievementList" class="achievement-grid"></div>
       </article>
-
-      <article class="panel history-panel">
-        <div class="panel-heading">
-          <div>
-            <span class="panel-kicker">Wallet activity</span>
-            <h2>📜 Coin History</h2>
-          </div>
-        </div>
-
-        <div id="transactionList" class="transaction-list">
-          No coin activity yet.
-        </div>
-      </article>
-
     </section>
 
-    <section class="sassy-console">
-      <span>🎖️ GENERAL SASSY</span>
-      <p id="dashboardSassy">
-        “Congratulations. You now have an account and an entirely fictional economy.”
-      </p>
+    <section id="viewLeaderboard" class="mobile-view">
+      <article class="panel">
+        <span class="panel-kicker">Top players</span>
+        <h2>🏆 Leaderboard</h2>
+        <div id="leaderboardList" class="leaderboard-list">Loading...</div>
+      </article>
     </section>
+
+    <nav class="mobile-bottom-nav">
+      <button data-view="Game" class="active">🎱<span>Game</span></button>
+      <button data-view="Shop">🛍️<span>Shop</span></button>
+      <button data-view="Achievements">🏅<span>Badges</span></button>
+      <button data-view="Leaderboard">🏆<span>Leaders</span></button>
+      <button data-view="Profile">👤<span>Profile</span></button>
+    </nav>
   </main>
 
   <div id="nameModal" class="modal hidden">
@@ -144,7 +98,7 @@
       <input id="newPlayerName" type="text" minlength="2" maxlength="24" placeholder="New player name">
       <div class="modal-actions">
         <button id="cancelNameButton" class="ghost-button" type="button">Cancel</button>
-        <button id="saveNameButton" class="primary-button" type="button">Save Name</button>
+        <button id="saveNameButton" class="primary-button" type="button">Save</button>
       </div>
       <div id="profileMessage" class="message-box"></div>
     </div>

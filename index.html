@@ -2,40 +2,25 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>General Sassy Bingo V2</title>
   <link rel="stylesheet" href="./style.css">
 </head>
 <body>
   <div class="background"></div>
-
   <main class="auth-shell">
     <section class="brand-panel">
       <div class="brand-badge">🎖️ GENERAL SASSY PRESENTS</div>
       <h1>BINGO <span>V2</span></h1>
       <p class="brand-copy">
-        New accounts. Persistent profiles. Sassy Coins. And considerably more
-        nonsense than was probably necessary.
+        Accounts, Sassy Coins, achievements, cosmetics, leaderboards and a proper live Bingo room.
       </p>
-
       <div class="feature-row">
-        <article>
-          <strong>🪙</strong>
-          <span>Sassy Coins</span>
-        </article>
-        <article>
-          <strong>👤</strong>
-          <span>Player Profiles</span>
-        </article>
-        <article>
-          <strong>🏆</strong>
-          <span>Rewards Coming</span>
-        </article>
+        <article><strong>🪙</strong><span>Sassy Coins</span></article>
+        <article><strong>🎱</strong><span>Live Bingo</span></article>
+        <article><strong>🏆</strong><span>Achievements</span></article>
       </div>
-
-      <blockquote id="sassyQuote">
-        “General Sassy has reviewed the budget. Somehow, we now have coins.”
-      </blockquote>
+      <blockquote id="sassyQuote">“The economy is fictional. The bragging rights are unfortunately very real.”</blockquote>
     </section>
 
     <section class="auth-card">
@@ -46,47 +31,24 @@
 
       <form id="loginForm" class="auth-form">
         <span class="eyebrow">Welcome back</span>
-        <h2>Sign in to Bingo V2</h2>
-
-        <label>
-          Email
-          <input id="loginEmail" type="email" autocomplete="email" required placeholder="you@example.com">
-        </label>
-
-        <label>
-          Password
-          <input id="loginPassword" type="password" autocomplete="current-password" required minlength="6" placeholder="Your password">
-        </label>
-
+        <h2>Sign in</h2>
+        <label>Email<input id="loginEmail" type="email" autocomplete="email" required placeholder="you@example.com"></label>
+        <label>Password<input id="loginPassword" type="password" autocomplete="current-password" required minlength="6" placeholder="Password"></label>
         <button id="loginButton" class="primary-button" type="submit">🎱 Sign In</button>
       </form>
 
       <form id="registerForm" class="auth-form hidden">
         <span class="eyebrow">New recruit</span>
-        <h2>Create your player account</h2>
-
-        <label>
-          Player name
-          <input id="registerName" type="text" autocomplete="nickname" required minlength="2" maxlength="24" placeholder="Your Bingo name">
-        </label>
-
-        <label>
-          Email
-          <input id="registerEmail" type="email" autocomplete="email" required placeholder="you@example.com">
-        </label>
-
-        <label>
-          Password
-          <input id="registerPassword" type="password" autocomplete="new-password" required minlength="6" placeholder="At least 6 characters">
-        </label>
-
-        <button id="registerButton" class="primary-button" type="submit">🪙 Create Account + Get 25 Coins</button>
+        <h2>Create account</h2>
+        <label>Player name<input id="registerName" type="text" autocomplete="nickname" required minlength="2" maxlength="24" placeholder="Bingo name"></label>
+        <label>Email<input id="registerEmail" type="email" autocomplete="email" required placeholder="you@example.com"></label>
+        <label>Password<input id="registerPassword" type="password" autocomplete="new-password" required minlength="6" placeholder="At least 6 characters"></label>
+        <button id="registerButton" class="primary-button" type="submit">🪙 Create Account + 25 Coins</button>
       </form>
 
       <div id="authMessage" class="message-box" aria-live="polite"></div>
     </section>
   </main>
-
   <script type="module" src="./auth.js"></script>
 </body>
 </html>

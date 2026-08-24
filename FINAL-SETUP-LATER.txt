@@ -1,0 +1,36 @@
+GENERAL SASSY BINGO V2 — FULL BETA
+
+FEATURES INCLUDED NOW
+- Accounts and profiles
+- 25 starter coins
+- Persistent player stats
+- Mobile-first player UI
+- 75-ball One Line
+- 75-ball Four Corners
+- 90-ball Progressive: One Line -> Two Lines -> Full House
+- 90-ball Full House
+- Live host calling
+- Host near-winner view
+- Automatic win rewards
+- Sassy Shop
+- Cosmetic inventory
+- Achievements
+- Leaderboard
+- Host economy controls
+- Transaction history data
+- Admin setup page retained for later
+
+IMPORTANT
+This is intentionally packaged BEFORE the final Firebase rules/admin pass.
+
+At the end we will:
+1. Paste one final Firebase ruleset.
+2. Claim one host admin.
+3. Test one player account.
+4. Test one 75-ball round.
+5. Test one 90-ball progressive round.
+6. Lock it down for the event.
+
+MOBILE
+The player page is designed around a 5-button bottom nav and large tap targets.
+No browser zoom should be required on normal phones.
