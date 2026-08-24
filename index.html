@@ -32,7 +32,7 @@
       <form id="loginForm" class="auth-form">
         <span class="eyebrow">Welcome back</span>
         <h2>Sign in</h2>
-        <label>Email<input id="loginEmail" type="email" autocomplete="email" required placeholder="you@example.com"></label>
+        <label>Username<input id="loginUsername" type="text" autocomplete="username" required minlength="2" maxlength="24" pattern="[A-Za-z0-9._-]+" placeholder="Your username"></label>
         <label>Password<input id="loginPassword" type="password" autocomplete="current-password" required minlength="6" placeholder="Password"></label>
         <button id="loginButton" class="primary-button" type="submit">🎱 Sign In</button>
       </form>
@@ -40,8 +40,7 @@
       <form id="registerForm" class="auth-form hidden">
         <span class="eyebrow">New recruit</span>
         <h2>Create account</h2>
-        <label>Player name<input id="registerName" type="text" autocomplete="nickname" required minlength="2" maxlength="24" placeholder="Bingo name"></label>
-        <label>Email<input id="registerEmail" type="email" autocomplete="email" required placeholder="you@example.com"></label>
+        <label>Username<input id="registerName" type="text" autocomplete="username" required minlength="2" maxlength="24" pattern="[A-Za-z0-9._-]+" placeholder="Choose a username"></label>
         <label>Password<input id="registerPassword" type="password" autocomplete="new-password" required minlength="6" placeholder="At least 6 characters"></label>
         <button id="registerButton" class="primary-button" type="submit">🪙 Create Account + 25 Coins</button>
       </form>

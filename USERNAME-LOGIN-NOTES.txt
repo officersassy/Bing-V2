@@ -1,0 +1,24 @@
+USERNAME + PASSWORD LOGIN
+
+Players now only see:
+- Username
+- Password
+
+No real email address is required.
+
+Firebase Authentication still uses Email/Password internally. The website converts:
+    username
+into an internal synthetic address:
+    username@generalsassybingo.invalid
+
+IMPORTANT FOR EXISTING TEST ACCOUNTS:
+Old accounts that were originally created with real email addresses will NOT be able
+to log in using just their old player name. Create a fresh username/password account
+for the new system.
+
+GENERAL SASSY ADMIN:
+Your existing host/admin login is separate from the player login page workflow.
+Do not delete your Firebase admin account or v2/admins record.
+
+Passwords remain minimum 6 characters because Firebase Email/Password Authentication
+requires that minimum in this build.
