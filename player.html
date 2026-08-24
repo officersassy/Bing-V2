@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Player Hub | General Sassy Bingo V2</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <div class="background"></div>
+
+  <main class="dashboard-shell">
+    <header class="topbar">
+      <div>
+        <span class="eyebrow">General Sassy Bingo V2</span>
+        <h1 id="welcomeName">Loading profile...</h1>
+      </div>
+
+      <div class="topbar-actions">
+        <div class="coin-pill">
+          <span>🪙</span>
+          <strong id="coinBalance">--</strong>
+          <small>Sassy Coins</small>
+        </div>
+
+        <button id="logoutButton" class="ghost-button" type="button">Sign Out</button>
+      </div>
+    </header>
+
+    <section class="dashboard-grid">
+      <article class="panel profile-panel">
+        <div class="panel-heading">
+          <div>
+            <span class="panel-kicker">Player profile</span>
+            <h2>👤 Your Account</h2>
+          </div>
+          <span class="status-badge">ACTIVE</span>
+        </div>
+
+        <div class="profile-avatar" id="profileInitial">?</div>
+
+        <div class="profile-details">
+          <div>
+            <span>Player name</span>
+            <strong id="profileName">--</strong>
+          </div>
+          <div>
+            <span>Email</span>
+            <strong id="profileEmail">--</strong>
+          </div>
+          <div>
+            <span>Member since</span>
+            <strong id="memberSince">--</strong>
+          </div>
+        </div>
+
+        <button id="editNameButton" class="secondary-button" type="button">✏️ Change Player Name</button>
+      </article>
+
+      <article class="panel economy-panel">
+        <div class="panel-heading">
+          <div>
+            <span class="panel-kicker">General Sassy Treasury</span>
+            <h2>🪙 Sassy Coins</h2>
+          </div>
+        </div>
+
+        <div class="big-balance">
+          <span>🪙</span>
+          <strong id="bigCoinBalance">--</strong>
+        </div>
+
+        <p>
+          Your balance is attached to your account and survives refreshes and
+          signing out.
+        </p>
+
+        <div class="reward-preview">
+          <div><span>Account created</span><strong>+25</strong></div>
+          <div><span>One Line win</span><strong>+100</strong></div>
+          <div><span>Two Lines win</span><strong>+200</strong></div>
+          <div><span>Full House win</span><strong>+500</strong></div>
+        </div>
+
+        <div class="locked-feature">
+          🔒 Win rewards connect in Phase 2.
+        </div>
+      </article>
+
+      <article class="panel coming-panel">
+        <span class="panel-kicker">Coming next</span>
+        <h2>🛍️ Sassy Shop</h2>
+        <p>
+          Spend coins on dabber colours, card themes, confetti and ridiculous
+          name effects.
+        </p>
+        <div class="preview-items">
+          <span>💙 Blue Dabber</span>
+          <span>✨ Neon Card</span>
+          <span>👑 VIP Name Glow</span>
+        </div>
+      </article>
+
+      <article class="panel coming-panel">
+        <span class="panel-kicker">Coming next</span>
+        <h2>🏅 Achievements</h2>
+        <p>
+          Wins, streaks, Full Houses and special General Sassy achievements
+          will live here.
+        </p>
+        <div class="preview-items">
+          <span>🎉 First Bingo</span>
+          <span>🏠 Full House</span>
+          <span>🔥 Hot Streak</span>
+        </div>
+      </article>
+    </section>
+
+    <section class="sassy-console">
+      <span>🎖️ GENERAL SASSY</span>
+      <p id="dashboardSassy">
+        “Congratulations. You now have an account and an entirely fictional economy.”
+      </p>
+    </section>
+  </main>
+
+  <div id="nameModal" class="modal hidden">
+    <div class="modal-card">
+      <h2>Change Player Name</h2>
+      <input id="newPlayerName" type="text" minlength="2" maxlength="24" placeholder="New player name">
+      <div class="modal-actions">
+        <button id="cancelNameButton" class="ghost-button" type="button">Cancel</button>
+        <button id="saveNameButton" class="primary-button" type="button">Save Name</button>
+      </div>
+      <div id="profileMessage" class="message-box"></div>
+    </div>
+  </div>
+
+  <script type="module" src="./player.js"></script>
+</body>
+</html>

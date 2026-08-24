@@ -1,0 +1,53 @@
+{
+  "rules": {
+    "v2": {
+      "profiles": {
+        "$uid": {
+          ".read": "auth != null && auth.uid === $uid",
+          ".write": "auth != null && auth.uid === $uid",
+
+          "uid": {
+            ".validate": "newData.val() === auth.uid"
+          },
+
+          "username": {
+            ".validate": "newData.isString() && newData.val().length >= 2 && newData.val().length <= 24"
+          },
+
+          "email": {
+            ".validate": "newData.isString()"
+          },
+
+          "coins": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && ((!data.exists() && newData.val() === 25) || (data.exists() && newData.val() === data.val()))"
+          },
+
+          "lifetimeCoins": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && ((!data.exists() && newData.val() === 25) || (data.exists() && newData.val() === data.val()))"
+          },
+
+          "role": {
+            ".validate": "newData.val() === 'player'"
+          },
+
+          "createdAt": {
+            ".validate": "newData.isNumber()"
+          },
+
+          "updatedAt": {
+            ".validate": "newData.isNumber()"
+          },
+
+          "$other": {
+            ".validate": false
+          }
+        }
+      },
+
+      "$other": {
+        ".read": false,
+        ".write": false
+      }
+    }
+  }
+}
