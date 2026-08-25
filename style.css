@@ -1932,3 +1932,41 @@ body[data-name-effect="name-royal"] #profileName{color:#fde68a!important;text-sh
     height:74px !important;
   }
 }
+
+
+/* ===== CLEAN FINAL AVATAR ASSETS ===== */
+.avatar-store-item .shop-icon{
+  width:72px !important;
+  height:72px !important;
+  padding:2px !important;
+  background:transparent !important;
+}
+.avatar-store-item .shop-avatar-img{
+  width:68px !important;
+  height:68px !important;
+  object-fit:contain !important;
+  object-position:center !important;
+  background:transparent !important;
+}
+.profile-avatar{
+  width:104px !important;
+  height:104px !important;
+  padding:3px !important;
+}
+.profile-avatar .profile-avatar-img{
+  width:96px !important;
+  height:96px !important;
+  object-fit:contain !important;
+}
+.mini-avatar-img{
+  width:42px !important;
+  height:42px !important;
+  object-fit:contain !important;
+  padding:0 !important;
+}
+.winner-avatar-img{
+  width:56px !important;
+  height:56px !important;
+  object-fit:contain !important;
+  padding:0 !important;
+}

@@ -1,0 +1,13 @@
+V2.1.6 CLEAN AVATAR ASSETS
+
+All 12 shop avatars have been replaced with a consistently framed clean set.
+
+- exact same source box size
+- exact same output dimensions
+- centred visual scale
+- no old poster labels under the icons
+- larger display in the store
+- same assets reused in Profile, Leaderboard, Host list and Winner popup
+- cache version bumped to 2.1.6
+
+Upload the entire ZIP including assets/avatars and hard refresh once.
