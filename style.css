@@ -1842,3 +1842,93 @@ body[data-name-effect="name-royal"] #profileName{color:#fde68a!important;text-sh
   object-fit:contain!important;
   background:rgba(3,12,28,.65);
 }
+
+
+/* ===== FINAL UNIVERSAL AVATAR ALIGNMENT =====
+   One rule set for every avatar. No per-avatar cropping/tweaks. */
+.profile-avatar,
+.avatar-store-item .shop-icon,
+.mini-avatar-frame,
+.winner-avatar-frame{
+  display:grid;
+  place-items:center;
+  overflow:hidden;
+  border-radius:50%;
+  flex:0 0 auto;
+}
+
+.profile-avatar-img,
+.shop-avatar-img,
+.mini-avatar-img,
+.winner-avatar-img{
+  display:block !important;
+  width:100% !important;
+  height:100% !important;
+  max-width:100% !important;
+  max-height:100% !important;
+  object-fit:contain !important;
+  object-position:center center !important;
+  margin:auto !important;
+  border-radius:50%;
+  transform:none !important;
+}
+
+.avatar-store-item .shop-icon{
+  width:64px !important;
+  height:64px !important;
+  padding:5px !important;
+  box-sizing:border-box;
+  background:rgba(3,12,28,.72);
+}
+
+.avatar-store-item .shop-avatar-img{
+  width:54px !important;
+  height:54px !important;
+}
+
+.profile-avatar{
+  width:96px !important;
+  height:96px !important;
+  padding:6px !important;
+  box-sizing:border-box;
+}
+
+.profile-avatar .profile-avatar-img{
+  width:82px !important;
+  height:82px !important;
+}
+
+.mini-avatar-img{
+  width:38px !important;
+  height:38px !important;
+  padding:2px;
+  box-sizing:border-box;
+  background:rgba(3,12,28,.72);
+}
+
+.winner-avatar-img{
+  width:52px !important;
+  height:52px !important;
+  padding:3px;
+  box-sizing:border-box;
+  background:rgba(3,12,28,.72);
+}
+
+@media(max-width:600px){
+  .avatar-store-item .shop-icon{
+    width:58px !important;
+    height:58px !important;
+  }
+  .avatar-store-item .shop-avatar-img{
+    width:48px !important;
+    height:48px !important;
+  }
+  .profile-avatar{
+    width:88px !important;
+    height:88px !important;
+  }
+  .profile-avatar .profile-avatar-img{
+    width:74px !important;
+    height:74px !important;
+  }
+}
