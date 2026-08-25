@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Host | Bingo V2</title>
-  <link rel="stylesheet" href="./style.css?v=2.2.0">
+  <link rel="stylesheet" href="./style.css?v=2.2.1">
 </head>
 <body>
   <div class="background"></div>
@@ -103,11 +103,15 @@
           <button id="kickSelectedPlayerButton" class="danger-button hidden" type="button">
             🚪 Kick Selected Player
           </button>
+
+          <button id="deleteSelectedPlayerButton" class="danger-button permanent-delete hidden" type="button">
+            🗑️ Delete Account Permanently
+          </button>
         </div>
 
         <p class="muted-text admin-help">
-          Reset Leaderboard clears testing stats and lifetime leaderboard totals,
-          but keeps player accounts, shop purchases and current coin balances.
+          Reset Leaderboard keeps accounts. Delete Account permanently removes the selected
+          player's Firebase login and V2 account data and cannot be undone.
         </p>
       </article>
 
@@ -118,6 +122,6 @@
       </article>
     </section>
   </main>
-  <script type="module" src="./host.js?v=2.2.0"></script>
+  <script type="module" src="./host.js?v=2.2.1"></script>
 </body>
 </html>

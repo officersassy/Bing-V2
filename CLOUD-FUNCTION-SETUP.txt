@@ -1,0 +1,46 @@
+PERMANENT ACCOUNT DELETE — ONE-TIME SETUP
+
+The website is still hosted on GitHub Pages.
+Only the secure delete service is deployed to Firebase Cloud Functions.
+
+WHAT THE DELETE BUTTON DOES
+- Deletes the player's Firebase Authentication login.
+- Deletes their V2 profile.
+- Deletes coins, inventory, cosmetics, achievements and stats.
+- Deletes leaderboard/public profile data.
+- Deletes lobby/current card/kick/transactions/rewards/purchase requests.
+- Removes historical claim/winner entries containing their UID.
+- Refuses to delete your own admin account.
+- Refuses to delete any account marked as an admin.
+
+ONE-TIME DEPLOYMENT
+
+1. Install Node.js if it is not already installed.
+
+2. Open a terminal/PowerShell INSIDE the extracted Bingo folder.
+
+3. Install Firebase CLI:
+   npm install -g firebase-tools
+
+4. Sign in:
+   firebase login
+
+5. Install the function dependencies:
+   cd functions
+   npm install
+   cd ..
+
+6. Deploy ONLY the function:
+   firebase deploy --only functions:deleteBingoUser
+
+Do NOT run "firebase deploy" by itself. Your website remains on GitHub Pages.
+
+After it finishes, upload the normal website files to GitHub as usual.
+
+HOW TO DELETE A PLAYER
+Host -> select player -> Delete Account Permanently -> confirm -> type DELETE.
+
+IMPORTANT
+Firebase may require the project to use a billing-enabled plan to deploy Cloud Functions.
+The browser alone cannot securely delete another person's Firebase Authentication account,
+which is why this small backend function is required.

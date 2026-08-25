@@ -1,8 +1,9 @@
-import { auth,database } from "./firebase.js";
+import { auth,database,functions } from "./firebase.js";
 import { onAuthStateChanged,signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
 import { ref,get,set,update,onValue,push,runTransaction,remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { create75Card,create90Card,shuffle,missingCount,validWin,createBalanced90Draw } from "./game-engine.js";
-import { SHOP_ITEMS,AVATARS } from "./catalog.js?v=2.2.0";
+import { SHOP_ITEMS,AVATARS } from "./catalog.js?v=2.2.1";
 
 const $=id=>document.getElementById(id);
 let host=null,profiles={},lobby={},selectedUid=null,game={},called=[],hostDrawOrder=[];
@@ -81,6 +82,7 @@ function drawEconomy(){
     $("selectedPlayerEconomy").textContent="Select a player above.";
     $("economyControls").classList.add("hidden");
     $("kickSelectedPlayerButton").classList.add("hidden");
+    $("deleteSelectedPlayerButton").classList.add("hidden");
     return;
   }
 
@@ -88,6 +90,7 @@ function drawEconomy(){
   $("selectedCoins").textContent=`${Number(p.coins||0).toLocaleString("en-GB")} 🪙`;
   $("economyControls").classList.remove("hidden");
   $("kickSelectedPlayerButton").classList.remove("hidden");
+  $("deleteSelectedPlayerButton").classList.remove("hidden");
 }
 async function award(amount,reason,targetUid=selectedUid){
   if(!targetUid)return false;
@@ -307,6 +310,59 @@ $("newRoundButton").onclick=async()=>{
 };
 
 
+
+async function deleteSelectedPlayerAccount(){
+  const p=profiles[selectedUid];
+  if(!p||!selectedUid)return;
+
+  const username=p.username||"this player";
+
+  const first=window.confirm(
+    `PERMANENTLY DELETE ${username}?\\n\\nThis removes their login, coins, purchases, achievements, stats and V2 profile. This cannot be undone.`
+  );
+  if(!first)return;
+
+  const typed=window.prompt(
+    `Type DELETE to permanently remove ${username}.`
+  );
+
+  if(typed!=="DELETE"){
+    alert("Account deletion cancelled.");
+    return;
+  }
+
+  const button=$("deleteSelectedPlayerButton");
+  button.disabled=true;
+  button.textContent="Deleting...";
+
+  try{
+    const deleteBingoUser=httpsCallable(functions,"deleteBingoUser");
+    const result=await deleteBingoUser({targetUid:selectedUid});
+
+    if(!result?.data?.ok){
+      throw new Error(result?.data?.message||"Delete failed");
+    }
+
+    alert(`${username} has been permanently deleted.`);
+
+    selectedUid=null;
+    drawPlayers();
+    drawEconomy();
+  }catch(error){
+    console.error("Permanent account deletion failed:",error);
+
+    const message=
+      error?.message?.includes("not-found")
+        ? "The delete service is not deployed yet. Follow CLOUD-FUNCTION-SETUP.txt."
+        : "Account deletion failed. Check that the Cloud Function is deployed and you are signed in as an admin.";
+
+    alert(message);
+  }finally{
+    button.disabled=false;
+    button.textContent="🗑️ Delete Account Permanently";
+  }
+}
+
 async function resetLeaderboard(){
   const confirmed = window.confirm(
     "Reset leaderboard testing stats for ALL players? Accounts, current coin balances and purchased cosmetics will stay intact."
@@ -394,6 +450,7 @@ async function kickSelectedPlayer(){
 
 $("resetLeaderboardButton").onclick = resetLeaderboard;
 $("kickSelectedPlayerButton").onclick = kickSelectedPlayer;
+$("deleteSelectedPlayerButton").onclick = deleteSelectedPlayerAccount;
 
 
 async function evaluateMilestoneAchievements(uid,p){

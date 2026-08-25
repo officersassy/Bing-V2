@@ -1988,3 +1988,18 @@ body[data-name-effect="name-royal"] #profileName{color:#fde68a!important;text-sh
     height:66px !important;
   }
 }
+
+
+/* Permanent account deletion */
+.permanent-delete{
+  background:linear-gradient(145deg,rgba(127,29,29,.92),rgba(69,10,10,.96))!important;
+  border:1px solid rgba(248,113,113,.42)!important;
+  box-shadow:0 0 18px rgba(239,68,68,.16)!important;
+}
+.permanent-delete:hover{
+  box-shadow:0 0 26px rgba(239,68,68,.30)!important;
+}
+.permanent-delete:disabled{
+  opacity:.55;
+  cursor:wait;
+}

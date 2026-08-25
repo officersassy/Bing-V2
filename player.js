@@ -1,7 +1,7 @@
 import { auth,database } from "./firebase.js";
 import { onAuthStateChanged,signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { ref,get,set,update,onValue,runTransaction,push,remove,onDisconnect } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-import { SHOP_ITEMS,ACHIEVEMENTS,AVATARS } from "./catalog.js?v=2.2.0";
+import { SHOP_ITEMS,ACHIEVEMENTS,AVATARS } from "./catalog.js?v=2.2.1";
 import { BLANK,validWin } from "./game-engine.js";
 
 const $=id=>document.getElementById(id);
