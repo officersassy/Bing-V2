@@ -1,0 +1,14 @@
+V2.1.4 AVATAR ALIGNMENT FIX
+
+Fixed after checking the live profile screenshot:
+- Faces/badges are centred consistently.
+- General Sassy is zoomed out more so the hat, face and shoulders fit properly.
+- Original badge frames are no longer chopped off.
+- Every avatar gets matching headroom and visual scale.
+- Website now uses its own clean circular profile frame.
+- Avatar PNG URLs are cache-busted so old bad crops do not remain in the browser.
+
+After upload:
+1. Upload the full ZIP including assets/avatars.
+2. Hard refresh the player page once.
+3. If mobile still shows an old crop, close the tab completely and reopen it.
