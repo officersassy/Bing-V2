@@ -1,0 +1,39 @@
+GENERAL SASSY BINGO V2.2 — STANDALONE AVATARS
+
+This build replaces the old cropped poster/screenshot avatars with the user's
+standalone square avatar artwork.
+
+16 avatars total:
+
+FREE
+- Classic Bingo Ball
+- Happy Dobber
+- Lucky Star
+- Lucky Clover
+- Little Crown
+
+PREMIUM
+- Golden Crown — 300
+- Disco Ball — 450
+- Flaming Bingo — 600
+- Diamond King — 900
+- Lucky Leprechaun — 1000
+- Disco Queen — 1100
+- Neon Skull — 1250
+- Bingo Devil — 1300
+- General Sassy — 1500
+- Jackpot — 1750
+- Legendary General — 3000
+
+The fixed complete Bingo Devil image is used.
+
+All avatar assets are normalized to 512x512 WEBP files.
+The site displays them in circular frames, so the watermark in the outer corner
+is clipped away without manually chopping up the artwork.
+
+IMPORTANT:
+Publish FIREBASE-RULES-FINAL.json from this ZIP because the avatar ownership
+validation now includes the new premium avatar IDs.
+
+Upload the WHOLE ZIP including assets/avatars.
+Then hard-refresh player and host pages once.

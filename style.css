@@ -1934,39 +1934,57 @@ body[data-name-effect="name-royal"] #profileName{color:#fde68a!important;text-sh
 }
 
 
-/* ===== CLEAN FINAL AVATAR ASSETS ===== */
+/* ===== V2.2 STANDALONE AVATAR LIBRARY ===== */
 .avatar-store-item .shop-icon{
-  width:72px !important;
-  height:72px !important;
-  padding:2px !important;
+  width:76px !important;
+  height:76px !important;
+  padding:0 !important;
   background:transparent !important;
+  overflow:hidden !important;
+  border-radius:50% !important;
 }
 .avatar-store-item .shop-avatar-img{
-  width:68px !important;
-  height:68px !important;
-  object-fit:contain !important;
+  width:76px !important;
+  height:76px !important;
+  object-fit:cover !important;
   object-position:center !important;
-  background:transparent !important;
+  border-radius:50% !important;
+  margin:0 !important;
 }
 .profile-avatar{
-  width:104px !important;
-  height:104px !important;
-  padding:3px !important;
+  width:108px !important;
+  height:108px !important;
+  padding:0 !important;
+  overflow:hidden !important;
+  border-radius:50% !important;
 }
 .profile-avatar .profile-avatar-img{
-  width:96px !important;
-  height:96px !important;
-  object-fit:contain !important;
+  width:108px !important;
+  height:108px !important;
+  object-fit:cover !important;
+  object-position:center !important;
+  border-radius:50% !important;
 }
 .mini-avatar-img{
-  width:42px !important;
-  height:42px !important;
-  object-fit:contain !important;
+  width:44px !important;
+  height:44px !important;
+  object-fit:cover !important;
+  object-position:center !important;
+  border-radius:50% !important;
   padding:0 !important;
 }
 .winner-avatar-img{
-  width:56px !important;
-  height:56px !important;
-  object-fit:contain !important;
+  width:58px !important;
+  height:58px !important;
+  object-fit:cover !important;
+  object-position:center !important;
+  border-radius:50% !important;
   padding:0 !important;
+}
+@media(max-width:600px){
+  .avatar-store-item .shop-icon,
+  .avatar-store-item .shop-avatar-img{
+    width:66px !important;
+    height:66px !important;
+  }
 }
