@@ -1,7 +1,7 @@
 import { auth,database } from "./firebase.js";
 import { onAuthStateChanged,signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { ref,get,set,update,onValue,runTransaction,push,remove,onDisconnect } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-import { SHOP_ITEMS,ACHIEVEMENTS,AVATARS } from "./catalog.js?v=2.1.2";
+import { SHOP_ITEMS,ACHIEVEMENTS,AVATARS } from "./catalog.js?v=2.1.3";
 import { BLANK,validWin } from "./game-engine.js";
 
 const $=id=>document.getElementById(id);
@@ -33,6 +33,10 @@ function cosmeticName(id) {
   const item = SHOP_ITEMS.find(x => x.id === id);
   return item ? item.name : "Default";
 }
+function avatarItem(id){
+  return AVATARS.find(item=>item.id===id)||AVATARS[0];
+}
+
 function isOwned(item) {
   return item.price === 0 || Boolean(profile?.inventory?.[item.id]);
 }
@@ -77,8 +81,10 @@ function applyCosmetics() {
   $("equippedTheme").textContent = cosmeticName(theme);
   $("equippedNameEffect").textContent = cosmeticName(nameEffect);
   $("equippedAvatar").textContent = cosmeticName(avatar);
-  const avatarItem=AVATARS.find(item=>item.id===avatar)||AVATARS[0];
-  $("profileAvatar").textContent=avatarItem?.icon||"🎱";
+  const selectedAvatar=avatarItem(avatar);
+  $("profileAvatar").innerHTML=selectedAvatar?.image
+    ? `<img class="profile-avatar-img" src="./${selectedAvatar.image}" alt="${selectedAvatar.name}">`
+    : (selectedAvatar?.icon||"🎱");
   $("profileAvatar").dataset.avatar=avatar;
 }
 
@@ -119,7 +125,7 @@ function fireConfettiCannons() {
 
 function showWinnerOverlay(stageLabel, names, reward = 0) {
   $("winnerTitle").textContent = `${stageLabel} Winner${names.length > 1 ? "s" : ""}`;
-  $("winnerNames").innerHTML = names.map(name => `<div>🏆 ${name}</div>`).join("");
+  $("winnerNames").innerHTML = names.map(name => `<div class="winner-name-row">🏆 ${name}</div>`).join("");
 
   if (reward > 0) {
     $("winnerReward").textContent = `+${reward} Sassy Coins`;
@@ -208,8 +214,11 @@ function drawShop(){
     const row=document.createElement("div");
     row.className=`shop-item ${item.type==="avatar" ? "avatar-store-item" : ""}`;
 
+    const visual=item.type==="avatar"&&item.image
+      ? `<img class="shop-avatar-img" src="./${item.image}" alt="${item.name}">`
+      : item.icon;
     row.innerHTML=`
-      <div class="shop-icon">${item.icon}</div>
+      <div class="shop-icon">${visual}</div>
       <div>
         <strong>${item.name}</strong>
         <small>${item.price===0 ? "FREE" : `${item.price} 🪙`}</small>
@@ -323,8 +332,11 @@ function drawLeaderboard(data){
   $("leaderboardList").innerHTML="";
   entries.forEach((p,i)=>{
     const row=document.createElement("div");row.className="leader-row";
-    const avatar=AVATARS.find(a=>a.id===(p.avatar||"avatar-ball"))||AVATARS[0];
-    row.innerHTML=`<strong>${i+1}</strong><span class="mini-avatar">${avatar?.icon||"🎱"}</span><div><b>${p.username||"Player"}</b><small>${p.stats?.wins||0} wins</small></div><span>${coins(p.lifetimeCoins)} 🪙</span>`;
+    const avatar=avatarItem(p.avatar||"avatar-ball");
+    const avatarVisual=avatar?.image
+      ? `<img class="mini-avatar-img" src="./${avatar.image}" alt="${avatar.name}">`
+      : `<span class="mini-avatar">${avatar?.icon||"🎱"}</span>`;
+    row.innerHTML=`<strong>${i+1}</strong>${avatarVisual}<div><b>${p.username||"Player"}</b><small>${p.stats?.wins||0} wins</small></div><span>${coins(p.lifetimeCoins)} 🪙</span>`;
     $("leaderboardList").appendChild(row);
   });
 }
@@ -553,8 +565,11 @@ onAuthStateChanged(auth,async u=>{
     previousWinnerKey=key;
 
     const names=winners.map(w=>{
-      const av=AVATARS.find(a=>a.id===(w.avatar||"avatar-ball"))||AVATARS[0];
-      return `${av?.icon||"🎱"} ${w.name||"Player"}`;
+      const av=avatarItem(w.avatar||"avatar-ball");
+      const visual=av?.image
+        ? `<img class="winner-avatar-img" src="./${av.image}" alt="${av.name}">`
+        : `<span>${av?.icon||"🎱"}</span>`;
+      return `${visual}<span>${w.name||"Player"}</span>`;
     });
     const reward=st==="one-line"?100:st==="two-lines"?200:500;
     const localWinner=winners.some(w=>w.uid===user.uid);

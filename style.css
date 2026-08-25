@@ -1811,3 +1811,11 @@ body[data-name-effect="name-royal"] #profileName{color:#fde68a!important;text-sh
   background:rgba(250,204,21,.1);border:1px solid rgba(250,204,21,.2);
   color:#fde68a;font-size:.62rem;font-weight:900;vertical-align:middle;
 }
+
+.profile-avatar{overflow:hidden;padding:0!important;background:rgba(255,255,255,.04)!important}
+.profile-avatar-img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block}
+.shop-avatar-img{width:54px;height:54px;object-fit:cover;border-radius:50%;display:block}
+.mini-avatar-img{width:34px;height:34px;border-radius:50%;object-fit:cover;display:block;box-shadow:0 0 8px rgba(56,189,248,.28)}
+.winner-name-row{display:flex;align-items:center;justify-content:center;gap:9px}
+.winner-avatar-img{width:42px;height:42px;border-radius:50%;object-fit:cover;box-shadow:0 0 12px rgba(250,204,21,.35)}
+.avatar-store-item .shop-icon{padding:0!important;overflow:hidden}

@@ -2,7 +2,7 @@ import { auth,database } from "./firebase.js";
 import { onAuthStateChanged,signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { ref,get,set,update,onValue,push,runTransaction,remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { create75Card,create90Card,shuffle,missingCount,validWin,createBalanced90Draw } from "./game-engine.js";
-import { SHOP_ITEMS,AVATARS } from "./catalog.js?v=2.1.2";
+import { SHOP_ITEMS,AVATARS } from "./catalog.js?v=2.1.3";
 
 const $=id=>document.getElementById(id);
 let host=null,profiles={},lobby={},selectedUid=null,game={},called=[],hostDrawOrder=[];
@@ -66,7 +66,10 @@ function drawPlayers(){
       const row=document.createElement("button");
       row.className=`host-player-row ${uid===selectedUid?"selected":""}`;
       const av=AVATARS.find(a=>a.id===(p.cosmetics?.avatar||"avatar-ball"))||AVATARS[0];
-      row.innerHTML=`<span class="mini-avatar">${av?.icon||"🎱"}</span><div><strong>${p.username}</strong><small>${p.email||"Username account"}</small></div><b>${Number(p.coins||0).toLocaleString("en-GB")} 🪙</b>`;
+      const avVisual=av?.image
+        ? `<img class="mini-avatar-img" src="./${av.image}" alt="${av.name}">`
+        : `<span class="mini-avatar">${av?.icon||"🎱"}</span>`;
+      row.innerHTML=`${avVisual}<div><strong>${p.username}</strong><small>${p.email||"Username account"}</small></div><b>${Number(p.coins||0).toLocaleString("en-GB")} 🪙</b>`;
       row.onclick=()=>{selectedUid=uid;drawPlayers();drawEconomy();};
       $("hostPlayerList").appendChild(row);
     });
