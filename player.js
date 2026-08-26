@@ -2,7 +2,7 @@ import { auth,database,functions } from "./firebase.js";
 import { onAuthStateChanged,signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
 import { ref,get,set,update,onValue,runTransaction,push,remove,onDisconnect } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-import { SHOP_ITEMS,ACHIEVEMENTS,AVATARS,RARITIES,CRATE_PRICE } from "./catalog.js?v=2.3.0";
+import { SHOP_ITEMS,ACHIEVEMENTS,AVATARS,RARITIES,CRATE_PRICE } from "./catalog.js?v=2.3.1";
 import { BLANK,validWin } from "./game-engine.js";
 
 const $=id=>document.getElementById(id);
@@ -334,11 +334,19 @@ $("openSassyCrateButton").onclick=async()=>{
     toast(`${rarityMeta(item).name} DROP!`,item.name,item.icon);
   }catch(error){
     console.error("Crate failed:",error);
+    const rawMessage=String(error?.message||"");
+    const cleanMessage=rawMessage
+      .replace(/^FirebaseError:\s*/i,"")
+      .replace(/^internal\s*/i,"")
+      .trim();
+
     show(
       "shopMessage",
-      error?.message?.includes("coins")
+      rawMessage.toLowerCase().includes("coins")
         ? "Not enough Sassy Coins."
-        : "Sassy Crate failed. Make sure the updated Cloud Functions are deployed.",
+        : cleanMessage
+          ? `Sassy Crate: ${cleanMessage}`
+          : "Sassy Crate failed unexpectedly.",
       "error"
     );
   }finally{

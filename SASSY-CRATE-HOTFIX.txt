@@ -1,0 +1,25 @@
+V2.3.1 SASSY CRATE HOTFIX
+
+What the Firebase logs proved:
+- openSassyCrate IS deployed.
+- Firebase Authentication is VALID.
+- app:MISSING refers to Firebase App Check and is not the crate failure.
+
+Hotfix changes:
+- Simpler, defensive server-side crate transaction.
+- Explicit server logging for profile, balance, reward, abort reason, and success.
+- Transaction-history failure can no longer cancel a successful crate.
+- Better callable error handling.
+- Player UI now shows the real Firebase error instead of always saying
+  "make sure Cloud Functions are deployed".
+
+DEPLOY:
+1. Upload the website files from this ZIP to GitHub.
+2. From THIS extracted V2.3.1 folder run:
+   cd functions
+   npm.cmd install
+   cd ..
+   firebase.cmd deploy --only functions
+
+No Firebase rules change is required for this specific hotfix if the V2.3
+rules were already published.

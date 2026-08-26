@@ -255,67 +255,163 @@ exports.openSassyCrate = onCall(
     }
 
     const uid = request.auth.uid;
-    const profileRef = db.ref(`v2/profiles/${uid}`);
-    const snap = await profileRef.get();
+    console.log("Sassy Crate request from", uid);
 
-    if (!snap.exists()) {
-      throw new HttpsError("not-found", "Profile not found.");
-    }
+    try {
+      const profileRef = db.ref(`v2/profiles/${uid}`);
+      const snap = await profileRef.get();
 
-    const profile = snap.val() || {};
-    const inventory = profile.inventory || {};
-    const available = CRATE_CATALOG.filter(item => !inventory[item.id]);
-
-    if (!available.length) {
-      return { ok:true, complete:true };
-    }
-
-    if (Number(profile.coins || 0) < CRATE_PRICE) {
-      throw new HttpsError("failed-precondition", "Not enough Sassy Coins.");
-    }
-
-    const reward = weightedPick(available);
-
-    const transaction = await profileRef.transaction(current => {
-      if (!current) return;
-      current.inventory = current.inventory || {};
-
-      if (current.inventory[reward.id]) return;
-      if (Number(current.coins || 0) < CRATE_PRICE) return;
-
-      current.coins = Number(current.coins || 0) - CRATE_PRICE;
-      current.inventory[reward.id] = Date.now();
-      current.updatedAt = Date.now();
-      current.achievements = current.achievements || {};
-      current.achievements["crate-first"] ||= Date.now();
-
-      if (reward.rarity === "legendary" || reward.rarity === "sassy") {
-        current.achievements["crate-legendary"] ||= Date.now();
+      if (!snap.exists()) {
+        console.error("Crate profile missing:", uid);
+        throw new HttpsError("not-found", "Profile not found.");
       }
 
-      return current;
-    });
+      const profile = snap.val() || {};
+      const inventory = profile.inventory || {};
+      const coins = Number(profile.coins || 0);
 
-    if (!transaction.committed) {
-      throw new HttpsError("aborted", "Crate could not be completed. Try again.");
+      const available = CRATE_CATALOG.filter(
+        item => inventory[item.id] == null
+      );
+
+      console.log("Crate state", {
+        uid,
+        coins,
+        ownedCount: Object.keys(inventory).length,
+        availableCount: available.length
+      });
+
+      if (!available.length) {
+        return { ok:true, complete:true };
+      }
+
+      if (coins < CRATE_PRICE) {
+        throw new HttpsError(
+          "failed-precondition",
+          "Not enough Sassy Coins."
+        );
+      }
+
+      const reward = weightedPick(available);
+
+      if (!reward || !reward.id) {
+        console.error("No crate reward could be selected", { available });
+        throw new HttpsError(
+          "internal",
+          "No crate reward could be selected."
+        );
+      }
+
+      console.log("Crate reward selected", reward);
+
+      let abortReason = "";
+
+      const tx = await profileRef.transaction(current => {
+        if (!current) {
+          abortReason = "PROFILE_MISSING";
+          return;
+        }
+
+        current.inventory = current.inventory || {};
+        current.achievements = current.achievements || {};
+
+        if (current.inventory[reward.id] != null) {
+          abortReason = "ALREADY_OWNED";
+          return;
+        }
+
+        const currentCoins = Number(current.coins || 0);
+
+        if (currentCoins < CRATE_PRICE) {
+          abortReason = "NOT_ENOUGH_COINS";
+          return;
+        }
+
+        current.coins = currentCoins - CRATE_PRICE;
+        current.inventory[reward.id] = Date.now();
+        current.updatedAt = Date.now();
+
+        if (!current.achievements["crate-first"]) {
+          current.achievements["crate-first"] = Date.now();
+        }
+
+        if (
+          reward.rarity === "legendary" ||
+          reward.rarity === "sassy"
+        ) {
+          if (!current.achievements["crate-legendary"]) {
+            current.achievements["crate-legendary"] = Date.now();
+          }
+        }
+
+        return current;
+      });
+
+      if (!tx.committed) {
+        console.error("Crate transaction aborted", {
+          uid,
+          reward: reward.id,
+          abortReason
+        });
+
+        if (abortReason === "NOT_ENOUGH_COINS") {
+          throw new HttpsError(
+            "failed-precondition",
+            "Not enough Sassy Coins."
+          );
+        }
+
+        throw new HttpsError(
+          "aborted",
+          "The crate changed while opening. Please try again."
+        );
+      }
+
+      try {
+        await db.ref(`v2/transactions/${uid}`).push({
+          amount: -CRATE_PRICE,
+          reason: `Sassy Crate — ${reward.name}`,
+          type: "crate",
+          itemId: reward.id,
+          rarity: reward.rarity,
+          createdAt: Date.now(),
+          createdBy: "openSassyCrate"
+        });
+      } catch (historyError) {
+        // Do not fail the crate after the player has already paid and received
+        // the item merely because the audit-history write failed.
+        console.error("Crate transaction history write failed", historyError);
+      }
+
+      console.log("Sassy Crate success", {
+        uid,
+        itemId: reward.id,
+        rarity: reward.rarity
+      });
+
+      return {
+        ok: true,
+        complete: false,
+        itemId: reward.id,
+        rarity: reward.rarity,
+        remainingCoins: Number(tx.snapshot.val()?.coins || 0)
+      };
+    } catch (error) {
+      console.error("openSassyCrate failed", {
+        code: error?.code,
+        message: error?.message,
+        stack: error?.stack
+      });
+
+      if (error instanceof HttpsError) {
+        throw error;
+      }
+
+      throw new HttpsError(
+        "internal",
+        error?.message || "Sassy Crate failed unexpectedly."
+      );
     }
-
-    await db.ref(`v2/transactions/${uid}`).push({
-      amount:-CRATE_PRICE,
-      reason:`Sassy Crate — ${reward.name}`,
-      type:"crate",
-      itemId:reward.id,
-      rarity:reward.rarity,
-      createdAt:Date.now(),
-      createdBy:"openSassyCrate"
-    });
-
-    return {
-      ok:true,
-      complete:false,
-      itemId:reward.id,
-      rarity:reward.rarity
-    };
   }
 );
 
