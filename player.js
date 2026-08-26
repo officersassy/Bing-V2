@@ -1,7 +1,7 @@
 import { auth,database } from "./firebase.js";
 import { onAuthStateChanged,signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { ref,get,set,update,onValue,runTransaction,push,remove,onDisconnect } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-import { SHOP_ITEMS,ACHIEVEMENTS,AVATARS } from "./catalog.js?v=2.2.1";
+import { SHOP_ITEMS,ACHIEVEMENTS,AVATARS } from "./catalog.js?v=2.2.2";
 import { BLANK,validWin } from "./game-engine.js";
 
 const $=id=>document.getElementById(id);
@@ -267,9 +267,9 @@ async function equipItem(item){
   }
 
   try{
-    await update(
-      ref(database,`v2/profiles/${user.uid}/cosmetics`),
-      { [key]: item.id }
+    await set(
+      ref(database,`v2/profiles/${user.uid}/cosmetics/${key}`),
+      item.id
     );
 
     toast("Cosmetic Equipped",item.name,item.icon);

@@ -1,0 +1,13 @@
+V2.2.2 AVATAR EQUIP HOTFIX
+
+Paid avatars could be purchased but some newer avatar IDs were blocked at equip time.
+
+FIXED:
+- Avatar Firebase validation is rebuilt from the current catalog.
+- Every current free avatar is allowed.
+- Every current paid avatar is allowed only when that item exists in inventory.
+- Equip writes directly to cosmetics/avatar rather than updating the whole cosmetics object.
+
+IMPORTANT:
+After uploading this build, publish FIREBASE-RULES-FINAL.json from THIS ZIP.
+Then hard-refresh the player page once.
