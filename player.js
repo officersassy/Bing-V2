@@ -1,7 +1,8 @@
-import { auth,database } from "./firebase.js";
+import { auth,database,functions } from "./firebase.js";
 import { onAuthStateChanged,signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
 import { ref,get,set,update,onValue,runTransaction,push,remove,onDisconnect } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-import { SHOP_ITEMS,ACHIEVEMENTS,AVATARS } from "./catalog.js?v=2.2.2";
+import { SHOP_ITEMS,ACHIEVEMENTS,AVATARS,RARITIES,CRATE_PRICE } from "./catalog.js?v=2.3.0";
 import { BLANK,validWin } from "./game-engine.js";
 
 const $=id=>document.getElementById(id);
@@ -9,6 +10,8 @@ let user=null,profile=null,game={},card=[],marked=[],called=[],playerRoundId=nul
 let previousAchievements = new Set();
 let previousCoinBalance = null;
 let previousWinnerKey = null;
+let currentStoreFilter="all";
+let lastCrateItem=null;
 
 function show(id,text,type=""){const el=$(id);el.textContent=text;el.className=`message-box ${type}`.trim();}
 function coins(n){return Number(n||0).toLocaleString("en-GB");}
@@ -89,7 +92,7 @@ function applyCosmetics() {
 }
 
 function fireConfettiCannons() {
-  if (!["confetti-party","effect-fireworks","effect-coin-rain"].includes(profile?.cosmetics?.effect)) return;
+  if (!["confetti-party","effect-fireworks","effect-coin-rain","effect-meteor","effect-jackpot"].includes(profile?.cosmetics?.effect)) return;
 
   const layer = $("confettiLayer");
   if (!layer) return;
@@ -101,7 +104,11 @@ function fireConfettiCannons() {
     ? ["✨","💥","🎆","★"]
     : effect==="effect-coin-rain"
       ? ["🪙","💰","🪙","✨"]
-      : ["●","■","▲","★"];
+      : effect==="effect-meteor"
+        ? ["☄️","🔥","✦","☄️"]
+        : effect==="effect-jackpot"
+          ? ["🎰","7️⃣","⭐","🪙"]
+          : ["●","■","▲","★"];
 
   for (let i = 0; i < pieces; i++) {
     const piece = document.createElement("span");
@@ -200,54 +207,145 @@ function drawProfile(){
   $("lifetimeCoins").textContent=coins(profile.lifetimeCoins);
   applyCosmetics();
 }
-function drawShop(){
-  const avatarArea = $("avatarShopList");
-  const cosmeticArea = $("shopList");
-
-  avatarArea.innerHTML = "";
-  cosmeticArea.innerHTML = "";
-
-  SHOP_ITEMS.forEach(item=>{
-    const owned = isOwned(item);
-    const equipped = isEquipped(item);
-
-    const row=document.createElement("div");
-    row.className=`shop-item ${item.type==="avatar" ? "avatar-store-item" : ""}`;
-
-    const visual=item.type==="avatar"&&item.image
-      ? `<img class="shop-avatar-img" src="./${item.image}" alt="${item.name}">`
-      : item.icon;
-    row.innerHTML=`
-      <div class="shop-icon">${visual}</div>
-      <div>
-        <strong>${item.name}</strong>
-        <small>${item.price===0 ? "FREE" : `${item.price} 🪙`}</small>
-      </div>
-    `;
-
-    const btn=document.createElement("button");
-
-    if(owned){
-      btn.textContent=equipped ? "Equipped" : "Equip";
-      btn.disabled=equipped;
-
-      if(!equipped){
-        btn.onclick=()=>equipItem(item);
-      }
-    }else{
-      btn.textContent=`Buy ${item.price}`;
-      btn.onclick=()=>buyItem(item);
-    }
-
-    row.appendChild(btn);
-
-    if(item.type==="avatar"){
-      avatarArea.appendChild(row);
-    }else{
-      cosmeticArea.appendChild(row);
-    }
-  });
+function rarityMeta(item){
+  return RARITIES[item.rarity] || RARITIES.common;
 }
+
+function storeVisual(item){
+  if(item.type==="avatar" && item.image){
+    return `<img class="premium-store-avatar" src="./${item.image}" alt="${item.name}">`;
+  }
+  return `<span class="premium-store-symbol">${item.icon}</span>`;
+}
+
+function drawShop(){
+  if(!profile)return;
+
+  $("storeCoinBalance").textContent=coins(profile.coins);
+  const ownedCount=SHOP_ITEMS.filter(isOwned).length;
+  $("ownedCosmeticCount").textContent=ownedCount;
+
+  const visible=SHOP_ITEMS.filter(item=>
+    currentStoreFilter==="all" || item.type===currentStoreFilter
+  );
+
+  $("storeItemCount").textContent=`${visible.length} items`;
+  $("shopList").innerHTML="";
+
+  visible
+    .sort((a,b)=>{
+      const order={sassy:5,legendary:4,epic:3,rare:2,common:1};
+      return (order[b.rarity]||0)-(order[a.rarity]||0) || b.price-a.price;
+    })
+    .forEach(item=>{
+      const owned=isOwned(item);
+      const equipped=isEquipped(item);
+      const rarity=rarityMeta(item);
+
+      const card=document.createElement("article");
+      card.className=`premium-store-item rarity-${item.rarity||"common"}`;
+
+      card.innerHTML=`
+        <div class="premium-store-visual">${storeVisual(item)}</div>
+        <div class="premium-store-info">
+          <span class="rarity-chip rarity-${item.rarity||"common"}">${rarity.icon} ${rarity.name}</span>
+          <h3>${item.name}</h3>
+          <p>${item.description||"General Sassy approved cosmetic."}</p>
+          <div class="store-price">${item.price===0 ? "FREE" : `${coins(item.price)} 🪙`}</div>
+        </div>
+      `;
+
+      const button=document.createElement("button");
+      button.className=owned ? "store-equip-button" : "store-buy-button";
+
+      if(owned){
+        button.textContent=equipped ? "✓ EQUIPPED" : "EQUIP";
+        button.disabled=equipped;
+        if(!equipped)button.onclick=()=>equipItem(item);
+      }else{
+        button.textContent=`BUY — ${coins(item.price)} 🪙`;
+        button.onclick=()=>buyItem(item);
+      }
+
+      card.appendChild(button);
+      $("shopList").appendChild(card);
+    });
+}
+
+document.querySelectorAll("#storeFilters button").forEach(button=>{
+  button.onclick=()=>{
+    currentStoreFilter=button.dataset.filter;
+    document.querySelectorAll("#storeFilters button").forEach(b=>b.classList.remove("active"));
+    button.classList.add("active");
+    drawShop();
+  };
+});
+
+function showCrateReward(item){
+  lastCrateItem=item;
+  const rarity=rarityMeta(item);
+  const card=$("crateRevealCard");
+
+  card.className=`crate-reveal-card rarity-${item.rarity}`;
+  $("crateRevealIcon").innerHTML=item.type==="avatar"&&item.image
+    ? `<img class="crate-avatar-prize" src="./${item.image}" alt="${item.name}">`
+    : item.icon;
+  $("crateRevealRarity").className=`rarity-chip rarity-${item.rarity}`;
+  $("crateRevealRarity").textContent=`${rarity.icon} ${rarity.name}`;
+  $("crateRevealName").textContent=item.name;
+  $("crateRevealDescription").textContent=item.description||"New cosmetic unlocked.";
+  $("crateEquipButton").classList.remove("hidden");
+  $("crateOverlay").classList.remove("hidden");
+}
+
+$("closeCrateOverlay").onclick=()=>$("crateOverlay").classList.add("hidden");
+$("crateEquipButton").onclick=async()=>{
+  if(lastCrateItem){
+    await equipItem(lastCrateItem);
+    $("crateOverlay").classList.add("hidden");
+  }
+};
+
+$("openSassyCrateButton").onclick=async()=>{
+  if(Number(profile?.coins||0)<CRATE_PRICE){
+    show("shopMessage","You need 1,000 Sassy Coins for a crate.","error");
+    return;
+  }
+
+  const button=$("openSassyCrateButton");
+  button.disabled=true;
+  button.textContent="GENERAL SASSY IS CHOOSING...";
+
+  try{
+    const openCrate=httpsCallable(functions,"openSassyCrate");
+    const result=await openCrate({});
+    const data=result.data||{};
+
+    if(data.complete){
+      show("shopMessage","You already own every item available in the Sassy Crate.","success");
+      return;
+    }
+
+    const item=SHOP_ITEMS.find(x=>x.id===data.itemId);
+
+    if(!item)throw new Error("Unknown crate reward");
+
+    showCrateReward(item);
+    toast(`${rarityMeta(item).name} DROP!`,item.name,item.icon);
+  }catch(error){
+    console.error("Crate failed:",error);
+    show(
+      "shopMessage",
+      error?.message?.includes("coins")
+        ? "Not enough Sassy Coins."
+        : "Sassy Crate failed. Make sure the updated Cloud Functions are deployed.",
+      "error"
+    );
+  }finally{
+    button.disabled=false;
+    button.textContent="OPEN — 1,000 🪙";
+  }
+};
 
 async function equipItem(item){
   const map = {

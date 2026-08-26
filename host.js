@@ -3,7 +3,7 @@ import { onAuthStateChanged,signOut } from "https://www.gstatic.com/firebasejs/1
 import { httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
 import { ref,get,set,update,onValue,push,runTransaction,remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { create75Card,create90Card,shuffle,missingCount,validWin,createBalanced90Draw } from "./game-engine.js";
-import { SHOP_ITEMS,AVATARS } from "./catalog.js?v=2.2.2";
+import { SHOP_ITEMS,AVATARS } from "./catalog.js?v=2.3.0";
 
 const $=id=>document.getElementById(id);
 let host=null,profiles={},lobby={},selectedUid=null,game={},called=[],hostDrawOrder=[];

@@ -1,0 +1,46 @@
+GENERAL SASSY BINGO V2.3 — SASSY EMPORIUM
+
+WHAT'S NEW
+- Complete Store visual redesign.
+- Every cosmetic has Common / Rare / Epic / Legendary / Sassy rarity.
+- Store category filters.
+- Better descriptions and presentation.
+- Mystery Sassy Crate costs 1,000 Sassy Coins.
+- Crate never gives free items.
+- Crate has duplicate protection.
+- If the player owns every crate item, no coins are taken.
+- Secure server-side crate roll and coin deduction.
+- Crate rarity odds: Common 42%, Rare 30%, Epic 18%, Legendary 8%, Sassy 2%.
+- Crate achievements.
+- New premium dabbers, card themes, name effects and win effects.
+- Existing cosmetics visually upgraded to look significantly more premium.
+
+NEW HIGH-END COSMETICS INCLUDE
+- Plasma Strike / Diamond Impact dobbers
+- Sassy Galaxy / Black Diamond / General's Private Table cards
+- Meteor Shower / Jackpot Explosion winner effects
+- Electric Sassy / GENERAL'S FAVOURITE name effects
+
+IMPORTANT — TWO DEPLOYMENT STEPS
+
+1) WEBSITE
+Upload the normal website files/folders to GitHub, including catalog.js/style.css/player.js.
+
+2) FIREBASE RULES
+Publish FIREBASE-RULES-FINAL.json from this ZIP.
+
+3) CLOUD FUNCTIONS
+Because the Sassy Crate is secure and server-side, deploy the functions again from
+the extracted folder:
+
+firebase.cmd deploy --only functions
+
+This functions/index.js contains BOTH:
+- the known-good permanent account deletion function
+- the new openSassyCrate function
+
+So deploying this will NOT remove account deletion.
+
+NORMAL PAID STORE PURCHASES
+The existing normal Buy buttons still use the Host-page cashier system.
+The Sassy Crate itself does NOT require the Host page to be open.

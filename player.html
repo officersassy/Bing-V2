@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
   <title>Player Hub | Bingo V2</title>
-  <link rel="stylesheet" href="./style.css?v=2.2.2">
+  <link rel="stylesheet" href="./style.css?v=2.3.0">
 </head>
 <body>
   <div class="background"></div>
@@ -107,17 +107,55 @@
     </section>
 
     <section id="viewShop" class="mobile-view">
-      <article class="panel">
-        <span class="panel-kicker">Your face, but sassier</span>
-        <h2>👤 Avatars</h2>
-        <p class="muted-text">Free avatars can be equipped instantly. Premium avatars are yours forever once bought.</p>
-        <div id="avatarShopList" class="shop-grid avatar-shop-grid"></div>
+      <article class="sassy-store-hero">
+        <div class="store-hero-copy">
+          <span class="store-superline">GENERAL SASSY PRESENTS</span>
+          <h2>THE SASSY EMPORIUM</h2>
+          <p>Premium cosmetics, ridiculous rarity, and absolutely unnecessary levels of glow.</p>
+          <div class="store-hero-meta">
+            <span>🪙 <strong id="storeCoinBalance">0</strong> coins</span>
+            <span>🎒 <strong id="ownedCosmeticCount">0</strong> owned</span>
+          </div>
+        </div>
+        <div class="store-hero-orb">👑</div>
       </article>
 
-      <article class="panel">
-        <span class="panel-kicker">Spend responsibly-ish</span>
-        <h2>🛍️ Cosmetics</h2>
-        <div id="shopList" class="shop-grid"></div>
+      <article class="panel sassy-crate-card rarity-sassy">
+        <div class="crate-art">
+          <div class="crate-glow"></div>
+          <div class="crate-box">🎁</div>
+        </div>
+        <div class="crate-copy">
+          <span class="rarity-chip rarity-sassy">👑 SASSY CRATE</span>
+          <h2>Mystery Sassy Crate</h2>
+          <p>One random paid cosmetic you do not already own. No free junk. No duplicates.</p>
+          <div class="crate-odds">
+            <span>Common 42%</span><span>Rare 30%</span><span>Epic 18%</span><span>Legendary 8%</span><span>Sassy 2%</span>
+          </div>
+        </div>
+        <button id="openSassyCrateButton" class="crate-buy-button" type="button">OPEN — 1,000 🪙</button>
+      </article>
+
+      <article class="panel store-browser">
+        <div class="store-heading-row">
+          <div>
+            <span class="panel-kicker">Collection</span>
+            <h2>🛍️ Cosmetics</h2>
+          </div>
+          <div class="store-count" id="storeItemCount">0 items</div>
+        </div>
+
+        <div id="storeFilters" class="store-filter-bar">
+          <button data-filter="all" class="active">All</button>
+          <button data-filter="avatar">Avatars</button>
+          <button data-filter="theme">Cards</button>
+          <button data-filter="dabber">Dabbers</button>
+          <button data-filter="nameEffect">Names</button>
+          <button data-filter="effect">Wins</button>
+        </div>
+
+        <div id="shopList" class="premium-shop-grid"></div>
+        <div id="avatarShopList" class="hidden"></div>
         <div id="shopMessage" class="message-box"></div>
       </article>
     </section>
@@ -153,6 +191,19 @@
   </div>
 
 
+
+  <div id="crateOverlay" class="crate-overlay hidden">
+    <div id="crateRevealCard" class="crate-reveal-card">
+      <button id="closeCrateOverlay" class="crate-close" type="button">✕</button>
+      <span class="crate-reveal-kicker">SASSY CRATE OPENED</span>
+      <div id="crateRevealIcon" class="crate-reveal-icon">🎁</div>
+      <div id="crateRevealRarity" class="rarity-chip">RARITY</div>
+      <h2 id="crateRevealName">Mystery Item</h2>
+      <p id="crateRevealDescription"></p>
+      <button id="crateEquipButton" class="primary-button hidden" type="button">Equip Now</button>
+    </div>
+  </div>
+
   <div id="winnerOverlay" class="winner-overlay hidden">
     <div class="winner-modal">
       <div class="winner-icon">🏆</div>
@@ -169,6 +220,6 @@
 
   <div id="confettiLayer" class="confetti-layer" aria-hidden="true"></div>
 
-  <script type="module" src="./player.js?v=2.2.2"></script>
+  <script type="module" src="./player.js?v=2.3.0"></script>
 </body>
 </html>
