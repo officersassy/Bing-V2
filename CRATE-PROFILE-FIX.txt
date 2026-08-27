@@ -1,0 +1,31 @@
+V2.3.6 SASSY CRATE PROFILE FIX
+
+Confirmed symptom:
+- Player profile and coin balance display normally on the website.
+- Cloud Function still returned "Profile not found."
+
+Root cause:
+Realtime Database transactions may invoke the update callback with null before
+the server value is available. The crate treated that temporary transaction null
+as a genuinely missing profile and aborted.
+
+Fix:
+- Function explicitly reads v2/profiles/<authenticated UID> before transaction.
+- A genuinely missing profile is still rejected safely.
+- The initial profile snapshot is used only as a transaction bootstrap when the
+  first callback receives temporary null.
+- Firebase transaction retry semantics remain intact.
+- Reward selection remains inside the transaction.
+- Duplicate protection remains intact.
+- Coin deduction + item unlock remain atomic.
+- Account deletion function remains included and unchanged.
+
+DEPLOY FROM THIS V2.3.6 FOLDER:
+
+cd functions
+npm.cmd install
+cd ..
+node -e "require('./functions/index.js'); console.log('FUNCTION LOADED OK')"
+firebase.cmd deploy --only functions
+
+No Firebase rules update is required for this hotfix.
