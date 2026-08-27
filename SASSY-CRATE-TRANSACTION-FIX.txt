@@ -1,0 +1,28 @@
+V2.3.3 SASSY CRATE TRANSACTION FIX
+
+Bug:
+"The crate changed while opening, please try again."
+
+Cause:
+The function selected the reward before starting the Firebase profile transaction.
+If Firebase retried the transaction because the profile changed, the original
+reward could become stale and the transaction aborted.
+
+Fix:
+- Reward selection now happens INSIDE the Firebase transaction callback.
+- Every Firebase transaction retry recalculates the player's current inventory.
+- Every retry selects only from items the player does not currently own.
+- 1,000 coins and the reward are still committed atomically.
+- Collection complete still costs zero coins.
+- Duplicate protection remains active.
+- Account deletion remains unchanged.
+
+Deploy only the Cloud Functions from THIS V2.3.3 folder:
+
+cd functions
+npm.cmd install
+cd ..
+node -e "require('./functions/index.js'); console.log('FUNCTION LOADED OK')"
+firebase.cmd deploy --only functions
+
+No Firebase rules change is needed for this specific hotfix.

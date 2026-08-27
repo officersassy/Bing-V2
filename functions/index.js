@@ -270,80 +270,58 @@ exports.openSassyCrate = onCall(
 
     const uid = request.auth.uid;
     const { db } = getAdminServices();
+    const profileRef = db.ref(`v2/profiles/${uid}`);
 
     console.log("Sassy Crate request from", uid);
 
+    let awardedReward = null;
+    let abortReason = "";
+
     try {
-      const profileRef = db.ref(`v2/profiles/${uid}`);
-      const snap = await profileRef.get();
-
-      if (!snap.exists()) {
-        console.error("Crate profile missing:", uid);
-        throw new HttpsError("not-found", "Profile not found.");
-      }
-
-      const profile = snap.val() || {};
-      const inventory = profile.inventory || {};
-      const coins = Number(profile.coins || 0);
-
-      const available = CRATE_CATALOG.filter(
-        item => inventory[item.id] == null
-      );
-
-      console.log("Crate state", {
-        uid,
-        coins,
-        ownedCount: Object.keys(inventory).length,
-        availableCount: available.length
-      });
-
-      if (!available.length) {
-        return { ok:true, complete:true };
-      }
-
-      if (coins < CRATE_PRICE) {
-        throw new HttpsError(
-          "failed-precondition",
-          "Not enough Sassy Coins."
-        );
-      }
-
-      const reward = weightedPick(available);
-
-      if (!reward || !reward.id) {
-        console.error("No crate reward could be selected", { available });
-        throw new HttpsError(
-          "internal",
-          "No crate reward could be selected."
-        );
-      }
-
-      console.log("Crate reward selected", reward);
-
-      let abortReason = "";
-
       const tx = await profileRef.transaction(current => {
+        abortReason = "";
+        awardedReward = null;
+
         if (!current) {
           abortReason = "PROFILE_MISSING";
           return;
         }
 
-        current.inventory = current.inventory || {};
-        current.achievements = current.achievements || {};
+        const coins = Number(current.coins || 0);
+        const inventory = current.inventory || {};
 
-        if (current.inventory[reward.id] != null) {
-          abortReason = "ALREADY_OWNED";
+        const available = CRATE_CATALOG.filter(
+          item => inventory[item.id] == null
+        );
+
+        // Collection complete: do not take coins.
+        if (!available.length) {
+          abortReason = "COLLECTION_COMPLETE";
           return;
         }
 
-        const currentCoins = Number(current.coins || 0);
-
-        if (currentCoins < CRATE_PRICE) {
+        if (coins < CRATE_PRICE) {
           abortReason = "NOT_ENOUGH_COINS";
           return;
         }
 
-        current.coins = currentCoins - CRATE_PRICE;
+        // IMPORTANT:
+        // Pick the reward from THIS transaction's current profile state.
+        // If Firebase retries the transaction because the profile changed,
+        // this callback runs again and chooses from the newest inventory.
+        const reward = weightedPick(available);
+
+        if (!reward || !reward.id) {
+          abortReason = "NO_REWARD";
+          return;
+        }
+
+        awardedReward = reward;
+
+        current.inventory = current.inventory || {};
+        current.achievements = current.achievements || {};
+
+        current.coins = coins - CRATE_PRICE;
         current.inventory[reward.id] = Date.now();
         current.updatedAt = Date.now();
 
@@ -364,11 +342,17 @@ exports.openSassyCrate = onCall(
       });
 
       if (!tx.committed) {
-        console.error("Crate transaction aborted", {
+        console.warn("Crate transaction did not commit", {
           uid,
-          reward: reward.id,
           abortReason
         });
+
+        if (abortReason === "COLLECTION_COMPLETE") {
+          return {
+            ok: true,
+            complete: true
+          };
+        }
 
         if (abortReason === "NOT_ENOUGH_COINS") {
           throw new HttpsError(
@@ -377,9 +361,27 @@ exports.openSassyCrate = onCall(
           );
         }
 
+        if (abortReason === "PROFILE_MISSING") {
+          throw new HttpsError(
+            "not-found",
+            "Profile not found."
+          );
+        }
+
         throw new HttpsError(
           "aborted",
-          "The crate changed while opening. Please try again."
+          "The crate could not complete. Please try again."
+        );
+      }
+
+      // The committed callback's reward is the item actually granted.
+      const reward = awardedReward;
+
+      if (!reward) {
+        console.error("Transaction committed without an awarded reward", { uid });
+        throw new HttpsError(
+          "internal",
+          "Crate completed without a reward."
         );
       }
 
@@ -394,15 +396,16 @@ exports.openSassyCrate = onCall(
           createdBy: "openSassyCrate"
         });
       } catch (historyError) {
-        // Do not fail the crate after the player has already paid and received
-        // the item merely because the audit-history write failed.
-        console.error("Crate transaction history write failed", historyError);
+        // The item and coin transaction has already succeeded.
+        // Never take the reward away because history logging failed.
+        console.error("Crate history logging failed", historyError);
       }
 
       console.log("Sassy Crate success", {
         uid,
         itemId: reward.id,
-        rarity: reward.rarity
+        rarity: reward.rarity,
+        remainingCoins: Number(tx.snapshot.val()?.coins || 0)
       });
 
       return {
@@ -412,6 +415,7 @@ exports.openSassyCrate = onCall(
         rarity: reward.rarity,
         remainingCoins: Number(tx.snapshot.val()?.coins || 0)
       };
+
     } catch (error) {
       console.error("openSassyCrate failed", {
         code: error?.code,
