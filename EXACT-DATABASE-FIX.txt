@@ -1,0 +1,24 @@
+V2.3.5 EXACT REALTIME DATABASE FIX
+
+The previous build used:
+  getDatabase(adminApp, DATABASE_URL)
+
+That is not the correct Firebase Admin API for selecting a specific Realtime
+Database URL. The URL could therefore be ignored and the function could still
+read the default database.
+
+This build uses:
+  getDatabaseWithUrl(DATABASE_URL, adminApp)
+
+That explicitly targets:
+https://bingo-5174e-default-rtdb.europe-west1.firebasedatabase.app
+
+Deploy from THIS V2.3.5 folder:
+
+cd functions
+npm.cmd install
+cd ..
+node -e "require('./functions/index.js'); console.log('FUNCTION LOADED OK')"
+firebase.cmd deploy --only functions
+
+No website/Firebase rules changes are needed for this particular backend fix.

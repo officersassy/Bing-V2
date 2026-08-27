@@ -2,7 +2,7 @@ import { auth,database,functions } from "./firebase.js";
 import { onAuthStateChanged,signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
 import { ref,get,set,update,onValue,runTransaction,push,remove,onDisconnect } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-import { SHOP_ITEMS,ACHIEVEMENTS,AVATARS,RARITIES,CRATE_PRICE } from "./catalog.js?v=2.3.4";
+import { SHOP_ITEMS,ACHIEVEMENTS,AVATARS,RARITIES,CRATE_PRICE } from "./catalog.js?v=2.3.5";
 import { BLANK,validWin } from "./game-engine.js";
 
 const $=id=>document.getElementById(id);

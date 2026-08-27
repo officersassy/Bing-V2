@@ -15,7 +15,7 @@ let adminApp = null;
 function getAdminServices() {
   const { initializeApp } = require("firebase-admin/app");
   const { getAuth } = require("firebase-admin/auth");
-  const { getDatabase } = require("firebase-admin/database");
+  const { getDatabaseWithUrl } = require("firebase-admin/database");
 
   if (!adminApp) {
     adminApp = initializeApp({
@@ -30,7 +30,7 @@ function getAdminServices() {
     // IMPORTANT:
     // Explicitly target the exact Europe-West Realtime Database.
     // Do not let Admin SDK resolve a default database instance.
-    db: getDatabase(adminApp, DATABASE_URL)
+    db: getDatabaseWithUrl(DATABASE_URL, adminApp)
   };
 }
 
@@ -279,7 +279,8 @@ exports.openSassyCrate = onCall(
     console.log("Sassy Crate request", {
       uid,
       profilePath,
-      databaseURL: DATABASE_URL
+      databaseURL: DATABASE_URL,
+      databaseApi: "getDatabaseWithUrl"
     });
 
     let awardedReward = null;
