@@ -1,0 +1,31 @@
+V2.3.2 FUNCTION DISCOVERY HOTFIX
+
+This fixes the Firebase CLI:
+  User code failed to load. Cannot determine backend specification.
+  Timeout after 10000
+
+Cause:
+Firebase Admin Auth/Database were being initialized at module startup while the
+Firebase CLI was trying to inspect the exported functions.
+
+Fix:
+- Only firebase-functions loads at module startup.
+- Firebase Admin is lazy-loaded only when openSassyCrate or deleteBingoUser is called.
+- One cached Admin app is shared safely by both functions.
+- No getApp()/getApps() path that caused the previous app/no-app problem.
+- Account deletion remains included.
+- Sassy Crate remains included.
+
+FROM THIS EXTRACTED V2.3.2 FOLDER:
+
+cd functions
+npm.cmd install
+cd ..
+
+Test:
+node -e "require('./functions/index.js'); console.log('FUNCTION LOADED OK')"
+
+Then deploy:
+firebase.cmd deploy --only functions
+
+The local load test should return immediately.

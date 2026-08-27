@@ -1,21 +1,35 @@
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { setGlobalOptions } = require("firebase-functions/v2");
-const { initializeApp } = require("firebase-admin/app");
-const { getAuth } = require("firebase-admin/auth");
-const { getDatabase } = require("firebase-admin/database");
-
-const app = initializeApp({
-  projectId: "bingo-5174e",
-  databaseURL: "https://bingo-5174e-default-rtdb.europe-west1.firebasedatabase.app"
-});
-
-const auth = getAuth(app);
-const db = getDatabase(app);
-
 setGlobalOptions({
   region: "europe-west1",
   maxInstances: 3
 });
+
+
+
+let adminApp = null;
+
+function getAdminServices() {
+  // Intentionally lazy-loaded.
+  // Firebase CLI can inspect/export the functions without opening Admin SDK
+  // database/auth clients during deployment discovery.
+  const { initializeApp } = require("firebase-admin/app");
+  const { getAuth } = require("firebase-admin/auth");
+  const { getDatabase } = require("firebase-admin/database");
+
+  if (!adminApp) {
+    adminApp = initializeApp({
+      projectId: "bingo-5174e",
+      databaseURL:
+        "https://bingo-5174e-default-rtdb.europe-west1.firebasedatabase.app"
+    });
+  }
+
+  return {
+    auth: getAuth(adminApp),
+    db: getDatabase(adminApp)
+  };
+}
 
 const CRATE_PRICE = 1000;
 const RARITY_WEIGHTS = {
@@ -255,6 +269,8 @@ exports.openSassyCrate = onCall(
     }
 
     const uid = request.auth.uid;
+    const { db } = getAdminServices();
+
     console.log("Sassy Crate request from", uid);
 
     try {
@@ -423,6 +439,8 @@ exports.deleteBingoUser = onCall(
     }
 
     const callerUid = request.auth.uid;
+    const { auth, db } = getAdminServices();
+
     const targetUid = String(request.data?.targetUid || "").trim();
 
     if (!targetUid) {
