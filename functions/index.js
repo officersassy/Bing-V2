@@ -7,12 +7,12 @@ setGlobalOptions({
 
 
 
+const DATABASE_URL =
+  "https://bingo-5174e-default-rtdb.europe-west1.firebasedatabase.app";
+
 let adminApp = null;
 
 function getAdminServices() {
-  // Intentionally lazy-loaded.
-  // Firebase CLI can inspect/export the functions without opening Admin SDK
-  // database/auth clients during deployment discovery.
   const { initializeApp } = require("firebase-admin/app");
   const { getAuth } = require("firebase-admin/auth");
   const { getDatabase } = require("firebase-admin/database");
@@ -20,14 +20,17 @@ function getAdminServices() {
   if (!adminApp) {
     adminApp = initializeApp({
       projectId: "bingo-5174e",
-      databaseURL:
-        "https://bingo-5174e-default-rtdb.europe-west1.firebasedatabase.app"
+      databaseURL: DATABASE_URL
     });
   }
 
   return {
     auth: getAuth(adminApp),
-    db: getDatabase(adminApp)
+
+    // IMPORTANT:
+    // Explicitly target the exact Europe-West Realtime Database.
+    // Do not let Admin SDK resolve a default database instance.
+    db: getDatabase(adminApp, DATABASE_URL)
   };
 }
 
@@ -270,9 +273,14 @@ exports.openSassyCrate = onCall(
 
     const uid = request.auth.uid;
     const { db } = getAdminServices();
-    const profileRef = db.ref(`v2/profiles/${uid}`);
+    const profilePath = `v2/profiles/${uid}`;
+    const profileRef = db.ref(profilePath);
 
-    console.log("Sassy Crate request from", uid);
+    console.log("Sassy Crate request", {
+      uid,
+      profilePath,
+      databaseURL: DATABASE_URL
+    });
 
     let awardedReward = null;
     let abortReason = "";

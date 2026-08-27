@@ -1,0 +1,29 @@
+V2.3.4 SASSY CRATE DATABASE ROUTING FIX
+
+Symptom:
+Website profile/coins look normal, but openSassyCrate says "Profile not found".
+
+That proves:
+- Firebase Authentication is working.
+- The player's V2 profile exists.
+- The Cloud Function was resolving the wrong/default Realtime Database instance.
+
+Fix:
+- Backend now explicitly connects to:
+  https://bingo-5174e-default-rtdb.europe-west1.firebasedatabase.app
+- getDatabase() receives the exact URL instead of relying on default resolution.
+- No profile is created, overwritten or migrated.
+- Account deletion uses the same explicit database connection.
+- Crate transaction logic and duplicate protection remain unchanged.
+
+DEPLOY FROM THIS V2.3.4 FOLDER:
+
+cd functions
+npm.cmd install
+cd ..
+
+node -e "require('./functions/index.js'); console.log('FUNCTION LOADED OK')"
+
+firebase.cmd deploy --only functions
+
+For this fix you do NOT need to republish Realtime Database rules.
