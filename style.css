@@ -2132,3 +2132,4 @@ body[data-effect="effect-jackpot"] .winner-modal{background:radial-gradient(circ
   .crate-art{width:70px;height:70px}.crate-box{font-size:3rem}
   .crate-buy-button{grid-column:1/-1;width:100%}
 }
+.fair-draw-badge{display:inline-flex;width:max-content;margin-top:8px;padding:6px 10px;border-radius:999px;border:1px solid rgba(74,222,128,.28);background:rgba(34,197,94,.09);color:#86efac;font-size:.64rem;font-weight:1000;letter-spacing:.08em}
