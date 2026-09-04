@@ -24,15 +24,20 @@ function normaliseForModeration(value){
     .replace(/[^a-z0-9]/g,"");
 }
 
+const BUILTIN_BANNED_USERNAME_TERMS=["fuck", "fucker", "fucking", "cunt", "shit", "bitch", "bastard", "dick", "cock", "pussy", "wanker", "twat", "slut", "whore", "porn", "porno", "sex", "nazi", "hitler"];
+
+
 async function getBannedTerms(){
   try{
     const snap=await get(ref(database,"v2/bannedUsernameTerms"));
-    return Object.values(snap.val()||{})
+    const firebaseTerms=Object.values(snap.val()||{})
       .map(item=>String(item?.term||"").trim().toLowerCase())
       .filter(Boolean);
+
+    return [...new Set([...BUILTIN_BANNED_USERNAME_TERMS,...firebaseTerms])];
   }catch(error){
     console.error("Could not load username ban list:",error);
-    return [];
+    return BUILTIN_BANNED_USERNAME_TERMS;
   }
 }
 

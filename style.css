@@ -2205,3 +2205,11 @@ body[data-effect="effect-jackpot"] .winner-modal{background:radial-gradient(circ
   .account-status{grid-column:2}
   .ban-term-add{grid-template-columns:1fr}
 }
+
+.builtin-ban-note{
+  margin-top:12px;padding:10px 12px;border-radius:12px;
+  border:1px solid rgba(74,222,128,.2);background:rgba(34,197,94,.07);
+  display:grid;gap:4px;font-size:.72rem
+}
+.builtin-ban-note strong{color:#86efac}
+.builtin-ban-note span{color:var(--muted);line-height:1.45}

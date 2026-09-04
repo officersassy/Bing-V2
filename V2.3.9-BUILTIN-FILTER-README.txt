@@ -1,0 +1,22 @@
+V2.3.9 BUILT-IN USERNAME FILTER
+
+FIXED:
+- The basic banned terms are now compiled directly into the website.
+- They work even when v2/bannedUsernameTerms is completely empty.
+- Firebase Host-panel terms are EXTRA custom terms, not the primary filter.
+- Registration and profile rename both enforce the built-in list.
+- Case and punctuation are normalised before matching.
+  Examples that are blocked:
+    fuckcunt
+    FUCKCUNT
+    f.u.c.k
+    f-u-c-k
+- If Firebase's custom ban-list read fails, the permanent baseline still works.
+
+IMPORTANT:
+Upload the website files to GitHub and hard-refresh.
+No Functions deploy required.
+No new rules change beyond the V2.3.8 rules is required.
+
+Existing inappropriate accounts are not automatically deleted. Use:
+Host -> All Registered Accounts -> search -> Delete Account Permanently.

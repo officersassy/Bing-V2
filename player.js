@@ -2,7 +2,7 @@ import { auth,database,functions } from "./firebase.js";
 import { onAuthStateChanged,signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
 import { ref,get,set,update,onValue,runTransaction,push,remove,onDisconnect } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-import { SHOP_ITEMS,ACHIEVEMENTS,AVATARS,RARITIES,CRATE_PRICE } from "./catalog.js?v=2.3.8";
+import { SHOP_ITEMS,ACHIEVEMENTS,AVATARS,RARITIES,CRATE_PRICE } from "./catalog.js?v=2.3.9";
 import { BLANK,validWin } from "./game-engine.js";
 
 const $=id=>document.getElementById(id);
@@ -22,11 +22,21 @@ function normaliseForModeration(value){
     .replace(/[^a-z0-9]/g,"");
 }
 
+const BUILTIN_BANNED_USERNAME_TERMS=["fuck", "fucker", "fucking", "cunt", "shit", "bitch", "bastard", "dick", "cock", "pussy", "wanker", "twat", "slut", "whore", "porn", "porno", "sex", "nazi", "hitler"];
+
+
 async function usernameIsBanned(value){
+  const normalised=normaliseForModeration(value);
+
+  // Permanent baseline is checked FIRST and needs no Firebase connection.
+  if(BUILTIN_BANNED_USERNAME_TERMS.some(term=>
+    normalised.includes(normaliseForModeration(term))
+  )){
+    return true;
+  }
+
   try{
     const snap=await get(ref(database,"v2/bannedUsernameTerms"));
-    const normalised=normaliseForModeration(value);
-
     return Object.values(snap.val()||{}).some(item=>{
       const term=normaliseForModeration(item?.term||"");
       return term && normalised.includes(term);

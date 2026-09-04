@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Host | Bingo V2</title>
-  <link rel="stylesheet" href="./style.css?v=2.3.8">
+  <link rel="stylesheet" href="./style.css?v=2.3.9">
 </head>
 <body>
   <div class="background"></div>
@@ -139,8 +139,8 @@
         <h2>🚫 Banned Username Terms</h2>
 
         <p class="muted-text">
-          Any username containing one of these terms will be blocked during registration
-          and profile renaming.
+          Basic profanity/sexual/extremist terms are permanently blocked automatically.
+          Use this list to add extra words, names or phrases you also want blocked.
         </p>
 
         <div class="ban-term-add">
@@ -148,6 +148,10 @@
           <button id="addBannedTermButton" type="button">➕ Add</button>
         </div>
 
+        <div class="builtin-ban-note">
+          <strong>🛡️ Built-in filter active</strong>
+          <span>fuck · cunt · shit · bitch · dick · cock · pussy · wanker · twat · slut · whore · porn · sex · nazi · hitler + variants</span>
+        </div>
         <div id="bannedTermList" class="banned-term-list">Loading...</div>
       </article>
 
@@ -158,6 +162,6 @@
       </article>
     </section>
   </main>
-  <script type="module" src="./host.js?v=2.3.8"></script>
+  <script type="module" src="./host.js?v=2.3.9"></script>
 </body>
 </html>
