@@ -153,6 +153,24 @@
           ".read": "auth != null && (auth.uid === $uid || root.child('v2/admins').child(auth.uid).val() === true)",
           ".write": "auth != null && (root.child('v2/admins').child(auth.uid).val() === true || (auth.uid === $uid && !newData.exists()))"
         }
+      },
+      "bannedUsernameTerms": {
+        ".read": "auth != null",
+        ".write": "auth != null && root.child('v2/admins').child(auth.uid).val() === true",
+        "$termId": {
+          "term": {
+            ".validate": "newData.isString() && newData.val().length >= 2 && newData.val().length <= 30"
+          },
+          "createdAt": {
+            ".validate": "newData.isNumber()"
+          },
+          "createdBy": {
+            ".validate": "newData.isString()"
+          },
+          "$other": {
+            ".validate": false
+          }
+        }
       }
     }
   }

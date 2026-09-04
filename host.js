@@ -2,11 +2,11 @@ import { auth,database,functions } from "./firebase.js";
 import { onAuthStateChanged,signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
 import { ref,get,set,update,onValue,push,runTransaction,remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-import { create75Card,create90Card,shuffle,missingCount,validWin,createBalanced90Draw } from "./game-engine.js?v=2.3.7";
-import { SHOP_ITEMS,AVATARS } from "./catalog.js?v=2.3.7";
+import { create75Card,create90Card,shuffle,missingCount,validWin,createBalanced90Draw } from "./game-engine.js";
+import { SHOP_ITEMS,AVATARS } from "./catalog.js?v=2.3.8";
 
 const $=id=>document.getElementById(id);
-let host=null,profiles={},lobby={},selectedUid=null,game={},called=[],hostDrawOrder=[];
+let host=null,profiles={},lobby={},bannedUsernameTerms={},selectedUid=null,game={},called=[],hostDrawOrder=[];
 const TIE_WINDOW_MS=5000;
 let currentStageWinners=[];
 let localTieLockUntil=0;
@@ -57,6 +57,136 @@ function activePlayerEntries(){
     .filter(([,profile])=>Boolean(profile));
 }
 
+function isOnline(uid){
+  return Boolean(lobby?.[uid]?.online);
+}
+
+function allAccountEntries(){
+  return Object.entries(profiles||{});
+}
+
+function drawAllAccounts(){
+  const area=$("allAccountList");
+  if(!area)return;
+
+  const q=($("allAccountSearch")?.value||"").trim().toLowerCase();
+  const entries=allAccountEntries()
+    .filter(([uid,p])=>{
+      if(!q)return true;
+      return String(p?.username||"").toLowerCase().includes(q) ||
+             uid.toLowerCase().includes(q) ||
+             String(p?.email||"").toLowerCase().includes(q);
+    })
+    .sort((a,b)=>{
+      const onlineDiff=Number(isOnline(b[0]))-Number(isOnline(a[0]));
+      if(onlineDiff)return onlineDiff;
+      return String(a[1]?.username||"").localeCompare(String(b[1]?.username||""));
+    });
+
+  $("allAccountCount").textContent=String(Object.keys(profiles||{}).length);
+  area.innerHTML="";
+
+  if(!entries.length){
+    area.innerHTML='<div class="empty-admin-state">No matching accounts.</div>';
+    return;
+  }
+
+  entries.forEach(([uid,p])=>{
+    const row=document.createElement("button");
+    row.type="button";
+    row.className=`host-player-row account-row ${uid===selectedUid?"selected":""}`;
+
+    const online=isOnline(uid);
+    const av=AVATARS.find(a=>a.id===(p.cosmetics?.avatar||"avatar-ball"))||AVATARS[0];
+    const visual=av?.image
+      ? `<img class="mini-avatar-img" src="./${av.image}" alt="${av.name}">`
+      : `<span class="mini-avatar">${av?.icon||"🎱"}</span>`;
+
+    row.innerHTML=`
+      ${visual}
+      <div>
+        <strong>${p.username||"Player"}</strong>
+        <small class="account-uid">${uid}</small>
+      </div>
+      <span class="account-status ${online?"online":"offline"}">${online?"● ONLINE":"○ OFFLINE"}</span>
+    `;
+
+    row.onclick=()=>{
+      selectedUid=uid;
+      drawPlayers();
+      drawAllAccounts();
+      drawEconomy();
+    };
+
+    area.appendChild(row);
+  });
+}
+
+function normaliseBannedTerm(value){
+  return String(value||"")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g," ");
+}
+
+function drawBannedTerms(){
+  const area=$("bannedTermList");
+  if(!area)return;
+
+  const terms=Object.entries(bannedUsernameTerms||{})
+    .filter(([,v])=>Boolean(v))
+    .map(([key,v])=>({key,term:String(v.term||key)}))
+    .sort((a,b)=>a.term.localeCompare(b.term));
+
+  area.innerHTML="";
+
+  if(!terms.length){
+    area.innerHTML='<div class="empty-admin-state">No banned terms yet.</div>';
+    return;
+  }
+
+  terms.forEach(({key,term})=>{
+    const chip=document.createElement("div");
+    chip.className="banned-term-chip";
+    chip.innerHTML=`<span>${term}</span>`;
+
+    const removeButton=document.createElement("button");
+    removeButton.type="button";
+    removeButton.textContent="✕";
+    removeButton.title=`Remove ${term}`;
+    removeButton.onclick=async()=>{
+      if(!confirm(`Allow usernames containing "${term}" again?`))return;
+      await remove(ref(database,`v2/bannedUsernameTerms/${key}`));
+    };
+
+    chip.appendChild(removeButton);
+    area.appendChild(chip);
+  });
+}
+
+$("allAccountSearch").oninput=drawAllAccounts;
+
+$("addBannedTermButton").onclick=async()=>{
+  const input=$("newBannedTerm");
+  const term=normaliseBannedTerm(input.value);
+
+  if(term.length<2){
+    alert("Enter at least 2 characters.");
+    return;
+  }
+
+  const key=term.replace(/[^a-z0-9_-]/g,"_").slice(0,40);
+
+  await set(ref(database,`v2/bannedUsernameTerms/${key}`),{
+    term,
+    createdAt:Date.now(),
+    createdBy:host.uid
+  });
+
+  input.value="";
+};
+
+
 function drawPlayers(){
   const q=$("playerSearch").value.toLowerCase();
   $("hostPlayerList").innerHTML="";
@@ -89,7 +219,7 @@ function drawEconomy(){
   $("selectedPlayerEconomy").innerHTML=`<strong>${p.username}</strong><br><small>${p.email}</small>`;
   $("selectedCoins").textContent=`${Number(p.coins||0).toLocaleString("en-GB")} 🪙`;
   $("economyControls").classList.remove("hidden");
-  $("kickSelectedPlayerButton").classList.remove("hidden");
+  $("kickSelectedPlayerButton").classList.toggle("hidden",!isOnline(selectedUid));
   $("deleteSelectedPlayerButton").classList.remove("hidden");
 }
 async function award(amount,reason,targetUid=selectedUid){
@@ -347,6 +477,7 @@ async function deleteSelectedPlayerAccount(){
 
     selectedUid=null;
     drawPlayers();
+    drawAllAccounts();
     drawEconomy();
   }catch(error){
     console.error("Permanent account deletion failed:",error);
@@ -484,6 +615,7 @@ onAuthStateChanged(auth,async u=>{
   onValue(ref(database,"v2/profiles"),async s=>{
     profiles=s.val()||{};
     drawPlayers();
+    drawAllAccounts();
     drawEconomy();
 
     const updates={};
@@ -501,7 +633,11 @@ onAuthStateChanged(auth,async u=>{
       await update(ref(database),updates);
     }
   });
-  onValue(ref(database,"v2/lobby"),s=>{lobby=s.val()||{};drawPlayers();drawHost();});
+  onValue(ref(database,"v2/lobby"),s=>{lobby=s.val()||{};drawPlayers();drawAllAccounts();drawHost();});
+  onValue(ref(database,"v2/bannedUsernameTerms"),s=>{
+    bannedUsernameTerms=s.val()||{};
+    drawBannedTerms();
+  });
   onValue(ref(database,"v2/adminState/drawOrder"),s=>{hostDrawOrder=s.val()||[];});
   onValue(ref(database,"v2/game"),s=>{game=s.val()||{};called=Object.values(game.called||{}).map(Number);drawHost();drawNear();});
   onValue(ref(database,"v2/gamePlayers"),s=>{window.gamePlayers=s.val()||{};drawNear();});

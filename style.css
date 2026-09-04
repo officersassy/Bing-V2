@@ -2132,4 +2132,76 @@ body[data-effect="effect-jackpot"] .winner-modal{background:radial-gradient(circ
   .crate-art{width:70px;height:70px}.crate-box{font-size:3rem}
   .crate-buy-button{grid-column:1/-1;width:100%}
 }
-.fair-draw-badge{display:inline-flex;width:max-content;margin-top:8px;padding:6px 10px;border-radius:999px;border:1px solid rgba(74,222,128,.28);background:rgba(34,197,94,.09);color:#86efac;font-size:.64rem;font-weight:1000;letter-spacing:.08em}
+
+
+/* ===== V2.3.8 OFFLINE ACCOUNT MANAGER ===== */
+.host-account-manager,
+.host-banlist-panel{
+  min-width:0;
+}
+.account-manager-list{
+  max-height:360px;
+  overflow:auto;
+  margin-top:12px;
+}
+.account-row{
+  grid-template-columns:auto minmax(0,1fr) auto!important;
+}
+.account-uid{
+  display:block;
+  max-width:220px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  opacity:.55;
+  font-size:.62rem!important;
+}
+.account-status{
+  font-size:.62rem;
+  font-weight:950;
+  letter-spacing:.05em;
+  white-space:nowrap;
+}
+.account-status.online{color:#86efac}
+.account-status.offline{color:#94a3b8}
+.empty-admin-state{
+  padding:18px;
+  text-align:center;
+  color:var(--muted);
+}
+.ban-term-add{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:8px;
+  margin-top:12px;
+}
+.banned-term-list{
+  display:flex;
+  gap:7px;
+  flex-wrap:wrap;
+  margin-top:13px;
+}
+.banned-term-chip{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  padding:6px 7px 6px 10px;
+  border-radius:999px;
+  border:1px solid rgba(248,113,113,.22);
+  background:rgba(127,29,29,.13);
+  color:#fecaca;
+  font-size:.75rem;
+  font-weight:800;
+}
+.banned-term-chip button{
+  width:24px;
+  height:24px;
+  padding:0!important;
+  border-radius:50%;
+  min-height:0!important;
+}
+@media(max-width:600px){
+  .account-row{grid-template-columns:auto minmax(0,1fr)!important}
+  .account-status{grid-column:2}
+  .ban-term-add{grid-template-columns:1fr}
+}

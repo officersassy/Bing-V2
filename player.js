@@ -2,8 +2,8 @@ import { auth,database,functions } from "./firebase.js";
 import { onAuthStateChanged,signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
 import { ref,get,set,update,onValue,runTransaction,push,remove,onDisconnect } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-import { SHOP_ITEMS,ACHIEVEMENTS,AVATARS,RARITIES,CRATE_PRICE } from "./catalog.js?v=2.3.7";
-import { BLANK,validWin } from "./game-engine.js?v=2.3.7";
+import { SHOP_ITEMS,ACHIEVEMENTS,AVATARS,RARITIES,CRATE_PRICE } from "./catalog.js?v=2.3.8";
+import { BLANK,validWin } from "./game-engine.js";
 
 const $=id=>document.getElementById(id);
 let user=null,profile=null,game={},card=[],marked=[],called=[],playerRoundId=null;
@@ -15,6 +15,28 @@ let lastCrateItem=null;
 
 function show(id,text,type=""){const el=$(id);el.textContent=text;el.className=`message-box ${type}`.trim();}
 function coins(n){return Number(n||0).toLocaleString("en-GB");}
+
+function normaliseForModeration(value){
+  return String(value||"")
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g,"");
+}
+
+async function usernameIsBanned(value){
+  try{
+    const snap=await get(ref(database,"v2/bannedUsernameTerms"));
+    const normalised=normaliseForModeration(value);
+
+    return Object.values(snap.val()||{}).some(item=>{
+      const term=normaliseForModeration(item?.term||"");
+      return term && normalised.includes(term);
+    });
+  }catch(error){
+    console.error("Username moderation lookup failed:",error);
+    return false;
+  }
+}
+
 
 function toast(title, text, icon = "✨") {
   const stack = $("toastStack");
@@ -565,8 +587,23 @@ $("logoutButton").onclick=async()=>{await signOut(auth);location.href="./index.h
 $("editNameButton").onclick=()=>{$("newPlayerName").value=profile.username;$("nameModal").classList.remove("hidden");};
 $("cancelNameButton").onclick=()=>$("nameModal").classList.add("hidden");
 $("saveNameButton").onclick=async()=>{
-  const name=$("newPlayerName").value.trim();if(name.length<2)return;
-  await update(ref(database,`v2/profiles/${user.uid}`),{username:name,updatedAt:Date.now()});
+  const name=$("newPlayerName").value.trim();
+
+  if(name.length<2||name.length>24){
+    alert("Username must be between 2 and 24 characters.");
+    return;
+  }
+
+  if(await usernameIsBanned(name)){
+    alert("That username is not allowed. Choose another one.");
+    return;
+  }
+
+  await update(
+    ref(database,`v2/profiles/${user.uid}`),
+    {username:name,updatedAt:Date.now()}
+  );
+
   $("nameModal").classList.add("hidden");
 };
 

@@ -1,21 +1,12 @@
 export const BLANK = "__BLANK__";
 
-export function shuffle(max){
-  const order=Array.from({length:max},(_,i)=>i+1);
-  const buffer=new Uint32Array(1);
-
-  for(let i=order.length-1;i>0;i--){
-    const range=i+1;
-    const limit=Math.floor(0x100000000/range)*range;
-    let value;
-    do{
-      crypto.getRandomValues(buffer);
-      value=buffer[0];
-    }while(value>=limit);
-    const j=value%range;
-    [order[i],order[j]]=[order[j],order[i]];
+export function shuffle(max) {
+  const values = Array.from({length:max},(_,i)=>i+1);
+  for (let i=values.length-1;i>0;i--) {
+    const j=Math.floor(Math.random()*(i+1));
+    [values[i],values[j]]=[values[j],values[i]];
   }
-  return order;
+  return values;
 }
 
 function uniqueRandom(min,max,count) {
@@ -130,23 +121,46 @@ function distanceToRange(value,range){
   return 0;
 }
 
-export function createBalanced90Draw(){
-  // V2.3.7 FAIR DRAW — player cards are intentionally ignored.
-  // crypto.getRandomValues + rejection sampling + Fisher-Yates.
-  const order=Array.from({length:90},(_,i)=>i+1);
-  const buffer=new Uint32Array(1);
+export function createBalanced90Draw(cards){
+  const usable=(cards||[]).filter(card=>Array.isArray(card)&&card.length===27);
 
-  for(let i=order.length-1;i>0;i--){
-    const range=i+1;
-    const limit=Math.floor(0x100000000/range)*range;
-    let value;
-    do{
-      crypto.getRandomValues(buffer);
-      value=buffer[0];
-    }while(value>=limit);
-    const j=value%range;
-    [order[i],order[j]]=[order[j],order[i]];
+  if(!usable.length){
+    return {order:shuffle(90),profile:"random"};
   }
 
-  return {order,profile:"true-random"};
+  const roll=Math.random();
+  const profile=
+    roll<.25
+      ? {name:"quick",oneLine:[25,42],twoLines:[45,62],fullHouse:[65,80]}
+      : roll<.75
+        ? {name:"standard",oneLine:[35,52],twoLines:[52,68],fullHouse:[70,84]}
+        : {name:"slow",oneLine:[45,60],twoLines:[60,75],fullHouse:[78,89]};
+
+  let best=shuffle(90);
+  let bestScore=Infinity;
+
+  for(let attempt=0;attempt<3500;attempt+=1){
+    const order=shuffle(90);
+    const milestones=usable.map(card=>card90Milestones(card,order));
+
+    const earliest={
+      oneLine:Math.min(...milestones.map(item=>item.oneLine)),
+      twoLines:Math.min(...milestones.map(item=>item.twoLines)),
+      fullHouse:Math.min(...milestones.map(item=>item.fullHouse))
+    };
+
+    const score=
+      distanceToRange(earliest.oneLine,profile.oneLine)**2+
+      distanceToRange(earliest.twoLines,profile.twoLines)**2+
+      distanceToRange(earliest.fullHouse,profile.fullHouse)**2;
+
+    if(score<bestScore){
+      bestScore=score;
+      best=order;
+    }
+
+    if(score===0)break;
+  }
+
+  return {order:best,profile:profile.name};
 }

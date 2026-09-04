@@ -18,6 +18,38 @@ function validUsername(value){
   return /^[a-z0-9._-]{2,24}$/.test(value);
 }
 
+function normaliseForModeration(value){
+  return String(value||"")
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g,"");
+}
+
+async function getBannedTerms(){
+  try{
+    const snap=await get(ref(database,"v2/bannedUsernameTerms"));
+    return Object.values(snap.val()||{})
+      .map(item=>String(item?.term||"").trim().toLowerCase())
+      .filter(Boolean);
+  }catch(error){
+    console.error("Could not load username ban list:",error);
+    return [];
+  }
+}
+
+async function bannedUsernameReason(username){
+  const normalised=normaliseForModeration(username);
+  const terms=await getBannedTerms();
+
+  for(const term of terms){
+    const cleanTerm=normaliseForModeration(term);
+    if(cleanTerm && normalised.includes(cleanTerm)){
+      return term;
+    }
+  }
+
+  return null;
+}
+
 function usernameEmail(username){
   // Firebase Auth still uses Email/Password internally, but players never need
   // to know or enter an email address.
@@ -111,6 +143,12 @@ registerForm.onsubmit=async e=>{
 
     if(!validUsername(username)){
       msg("Username must be 2–24 characters using letters, numbers, dots, dashes or underscores.","error");
+      return;
+    }
+
+    const blockedTerm=await bannedUsernameReason(username);
+    if(blockedTerm){
+      msg("That username is not allowed. Choose another one.","error");
       return;
     }
 

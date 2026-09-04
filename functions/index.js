@@ -459,6 +459,8 @@ exports.openSassyCrate = onCall(
   }
 );
 
+// deleteBingoUser works for BOTH online and offline accounts because it
+// operates directly on Firebase Authentication + V2 data by UID.
 exports.deleteBingoUser = onCall(
   { region:"europe-west1", maxInstances:3, timeoutSeconds:60 },
   async request => {

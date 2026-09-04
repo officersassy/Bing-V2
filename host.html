@@ -4,13 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Host | Bingo V2</title>
-  <link rel="stylesheet" href="./style.css?v=2.3.7">
+  <link rel="stylesheet" href="./style.css?v=2.3.8">
 </head>
 <body>
   <div class="background"></div>
   <main class="dashboard-shell">
     <header class="topbar">
-      <div><span class="eyebrow">General Sassy Command Centre</span><span class="build-badge">V2.3 SASSY STORE</span><h1>🎤 Bingo V2 Host</h1><span class="fair-draw-badge">🔒 FAIR DRAW · TRUE RANDOM</span></div>
+      <div><span class="eyebrow">General Sassy Command Centre</span><span class="build-badge">V2.3 SASSY STORE</span><h1>🎤 Bingo V2 Host</h1></div>
       <div class="topbar-actions"><a class="ghost-link" href="./player.html">Player Hub</a><button id="hostLogoutButton" class="ghost-button">Sign Out</button></div>
     </header>
 
@@ -115,6 +115,42 @@
         </p>
       </article>
 
+
+      <article class="panel host-account-manager">
+        <div class="panel-heading">
+          <div>
+            <span class="panel-kicker">Admin accounts</span>
+            <h2>👤 All Registered Accounts</h2>
+          </div>
+          <span id="allAccountCount" class="status-badge">0</span>
+        </div>
+
+        <p class="muted-text">
+          Search every registered V2 account — online or offline. Select an account
+          to manage coins or permanently delete it.
+        </p>
+
+        <input id="allAccountSearch" type="search" placeholder="Search username or UID">
+        <div id="allAccountList" class="host-player-list account-manager-list">Loading...</div>
+      </article>
+
+      <article class="panel host-banlist-panel">
+        <span class="panel-kicker">Username moderation</span>
+        <h2>🚫 Banned Username Terms</h2>
+
+        <p class="muted-text">
+          Any username containing one of these terms will be blocked during registration
+          and profile renaming.
+        </p>
+
+        <div class="ban-term-add">
+          <input id="newBannedTerm" type="text" maxlength="30" placeholder="Add blocked word or phrase">
+          <button id="addBannedTermButton" type="button">➕ Add</button>
+        </div>
+
+        <div id="bannedTermList" class="banned-term-list">Loading...</div>
+      </article>
+
       <article class="panel host-history-panel">
         <span class="panel-kicker">Call history</span>
         <h2>📋 Called Numbers</h2>
@@ -122,6 +158,6 @@
       </article>
     </section>
   </main>
-  <script type="module" src="./host.js?v=2.3.7"></script>
+  <script type="module" src="./host.js?v=2.3.8"></script>
 </body>
 </html>

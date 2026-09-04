@@ -1,0 +1,42 @@
+{
+  "fuck": {
+    "term": "fuck",
+    "createdAt": 0,
+    "createdBy": "seed"
+  },
+  "shit": {
+    "term": "shit",
+    "createdAt": 0,
+    "createdBy": "seed"
+  },
+  "bitch": {
+    "term": "bitch",
+    "createdAt": 0,
+    "createdBy": "seed"
+  },
+  "cunt": {
+    "term": "cunt",
+    "createdAt": 0,
+    "createdBy": "seed"
+  },
+  "nazi": {
+    "term": "nazi",
+    "createdAt": 0,
+    "createdBy": "seed"
+  },
+  "hitler": {
+    "term": "hitler",
+    "createdAt": 0,
+    "createdBy": "seed"
+  },
+  "porn": {
+    "term": "porn",
+    "createdAt": 0,
+    "createdBy": "seed"
+  },
+  "sex": {
+    "term": "sex",
+    "createdAt": 0,
+    "createdBy": "seed"
+  }
+}

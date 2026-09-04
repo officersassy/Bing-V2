@@ -1,0 +1,38 @@
+GENERAL SASSY BINGO V2.3.8
+
+ADDED
+1. ALL REGISTERED ACCOUNTS
+- Host page now lists every V2 profile, not just players currently in the lobby.
+- Accounts show ONLINE or OFFLINE.
+- Search by username, email or Firebase UID.
+- Selecting an offline account still allows permanent Delete Account.
+- Kick is hidden for offline accounts.
+- Existing secure deleteBingoUser Cloud Function is reused.
+
+2. BANNED USERNAME TERMS
+- Host page has an admin-managed banned-term list.
+- Add/remove terms without editing code.
+- Registration checks the live Firebase banned-term list.
+- Profile rename checks the live Firebase banned-term list.
+- Matching ignores punctuation/case, so inserting dots/dashes does not bypass it.
+
+IMPORTANT SETUP
+A) Upload the website files to GitHub.
+B) Publish FIREBASE-RULES-FINAL.json from this ZIP.
+
+OPTIONAL STARTER TERMS
+BANNED-USERNAME-STARTER-LIST.json contains a basic starter list.
+You do NOT need to import it. Easiest method is to use Host -> Banned Username
+Terms and add only the words you personally want blocked.
+
+CLOUD FUNCTIONS
+No new Cloud Function deploy is required for offline account deletion.
+Your existing deleteBingoUser function already deletes by UID whether the user
+is online or offline.
+
+SECURITY NOTE
+The live banned-term list is enforced by the official website registration and
+rename flows. The Firebase rules protect who may EDIT the ban list. As with any
+client-side web app, the strongest future version would move username creation/
+changes fully server-side; this V2.3.8 patch is designed for the current V2
+architecture without rebuilding authentication.
