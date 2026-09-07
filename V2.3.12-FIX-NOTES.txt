@@ -1,0 +1,6 @@
+FIX:
+During a paused live round, player popup/waiting messaging now shows the PD pause message instead of "Waiting for next round".
+
+No Firebase Rules changes.
+No Cloud Functions changes.
+Upload website files to GitHub and hard refresh.

@@ -220,6 +220,18 @@
 
   <div id="confettiLayer" class="confetti-layer" aria-hidden="true"></div>
 
-  <script type="module" src="./player.js?v=2.3.11"></script>
+  
+  <div id="pdPauseModal" class="winner-modal hidden" role="dialog" aria-modal="true" aria-live="assertive">
+    <div class="winner-card pd-pause-card">
+      <div class="winner-icon">🚨</div>
+      <h2 id="pdPauseTitle">BINGO PAUSED</h2>
+      <p id="pdPauseReason">PD duties have called.</p>
+      <div class="pd-pause-last">Last number: <strong id="pdPauseLastCall">--</strong></div>
+      <div id="pdResumeCountdown" class="pd-resume-countdown hidden"></div>
+      <p class="pd-pause-sassy">General Sassy reluctantly authorises actual police work.</p>
+    </div>
+  </div>
+
+<script type="module" src="./player.js?v=2.3.13"></script>
 </body>
 </html>

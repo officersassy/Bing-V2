@@ -1,0 +1,4 @@
+V2.3.13
+PD pause now uses a large centre-screen modal similar in presentation to the winner popup.
+Shows pause reason, last number, General Sassy message, and live 5-second resume countdown.
+No Firebase Rules or Cloud Functions changes.

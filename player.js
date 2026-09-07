@@ -178,7 +178,44 @@ function showWinnerOverlay(stageLabel, names, reward = 0) {
 
 $("closeWinnerOverlay").onclick = () => $("winnerOverlay").classList.add("hidden");
 
+
+function drawPdPauseModal(){
+  const modal=$("pdPauseModal");
+  if(!modal)return;
+
+  const paused=game.status==="paused" &&
+    playerRoundId===game.roundId &&
+    card.length>0;
+
+  modal.classList.toggle("hidden",!paused);
+  if(!paused)return;
+
+  const reason=game.pauseReason||"PD Duties";
+  const lastCall=game.currentCall||"--";
+  const resumeAt=Number(game.resumeCountdown?.resumeAt||0);
+  const remaining=resumeAt?Math.max(0,Math.ceil((resumeAt-Date.now())/1000)):0;
+
+  $("pdPauseTitle").textContent=remaining>0?"BINGO RESUMING":"BINGO PAUSED";
+  $("pdPauseReason").textContent=reason;
+  $("pdPauseLastCall").textContent=lastCall;
+
+  const countdown=$("pdResumeCountdown");
+  countdown.classList.toggle("hidden",remaining<=0);
+  countdown.textContent=remaining>0?`${remaining}`:"";
+}
+
+function pdPauseMessage(){
+  const reason=game.pauseReason||"PD Duties";
+  const lastCall=game.currentCall||"--";
+  const resumeAt=Number(game.resumeCountdown?.resumeAt||0);
+  const remaining=resumeAt?Math.max(0,Math.ceil((resumeAt-Date.now())/1000)):0;
+  return remaining>0
+    ? `🚨 ${reason.toUpperCase()} — Resuming in ${remaining}… Last number: ${lastCall}`
+    : `🚨 BINGO SUSPENDED — ${reason}. General Sassy reluctantly authorises actual police work. Last number: ${lastCall}. Your card and dabs are safe.`;
+}
+
 function drawWaitingState() {
+  drawPdPauseModal();
   const inRound = ["playing","paused"].includes(game.status) &&
     playerRoundId === game.roundId && card.length > 0;
   const paused = game.status === "paused" && inRound;
@@ -190,13 +227,7 @@ function drawWaitingState() {
   $("claimBingoButton").disabled=paused;
 
   if (paused) {
-    const reason=game.pauseReason||"PD Duties";
-    const lastCall=game.currentCall||"--";
-    const resumeAt=Number(game.resumeCountdown?.resumeAt||0);
-    const remaining=resumeAt?Math.max(0,Math.ceil((resumeAt-Date.now())/1000)):0;
-    $("waitingMessage").textContent = remaining>0
-      ? `🚨 ${reason.toUpperCase()} — Resuming in ${remaining}… Last number: ${lastCall}`
-      : `🚨 BINGO SUSPENDED — ${reason}. General Sassy reluctantly authorises actual police work. Last number: ${lastCall}. Your card and dabs are safe.`;
+    $("waitingMessage").textContent = pdPauseMessage();
   } else if (!inRound) {
     const messages = [
       "General Sassy is preparing the battlefield.",
