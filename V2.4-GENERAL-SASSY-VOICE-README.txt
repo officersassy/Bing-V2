@@ -1,0 +1,17 @@
+V2.4 GENERAL SASSY VOICE ANNOUNCER
+
+Based on stable V2.3.17.
+
+Voice events:
+- Game start: random 1 of 5
+- PD pause: random 1 of 5
+- PD resume: random 1 of 5
+- Invalid Bingo: random 1 of 6 on claimant device
+- Slow game: random 1 of 4, once per round (45 calls on 75-ball / 55 calls on 90-ball)
+- Random mid-game sass: random 1 of 6, low chance and at least 7 calls apart
+
+Winner voice clips are intentionally NOT included. Existing Celebration winner music is unchanged.
+The fullhouse-02 test recording is intentionally excluded.
+
+DEPLOY: Upload the full website contents to GitHub Pages, then hard refresh with Ctrl+F5.
+No Firebase Rules or Cloud Functions changes are required.

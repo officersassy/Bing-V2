@@ -10,6 +10,62 @@ const sassyLoadingAudio=document.getElementById("sassyLoadingAudio");
 const bingoWinnerAudio=document.getElementById("bingoWinnerAudio");
 let lastWinnerMusicKey=null;
 
+
+// V2.4 — General Sassy voice announcer.
+const SASSY_VOICE_COUNTS={start:5,pause:5,resume:5,invalid:6,slow:4,random:6};
+const sassyVoiceAudio=new Audio();
+sassyVoiceAudio.preload="auto";
+sassyVoiceAudio.volume=0.82;
+let sassyVoiceBusy=false;
+let lastSassyVoicePick={};
+let sassyVoiceUnlocked=false;
+let pendingSassyVoice=null;
+
+function pickSassyVoice(category){
+  const count=SASSY_VOICE_COUNTS[category]||0;
+  if(!count)return null;
+  let pick=1;
+  if(count>1){
+    do{pick=1+Math.floor(Math.random()*count);}while(pick===lastSassyVoicePick[category]);
+  }
+  lastSassyVoicePick[category]=pick;
+  return `./assets/audio/sassy-voice/${category}-${String(pick).padStart(2,"0")}.mp3`;
+}
+
+async function playSassyVoice(category,{force=false}={}){
+  const src=pickSassyVoice(category);
+  if(!src)return false;
+  if(sassyVoiceBusy&&!force)return false;
+  if(force){try{sassyVoiceAudio.pause();}catch{}}
+  try{
+    sassyVoiceBusy=true;
+    sassyVoiceAudio.src=src;
+    sassyVoiceAudio.currentTime=0;
+    await sassyVoiceAudio.play();
+    sassyVoiceUnlocked=true;
+    return true;
+  }catch(error){
+    sassyVoiceBusy=false;
+    // Browsers may block audio until the player interacts with the page.
+    pendingSassyVoice=category;
+    return false;
+  }
+}
+
+sassyVoiceAudio.addEventListener("ended",()=>{sassyVoiceBusy=false;});
+sassyVoiceAudio.addEventListener("error",()=>{sassyVoiceBusy=false;});
+
+async function unlockSassyVoice(){
+  sassyVoiceUnlocked=true;
+  if(pendingSassyVoice&&!sassyVoiceBusy){
+    const category=pendingSassyVoice;
+    pendingSassyVoice=null;
+    await playSassyVoice(category);
+  }
+}
+document.addEventListener("pointerdown",unlockSassyVoice,{capture:true});
+document.addEventListener("keydown",unlockSassyVoice,{capture:true});
+
 function playAudioSafely(audio,{restart=true,volume=0.7}={}){
   if(!audio)return;
   try{
@@ -623,6 +679,7 @@ async function claim(){
 
   if(!validWin(card,marked,called,game.mode,stage())){
     show("gameMessage",`Not a valid ${stageName(stage())} yet.`,"error");
+    playSassyVoice("invalid");
     return;
   }
 
@@ -937,4 +994,54 @@ onValue(ref(database,"v2/game"),snap=>{
   }
 
   previousMusicGameStatus=nextStatus;
+});
+
+
+// V2.4 — event choreography for General Sassy.
+// Start, pause and resume are transition-based so refreshing mid-round does not replay them.
+let sassyPreviousStatus=null;
+let sassyPreviousRoundId=null;
+let sassyPreviousCalledCount=0;
+let sassySlowPlayedForRound=false;
+let sassyLastRandomAt=0;
+
+onValue(ref(database,"v2/game"),snap=>{
+  const next=snap.val()||{};
+  const status=next.status||"waiting";
+  const roundId=next.roundId||null;
+  const callCount=Object.keys(next.called||{}).length;
+
+  if(sassyPreviousStatus!==null){
+    const freshRound=status==="playing" && roundId && roundId!==sassyPreviousRoundId;
+    const resumed=status==="playing" && sassyPreviousStatus==="paused";
+    const justPaused=status==="paused" && sassyPreviousStatus!=="paused";
+
+    if(freshRound){
+      sassySlowPlayedForRound=false;
+      sassyLastRandomAt=0;
+      playSassyVoice("start",{force:true});
+    }else if(justPaused){
+      playSassyVoice("pause",{force:true});
+    }else if(resumed){
+      playSassyVoice("resume",{force:true});
+    }
+
+    if(status==="playing" && roundId===sassyPreviousRoundId && callCount>sassyPreviousCalledCount){
+      const slowThreshold=String(next.mode||"").startsWith("90")?55:45;
+      if(!sassySlowPlayedForRound && callCount>=slowThreshold){
+        sassySlowPlayedForRound=true;
+        playSassyVoice("slow");
+      }else if(callCount>=8 && callCount-sassyLastRandomAt>=7 && Math.random()<0.18){
+        if(playSassyVoice("random"))sassyLastRandomAt=callCount;
+      }
+    }
+  }
+
+  if(roundId!==sassyPreviousRoundId){
+    sassySlowPlayedForRound=false;
+    sassyLastRandomAt=0;
+  }
+  sassyPreviousStatus=status;
+  sassyPreviousRoundId=roundId;
+  sassyPreviousCalledCount=callCount;
 });
