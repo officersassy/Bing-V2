@@ -1,0 +1,10 @@
+GENERAL SASSY BINGO V2.3.10 — PAUSE SYSTEM
+
+Host: Pause / Resume button. Calling is disabled while paused.
+Players: card stays visible; dabs/calls are preserved; dabbing and Bingo claims are blocked while paused.
+Player message: GAME PAUSED — PD duties have called.
+Resume continues the exact same round.
+
+Existing V2.3.9 username filter and V2 systems retained.
+No Firebase rules changes. No Cloud Functions changes.
+Upload website files to GitHub and hard refresh.

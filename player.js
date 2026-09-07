@@ -179,14 +179,20 @@ function showWinnerOverlay(stageLabel, names, reward = 0) {
 $("closeWinnerOverlay").onclick = () => $("winnerOverlay").classList.add("hidden");
 
 function drawWaitingState() {
-  const active = game.status === "playing" && playerRoundId === game.roundId && card.length > 0;
+  const inRound = ["playing","paused"].includes(game.status) &&
+    playerRoundId === game.roundId && card.length > 0;
+  const paused = game.status === "paused" && inRound;
 
-  $("waitingPanel").classList.toggle("hidden", active);
-  $("liveGamePanel").classList.toggle("hidden", !active);
-  $("ticketTitle").closest(".ticket-panel").classList.toggle("hidden", !active);
-  $("claimBingoButton").classList.toggle("hidden", !active);
+  $("waitingPanel").classList.toggle("hidden", !paused && inRound);
+  $("liveGamePanel").classList.toggle("hidden", !inRound);
+  $("ticketTitle").closest(".ticket-panel").classList.toggle("hidden", !inRound);
+  $("claimBingoButton").classList.toggle("hidden", !inRound);
+  $("claimBingoButton").disabled=paused;
 
-  if (!active) {
+  if (paused) {
+    $("waitingMessage").textContent =
+      "⏸ GAME PAUSED — PD duties have called. Your card, dabs and called numbers are safe.";
+  } else if (!inRound) {
     const messages = [
       "General Sassy is preparing the battlefield.",
       "The numbers are being emotionally prepared for duty.",
@@ -492,6 +498,14 @@ function drawCard(){
       if(called.includes(n))cell.classList.add("called");
       if(marked.includes(n))cell.classList.add("marked");
       cell.onclick=async()=>{
+        if(game.status==="paused"){
+          show("gameMessage","Game paused — your card is frozen until the host resumes.","error");
+          return;
+        }
+        if(game.status!=="playing"){
+          show("gameMessage","The round is not active.","error");
+          return;
+        }
         if(!called.includes(n)){show("gameMessage","That number has not been called yet.","error");return;}
         marked=marked.includes(n)?marked.filter(x=>x!==n):[...marked,n];
         await set(ref(database,`v2/gamePlayers/${user.uid}/marked`),marked);
@@ -511,7 +525,7 @@ function stage(){
 function stageName(s){return({"one-line":"One Line","two-lines":"Two Lines","full-house":"Full House"})[s]||s;}
 function drawGame(){
   $("gameModeBadge").textContent=(game.mode||"WAITING").replaceAll("-"," ").toUpperCase();
-  $("gameStageText").textContent=game.status==="playing"?stageName(stage()):"Waiting for host";
+  $("gameStageText").textContent=game.status==="paused"?"⏸ PAUSED":game.status==="playing"?stageName(stage()):"Waiting for host";
   $("currentCall").textContent=game.currentCall||"--";
   $("calledCount").textContent=called.length;
   $("cardTypeBadge").textContent=game.mode?.startsWith("90")?"90 BALL":"75 BALL";

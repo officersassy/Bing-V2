@@ -45,6 +45,15 @@ async function createCardsForPlayers(mode,activeUids,roundId){
 function drawHost(){
   $("hostGameStatus").textContent=(game.status||"waiting").toUpperCase();
   $("hostCurrentCall").textContent=game.currentCall||"--";
+
+  const pauseButton=$("pauseGameButton");
+  const callButton=$("callNumberButton");
+  if(pauseButton){
+    const paused=game.status==="paused";
+    pauseButton.textContent=paused?"▶ Resume Game":"⏸ Pause Game";
+    pauseButton.disabled=!["playing","paused"].includes(game.status);
+  }
+  if(callButton)callButton.disabled=game.status!=="playing";
   $("hostPlayersCount").textContent=activePlayerEntries().length;
   $("hostCalledCount").textContent=called.length;
   $("hostStage").textContent=stageName(currentStage());
@@ -331,6 +340,8 @@ $("startGameButton").onclick=async()=>{
     currentCall:"",
     called:{},
     startedAt:Date.now(),
+    pausedAt:null,
+    totalPausedMs:0,
     stageWinnerAt:null,
     claimWindowClosesAt:null
   });
@@ -342,6 +353,26 @@ $("startGameButton").onclick=async()=>{
     await set(ref(database,`v2/profiles/${uid}/achievements/first-game`),Date.now());
   }
 };
+$("pauseGameButton").onclick=async()=>{
+  if(game.status==="playing"){
+    await update(ref(database,"v2/game"),{
+      status:"paused",
+      pausedAt:Date.now()
+    });
+    return;
+  }
+
+  if(game.status==="paused"){
+    const now=Date.now();
+    const pauseStarted=Number(game.pausedAt||now);
+    await update(ref(database,"v2/game"),{
+      status:"playing",
+      pausedAt:null,
+      totalPausedMs:Number(game.totalPausedMs||0)+Math.max(0,now-pauseStarted)
+    });
+  }
+};
+
 $("callNumberButton").onclick=async()=>{
   if(game.status!=="playing")return;
 
