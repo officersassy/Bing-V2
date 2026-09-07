@@ -43,7 +43,9 @@ async function createCardsForPlayers(mode,activeUids,roundId){
   return cards;
 }
 function drawHost(){
-  $("hostGameStatus").textContent=(game.status||"waiting").toUpperCase();
+  $("hostGameStatus").textContent=game.status==="paused"
+    ? `PAUSED · ${game.pauseReason||"PD DUTIES"}`
+    : (game.status||"waiting").toUpperCase();
   $("hostCurrentCall").textContent=game.currentCall||"--";
 
   const pauseButton=$("pauseGameButton");
@@ -355,9 +357,12 @@ $("startGameButton").onclick=async()=>{
 };
 $("pauseGameButton").onclick=async()=>{
   if(game.status==="playing"){
+    const pauseReason=$("pauseReasonSelect")?.value||"PD Duties";
     await update(ref(database,"v2/game"),{
       status:"paused",
-      pausedAt:Date.now()
+      pausedAt:Date.now(),
+      pauseReason,
+      resumeCountdown:null
     });
     return;
   }
@@ -365,10 +370,22 @@ $("pauseGameButton").onclick=async()=>{
   if(game.status==="paused"){
     const now=Date.now();
     const pauseStarted=Number(game.pausedAt||now);
+    const resumeAt=now+5000;
+    await update(ref(database,"v2/game"),{
+      resumeCountdown:{startedAt:now,resumeAt}
+    });
+    const button=$("pauseGameButton");
+    if(button)button.disabled=true;
+    for(let remaining=5;remaining>=1;remaining--){
+      if(button)button.textContent=`▶ Resuming in ${remaining}…`;
+      await new Promise(resolve=>setTimeout(resolve,1000));
+    }
     await update(ref(database,"v2/game"),{
       status:"playing",
       pausedAt:null,
-      totalPausedMs:Number(game.totalPausedMs||0)+Math.max(0,now-pauseStarted)
+      pauseReason:null,
+      resumeCountdown:null,
+      totalPausedMs:Number(game.totalPausedMs||0)+Math.max(0,Date.now()-pauseStarted)
     });
   }
 };

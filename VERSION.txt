@@ -1,2 +1,1 @@
-General Sassy Bingo V2.3.10
-Pause / Resume system added to uploaded V2.3.9 build.
+General Sassy Bingo V2.3.11 — PD Pause Upgrade

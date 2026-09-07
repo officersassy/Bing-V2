@@ -190,8 +190,13 @@ function drawWaitingState() {
   $("claimBingoButton").disabled=paused;
 
   if (paused) {
-    $("waitingMessage").textContent =
-      "⏸ GAME PAUSED — PD duties have called. Your card, dabs and called numbers are safe.";
+    const reason=game.pauseReason||"PD Duties";
+    const lastCall=game.currentCall||"--";
+    const resumeAt=Number(game.resumeCountdown?.resumeAt||0);
+    const remaining=resumeAt?Math.max(0,Math.ceil((resumeAt-Date.now())/1000)):0;
+    $("waitingMessage").textContent = remaining>0
+      ? `🚨 ${reason.toUpperCase()} — Resuming in ${remaining}… Last number: ${lastCall}`
+      : `🚨 BINGO SUSPENDED — ${reason}. General Sassy reluctantly authorises actual police work. Last number: ${lastCall}. Your card and dabs are safe.`;
   } else if (!inRound) {
     const messages = [
       "General Sassy is preparing the battlefield.",
@@ -761,3 +766,8 @@ onAuthStateChanged(auth,async u=>{
   });
 
 });
+
+// Keep the PD resume countdown moving on player screens.
+setInterval(()=>{
+  if(game.status==="paused" && game.resumeCountdown?.resumeAt) drawWaitingState();
+},250);

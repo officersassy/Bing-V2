@@ -1,0 +1,11 @@
+V2.3.11 PD PAUSE UPGRADE
+- Pause reasons: Priority Call, Major Incident, Officer Assistance, Server Restart, Quick Break
+- PD-themed pause message
+- Last called number displayed while paused
+- 5-second resume countdown
+- Calling/dabbing/Bingo claims stay locked until resume
+- Cards, dabs and calls remain preserved
+- Existing username filter retained
+
+Website-only update: upload to GitHub and hard refresh.
+No Firebase Rules or Functions deployment.
