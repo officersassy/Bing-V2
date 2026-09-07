@@ -385,6 +385,27 @@ function storeVisual(item){
   return `<span class="premium-store-symbol">${item.icon}</span>`;
 }
 
+const V25_DEAL_DISCOUNT=0.25;
+let wishlistOnly=false;
+function wishlistKey(){return `sassyWishlist:${user?.uid||"guest"}`;}
+function getWishlist(){try{return new Set(JSON.parse(localStorage.getItem(wishlistKey())||"[]"));}catch{return new Set();}}
+function saveWishlist(set){localStorage.setItem(wishlistKey(),JSON.stringify([...set]));drawShop();}
+function toggleWishlist(id){const w=getWishlist();w.has(id)?w.delete(id):w.add(id);saveWishlist(w);}
+function dayNumber(){return Math.floor(Date.now()/86400000);}
+function dailyDealItem(){const paid=SHOP_ITEMS.filter(x=>x.price>0);return paid[dayNumber()%paid.length];}
+function effectivePrice(item){return item.id===dailyDealItem()?.id?Math.max(1,Math.floor(item.price*(1-V25_DEAL_DISCOUNT))):item.price;}
+function featuredItems(){const paid=SHOP_ITEMS.filter(x=>x.price>0);const d=dayNumber();return [0,7,17].map(n=>paid[(d+n)%paid.length]);}
+function openPreview(item){
+ const r=rarityMeta(item); $("previewVisual").innerHTML=storeVisual(item); $("previewRarity").className=`rarity-chip rarity-${item.rarity}`; $("previewRarity").textContent=`${r.icon} ${r.name}`; $("previewName").textContent=item.name; $("previewDescription").textContent=item.description||""; $("previewDemo").className=`v25-preview-demo preview-${item.type} cosmetic-${item.id}`; $("previewDemo").textContent=item.type==="nameEffect"?`${item.name} · GENERAL SASSY`:item.type==="effect"?"🏆 BINGO! ✨":item.type==="dabber"?"42 ✓":item.type==="theme"?"B  I  N  G  O":"🎱"; $("storePreviewOverlay").classList.remove("hidden");
+}
+function renderV25Dashboard(){
+ const deal=dailyDealItem(), w=getWishlist(), owned=SHOP_ITEMS.filter(isOwned).length;
+ $("wishlistCount").textContent=w.size; $("collectionProgress").textContent=`${Math.round(owned/SHOP_ITEMS.length*100)}%`;
+ const makeMini=item=>`<button class="v25-mini rarity-${item.rarity}" data-preview="${item.id}"><span>${item.icon}</span><strong>${item.name}</strong><small>${item.id===deal.id?`${coins(effectivePrice(item))} 🪙 · was ${coins(item.price)}`:`${coins(item.price)} 🪙`}</small></button>`;
+ $("dailyDeal").innerHTML=makeMini(deal); $("featuredItems").innerHTML=featuredItems().map(makeMini).join("");
+ document.querySelectorAll("[data-preview]").forEach(b=>b.onclick=()=>openPreview(SHOP_ITEMS.find(x=>x.id===b.dataset.preview)));
+}
+
 function drawShop(){
   if(!profile)return;
 
@@ -392,8 +413,9 @@ function drawShop(){
   const ownedCount=SHOP_ITEMS.filter(isOwned).length;
   $("ownedCosmeticCount").textContent=ownedCount;
 
+  const wish=getWishlist();
   const visible=SHOP_ITEMS.filter(item=>
-    currentStoreFilter==="all" || item.type===currentStoreFilter
+    (currentStoreFilter==="all" || item.type===currentStoreFilter) && (!wishlistOnly || wish.has(item.id))
   );
 
   $("storeItemCount").textContent=`${visible.length} items`;
@@ -434,9 +456,14 @@ function drawShop(){
         button.onclick=()=>buyItem(item);
       }
 
-      card.appendChild(button);
+      const tools=document.createElement("div"); tools.className="v25-card-tools";
+      const preview=document.createElement("button"); preview.type="button"; preview.className="ghost-button"; preview.textContent="👁 Preview"; preview.onclick=()=>openPreview(item);
+      const heart=document.createElement("button"); heart.type="button"; heart.className="ghost-button"; heart.textContent=wish.has(item.id)?"♥ Saved":"♡ Wishlist"; heart.onclick=()=>toggleWishlist(item.id);
+      const gift=document.createElement("button"); gift.type="button"; gift.className="ghost-button"; gift.textContent="🎁 Gift"; gift.onclick=async()=>{const username=prompt(`Gift ${item.name} to which username?`);if(!username)return;try{const giftFn=httpsCallable(functions,"giftStoreItem");const result=await giftFn({itemId:item.id,username});show("shopMessage",`Gift sent to ${result.data.recipient}!`,`success`);toast("Gift Sent",`${item.name} → ${result.data.recipient}`,"🎁");}catch(e){show("shopMessage",String(e?.message||"Gift failed").replace(/^FirebaseError:\s*/i,""),"error");}};
+      tools.append(preview,heart,gift); card.appendChild(tools); card.appendChild(button);
       $("shopList").appendChild(card);
     });
+  renderV25Dashboard();
 }
 
 document.querySelectorAll("#storeFilters button").forEach(button=>{
@@ -557,40 +584,22 @@ async function equipItem(item){
   }
 }
 async function buyItem(item){
-  if(isOwned(item)){
-    await equipItem(item);
-    return;
-  }
-
-  if(Number(profile.coins||0)<item.price){
-    show("shopMessage","Not enough Sassy Coins.","error");
-    return;
-  }
-
+  if(isOwned(item)){await equipItem(item);return;}
+  const price=effectivePrice(item);
+  if(Number(profile.coins||0)<price){show("shopMessage","Not enough Sassy Coins.","error");return;}
   try{
-    const requestRef=push(ref(database,`v2/purchaseRequests/${user.uid}`));
-
-    await set(requestRef,{
-      itemId:item.id,
-      price:item.price,
-      status:"pending",
-      createdAt:Date.now()
-    });
-
-    show(
-      "shopMessage",
-      `Buying ${item.name}... keep the host page open for a moment.`,
-      "success"
-    );
-  }catch(error){
-    console.error("Purchase request failed:",error);
-    show(
-      "shopMessage",
-      "Purchase request failed. Make sure the host is online.",
-      "error"
-    );
-  }
+    show("shopMessage",`General Sassy is processing ${item.name}...`,"success");
+    const buy=httpsCallable(functions,"buyStoreItem"); const result=await buy({itemId:item.id});
+    show("shopMessage",`${item.name} purchased for ${coins(result.data?.pricePaid??price)} coins. No host cashier required.`,"success");
+    toast("Purchase Complete",item.name,item.icon);
+  }catch(error){console.error("Direct purchase failed",error);show("shopMessage",String(error?.message||"Purchase failed").replace(/^FirebaseError:\s*/i,""),"error");}
 }
+
+$("closeStorePreview").onclick=()=>$("storePreviewOverlay").classList.add("hidden");
+$("wishlistOnly").onclick=()=>{wishlistOnly=!wishlistOnly;$("wishlistOnly").textContent=wishlistOnly?"❤️ Showing Wishlist":"❤️ Wishlist Only";drawShop();};
+$("closeCrateHistory").onclick=()=>$("crateHistoryOverlay").classList.add("hidden");
+$("showCrateHistory").onclick=async()=>{const snap=await get(ref(database,`v2/transactions/${user.uid}`));const rows=Object.values(snap.val()||{}).filter(x=>x.type==="crate").sort((a,b)=>Number(b.createdAt||0)-Number(a.createdAt||0)).slice(0,10);$("crateCount").textContent=Object.values(snap.val()||{}).filter(x=>x.type==="crate").length;$("crateHistoryList").innerHTML=rows.length?rows.map(x=>`<div><b>${x.rarity||"DROP"}</b><span>${x.reason||x.itemId}</span></div>`).join(""):"<p>No crates opened yet.</p>";$("crateHistoryOverlay").classList.remove("hidden");};
+
 function drawAchievements(){
   $("achievementList").innerHTML="";
   ACHIEVEMENTS.forEach(a=>{
@@ -680,6 +689,9 @@ async function claim(){
   if(!validWin(card,marked,called,game.mode,stage())){
     show("gameMessage",`Not a valid ${stageName(stage())} yet.`,"error");
     playSassyVoice("invalid");
+    try{
+      await push(ref(database,"v2/sassyEvents"),{type:"invalid",uid:user.uid,name:profile.username||"Player",createdAt:Date.now()});
+    }catch(error){console.debug("Host Sassy event unavailable:",error);}
     return;
   }
 

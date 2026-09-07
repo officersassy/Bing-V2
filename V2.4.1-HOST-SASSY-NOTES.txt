@@ -1,0 +1,14 @@
+V2.4.1 HOST SASSY PATCH
+
+- General Sassy now plays on the Host page for Start, PD Pause, PD Resume, slow-game and random sass.
+- Invalid Bingo attempts send a tiny Firebase event so the Host hears an invalid-Bingo insult too.
+- Player still hears their own invalid-Bingo line immediately.
+- Existing winner Celebration behavior is unchanged.
+
+DEPLOY:
+1. Upload/replace website files on GitHub Pages.
+2. Publish FIREBASE-RULES-FINAL.json in Firebase Realtime Database Rules.
+3. Hard refresh Host + Player (Ctrl+F5).
+4. Click/tap the Host page once after opening it so browser audio is unlocked.
+
+No Cloud Functions deployment required.

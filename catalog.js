@@ -50,6 +50,16 @@ export const SHOP_ITEMS = [
   { id:"name-royal", name:"Royal Diamond", price:2000, icon:"💎", type:"nameEffect", rarity:"legendary", description:"Diamond-white lettering with royal purple bloom." },
   { id:"name-electric", name:"Electric Sassy", price:2300, icon:"⚡", type:"nameEffect", rarity:"legendary", description:"Blue lightning flickers around your name." },
   { id:"name-general", name:"GENERAL'S FAVOURITE", price:4500, icon:"🎖️", type:"nameEffect", rarity:"sassy", description:"Animated command-gold name reserved for outrageous spenders." }
+  ,{ id:"dabber-thunder", name:"Thunder Stamp", price:1900, icon:"🌩️", type:"dabber", rarity:"legendary", description:"A thunder-charged dob for players who require unnecessary drama." }
+  ,{ id:"dabber-sassy", name:"Sassy Detonation", price:3500, icon:"💥", type:"dabber", rarity:"sassy", description:"The dobber equivalent of kicking the door in." }
+  ,{ id:"theme-police", name:"Blue Line Command", price:1650, icon:"🚔", type:"theme", rarity:"legendary", description:"Police-blue command deck with animated emergency-light trim." }
+  ,{ id:"theme-casino", name:"Midnight Casino", price:2100, icon:"🎲", type:"theme", rarity:"legendary", description:"Velvet-black casino styling with jackpot highlights." }
+  ,{ id:"theme-disco", name:"Disco Disaster", price:2900, icon:"🪩", type:"theme", rarity:"sassy", description:"Animated disco glow. Tasteful? Absolutely not." }
+  ,{ id:"effect-lightning", name:"Lightning Victory", price:2600, icon:"⚡", type:"effect", rarity:"legendary", description:"Your win arrives with a screen full of electric chaos." }
+  ,{ id:"effect-sassy-crown", name:"Sassy Coronation", price:5000, icon:"👑", type:"effect", rarity:"sassy", description:"A ridiculous royal victory reserved for the financially irresponsible." }
+  ,{ id:"name-menace", name:"BINGO MENACE", price:2750, icon:"😈", type:"nameEffect", rarity:"legendary", description:"An animated menace badge around your name." }
+  ,{ id:"name-fraud", name:"CERTIFIED FRAUD", price:3250, icon:"🚨", type:"nameEffect", rarity:"sassy", description:"For players with a distinguished history of questionable claims." }
+
 ];
 
 export const AVATARS = SHOP_ITEMS.filter(item => item.type === "avatar");

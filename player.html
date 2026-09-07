@@ -120,6 +120,15 @@
         <div class="store-hero-orb">👑</div>
       </article>
 
+
+      <article class="panel v25-dashboard">
+        <div class="store-heading-row"><div><span class="panel-kicker">V2.5</span><h2>🔥 Today's Sassy Deal</h2></div><div id="dealBadge" class="store-count">25% OFF</div></div>
+        <div id="dailyDeal" class="v25-feature-strip"></div>
+        <div class="store-heading-row"><div><span class="panel-kicker">General Sassy's picks</span><h2>⭐ Featured</h2></div></div>
+        <div id="featuredItems" class="v25-feature-strip"></div>
+        <div class="v25-stats"><span>❤️ Wishlist <b id="wishlistCount">0</b></span><span>🏆 Collection <b id="collectionProgress">0%</b></span><span>📦 Crates <b id="crateCount">0</b></span></div>
+      </article>
+
       <article class="panel sassy-crate-card rarity-sassy">
         <div class="crate-art">
           <div class="crate-glow"></div>
@@ -154,6 +163,7 @@
           <button data-filter="effect">Wins</button>
         </div>
 
+        <div class="v25-shop-tools"><button id="wishlistOnly" class="ghost-button" type="button">❤️ Wishlist Only</button><button id="showCrateHistory" class="ghost-button" type="button">📦 Crate History</button></div>
         <div id="shopList" class="premium-shop-grid"></div>
         <div id="avatarShopList" class="hidden"></div>
         <div id="shopMessage" class="message-box"></div>
@@ -204,6 +214,10 @@
     </div>
   </div>
 
+
+  <div id="storePreviewOverlay" class="crate-overlay hidden"><div class="crate-reveal-card v25-preview-card"><button id="closeStorePreview" class="crate-close" type="button">✕</button><span class="crate-reveal-kicker">TRY BEFORE YOU BUY</span><div id="previewVisual" class="crate-reveal-icon">✨</div><div id="previewRarity" class="rarity-chip">RARITY</div><h2 id="previewName">Cosmetic</h2><p id="previewDescription"></p><div id="previewDemo" class="v25-preview-demo">BINGO 42</div></div></div>
+  <div id="crateHistoryOverlay" class="crate-overlay hidden"><div class="crate-reveal-card v25-preview-card"><button id="closeCrateHistory" class="crate-close" type="button">✕</button><span class="crate-reveal-kicker">YOUR LAST DROPS</span><h2>📦 Sassy Crate History</h2><div id="crateHistoryList" class="v25-history"></div></div></div>
+
   <div id="winnerOverlay" class="winner-overlay hidden">
     <div class="winner-modal">
       <div class="winner-icon">🏆</div>
@@ -236,6 +250,6 @@
   <audio id="sassyLoadingAudio" preload="auto" src="./assets/audio/sassy-loading.mp3"></audio>
   <audio id="bingoWinnerAudio" preload="auto" src="./assets/audio/bingo-winner.mp3"></audio>
 
-<script type="module" src="./player.js?v=2.4"></script>
+<script type="module" src="./player.js?v=2.5.0"></script>
 </body>
 </html>

@@ -1,0 +1,20 @@
+GENERAL SASSY BINGO V2.5 — SASSY EMPORIUM 2.0
+
+Added:
+- Daily 25% Sassy Deal (server-verified)
+- 3 rotating Featured items
+- Wishlist + wishlist-only view
+- Collection percentage
+- Cosmetic preview modal
+- Crate history
+- Secure direct purchases via Cloud Function (host page no longer required)
+- Player-to-player cosmetic gifting via Cloud Function
+- Crate pity protection: after 9 misses, the 10th eligible crate is Legendary/Sassy when available
+- 9 new premium cosmetics across existing supported cosmetic categories
+- Existing inventory, coins, avatars, cosmetics, winner music and General Sassy voice preserved
+
+DEPLOY:
+1. Replace website files on GitHub.
+2. Publish FIREBASE-RULES-FINAL.json in Realtime Database Rules.
+3. Deploy functions: firebase.cmd deploy --only functions
+4. Ctrl+F5 host + player pages.

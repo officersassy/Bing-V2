@@ -8,6 +8,31 @@ import { SHOP_ITEMS,AVATARS } from "./catalog.js?v=2.3.9";
 const $=id=>document.getElementById(id);
 let host=null,profiles={},lobby={},bannedUsernameTerms={},selectedUid=null,game={},called=[],hostDrawOrder=[];
 const TIE_WINDOW_MS=5000;
+// V2.4.1 — General Sassy also speaks on the Host page.
+const SASSY_VOICE_COUNTS={start:5,pause:5,resume:5,invalid:6,slow:4,random:6};
+const hostSassyAudio=new Audio();
+hostSassyAudio.preload="auto";
+hostSassyAudio.volume=0.82;
+let hostSassyBusy=false,hostSassyPending=null,lastHostSassyPick={};
+function pickHostSassy(category){
+  const count=SASSY_VOICE_COUNTS[category]||0;if(!count)return null;
+  let pick=1;if(count>1){do{pick=1+Math.floor(Math.random()*count);}while(pick===lastHostSassyPick[category]);}
+  lastHostSassyPick[category]=pick;
+  return `./assets/audio/sassy-voice/${category}-${String(pick).padStart(2,"0")}.mp3`;
+}
+async function playHostSassy(category,{force=false}={}){
+  const src=pickHostSassy(category);if(!src)return false;if(hostSassyBusy&&!force)return false;
+  if(force){try{hostSassyAudio.pause();}catch{}}
+  try{hostSassyBusy=true;hostSassyAudio.src=src;hostSassyAudio.currentTime=0;await hostSassyAudio.play();hostSassyPending=null;return true;}
+  catch{hostSassyBusy=false;hostSassyPending=category;return false;}
+}
+hostSassyAudio.addEventListener("ended",()=>{hostSassyBusy=false;});
+hostSassyAudio.addEventListener("error",()=>{hostSassyBusy=false;});
+async function unlockHostSassy(){if(hostSassyPending&&!hostSassyBusy){const c=hostSassyPending;hostSassyPending=null;await playHostSassy(c);}}
+document.addEventListener("pointerdown",unlockHostSassy,{capture:true});
+document.addEventListener("keydown",unlockHostSassy,{capture:true});
+let hostSassyPreviousStatus=null,hostSassyPreviousRoundId=null,hostSassyPreviousCalledCount=0,hostSassySlowPlayed=false,hostSassyLastRandomAt=0,lastInvalidSassyEventKey=null;
+
 let currentStageWinners=[];
 let localTieLockUntil=0;
 let tieButtonTimer=null;
@@ -687,7 +712,33 @@ onAuthStateChanged(auth,async u=>{
     drawBannedTerms();
   });
   onValue(ref(database,"v2/adminState/drawOrder"),s=>{hostDrawOrder=s.val()||[];});
-  onValue(ref(database,"v2/game"),s=>{game=s.val()||{};called=Object.values(game.called||{}).map(Number);drawHost();drawNear();});
+  onValue(ref(database,"v2/game"),s=>{
+    const next=s.val()||{};
+    const status=next.status||"waiting", roundId=next.roundId||null, callCount=Object.keys(next.called||{}).length;
+    if(hostSassyPreviousStatus!==null){
+      const fresh=status==="playing"&&roundId&&roundId!==hostSassyPreviousRoundId;
+      const resumed=status==="playing"&&hostSassyPreviousStatus==="paused";
+      const paused=status==="paused"&&hostSassyPreviousStatus!=="paused";
+      if(fresh){hostSassySlowPlayed=false;hostSassyLastRandomAt=0;playHostSassy("start",{force:true});}
+      else if(paused)playHostSassy("pause",{force:true});
+      else if(resumed)playHostSassy("resume",{force:true});
+      if(status==="playing"&&roundId===hostSassyPreviousRoundId&&callCount>hostSassyPreviousCalledCount){
+        const threshold=String(next.mode||"").startsWith("90")?55:45;
+        if(!hostSassySlowPlayed&&callCount>=threshold){hostSassySlowPlayed=true;playHostSassy("slow");}
+        else if(callCount>=8&&callCount-hostSassyLastRandomAt>=7&&Math.random()<0.18){playHostSassy("random");hostSassyLastRandomAt=callCount;}
+      }
+    }
+    if(roundId!==hostSassyPreviousRoundId){hostSassySlowPlayed=false;hostSassyLastRandomAt=0;}
+    hostSassyPreviousStatus=status;hostSassyPreviousRoundId=roundId;hostSassyPreviousCalledCount=callCount;
+    game=next;called=Object.values(game.called||{}).map(Number);drawHost();drawNear();
+  });
+  onValue(ref(database,"v2/sassyEvents"),s=>{
+    const events=s.val()||{};const entries=Object.entries(events);if(!entries.length)return;
+    entries.sort((a,b)=>(a[1]?.createdAt||0)-(b[1]?.createdAt||0));
+    const [key,event]=entries[entries.length-1];
+    if(lastInvalidSassyEventKey===null){lastInvalidSassyEventKey=key;return;}
+    if(key!==lastInvalidSassyEventKey){lastInvalidSassyEventKey=key;if(event?.type==="invalid"&&Date.now()-Number(event.createdAt||0)<10000)playHostSassy("invalid",{force:true});}
+  });
   onValue(ref(database,"v2/gamePlayers"),s=>{window.gamePlayers=s.val()||{};drawNear();});
   onValue(ref(database,"v2/claims"),async s=>{
     const claims=s.val()||{};

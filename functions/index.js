@@ -213,7 +213,16 @@ const CRATE_CATALOG = [
     "id": "name-general",
     "name": "GENERAL'S FAVOURITE",
     "rarity": "sassy"
-  }
+  },
+  {"id":"dabber-thunder","name":"Thunder Stamp","rarity":"legendary"},
+  {"id":"dabber-sassy","name":"Sassy Detonation","rarity":"sassy"},
+  {"id":"theme-police","name":"Blue Line Command","rarity":"legendary"},
+  {"id":"theme-casino","name":"Midnight Casino","rarity":"legendary"},
+  {"id":"theme-disco","name":"Disco Disaster","rarity":"sassy"},
+  {"id":"effect-lightning","name":"Lightning Victory","rarity":"legendary"},
+  {"id":"effect-sassy-crown","name":"Sassy Coronation","rarity":"sassy"},
+  {"id":"name-menace","name":"BINGO MENACE","rarity":"legendary"},
+  {"id":"name-fraud","name":"CERTIFIED FRAUD","rarity":"sassy"}
 ];
 
 function collectUserPaths(value, targetUid, basePath, updates) {
@@ -263,6 +272,31 @@ function weightedPick(items) {
   const pool = rarityGroups[chosenRarity];
   return pool[Math.floor(Math.random() * pool.length)];
 }
+
+
+const STORE_CATALOG = [{"id":"avatar-gold-crown","name":"Golden Crown","price":300,"type":"avatar","rarity":"rare"},{"id":"avatar-disco","name":"Disco Ball","price":450,"type":"avatar","rarity":"rare"},{"id":"avatar-fire","name":"Flaming Bingo","price":600,"type":"avatar","rarity":"rare"},{"id":"avatar-diamond","name":"Diamond King","price":900,"type":"avatar","rarity":"epic"},{"id":"avatar-leprechaun","name":"Lucky Leprechaun","price":1000,"type":"avatar","rarity":"epic"},{"id":"avatar-disco-queen","name":"Disco Queen","price":1100,"type":"avatar","rarity":"epic"},{"id":"avatar-skull","name":"Neon Skull","price":1250,"type":"avatar","rarity":"epic"},{"id":"avatar-devil","name":"Bingo Devil","price":1300,"type":"avatar","rarity":"epic"},{"id":"avatar-general","name":"General Sassy","price":1500,"type":"avatar","rarity":"legendary"},{"id":"avatar-jackpot","name":"Jackpot","price":1750,"type":"avatar","rarity":"legendary"},{"id":"avatar-sassy","name":"Legendary General","price":3000,"type":"avatar","rarity":"sassy"},{"id":"dabber-blue","name":"Electric Blue","price":100,"type":"dabber","rarity":"common"},{"id":"dabber-pink","name":"Hot Pink","price":175,"type":"dabber","rarity":"common"},{"id":"dabber-green","name":"Lucky Toxic","price":250,"type":"dabber","rarity":"rare"},{"id":"dabber-gold","name":"Midas Stamp","price":400,"type":"dabber","rarity":"rare"},{"id":"dabber-plasma","name":"Plasma Strike","price":750,"type":"dabber","rarity":"epic"},{"id":"dabber-diamond","name":"Diamond Impact","price":1400,"type":"dabber","rarity":"legendary"},{"id":"theme-neon","name":"Neon Afterdark","price":500,"type":"theme","rarity":"rare"},{"id":"theme-gold","name":"Royal Vault","price":850,"type":"theme","rarity":"epic"},{"id":"theme-fire","name":"Inferno","price":1100,"type":"theme","rarity":"epic"},{"id":"theme-rainbow","name":"Prismatic Riot","price":1500,"type":"theme","rarity":"legendary"},{"id":"theme-galaxy","name":"Sassy Galaxy","price":1800,"type":"theme","rarity":"legendary"},{"id":"theme-obsidian","name":"Black Diamond","price":2400,"type":"theme","rarity":"legendary"},{"id":"theme-general","name":"General's Private Table","price":4000,"type":"theme","rarity":"sassy"},{"id":"confetti-party","name":"Confetti Cannon","price":750,"type":"effect","rarity":"rare"},{"id":"effect-fireworks","name":"Firework Takeover","price":1250,"type":"effect","rarity":"epic"},{"id":"effect-coin-rain","name":"Coin Storm","price":1750,"type":"effect","rarity":"legendary"},{"id":"effect-meteor","name":"Meteor Shower","price":2100,"type":"effect","rarity":"legendary"},{"id":"effect-jackpot","name":"Jackpot Explosion","price":3200,"type":"effect","rarity":"sassy"},{"id":"name-vip","name":"VIP Gold","price":1000,"type":"nameEffect","rarity":"epic"},{"id":"name-rainbow","name":"Prismatic Name","price":1400,"type":"nameEffect","rarity":"epic"},{"id":"name-royal","name":"Royal Diamond","price":2000,"type":"nameEffect","rarity":"legendary"},{"id":"name-electric","name":"Electric Sassy","price":2300,"type":"nameEffect","rarity":"legendary"},{"id":"name-general","name":"GENERAL'S FAVOURITE","price":4500,"type":"nameEffect","rarity":"sassy"},{"id":"dabber-thunder","name":"Thunder Stamp","price":1900,"type":"dabber","rarity":"legendary"},{"id":"dabber-sassy","name":"Sassy Detonation","price":3500,"type":"dabber","rarity":"sassy"},{"id":"theme-police","name":"Blue Line Command","price":1650,"type":"theme","rarity":"legendary"},{"id":"theme-casino","name":"Midnight Casino","price":2100,"type":"theme","rarity":"legendary"},{"id":"theme-disco","name":"Disco Disaster","price":2900,"type":"theme","rarity":"sassy"},{"id":"effect-lightning","name":"Lightning Victory","price":2600,"type":"effect","rarity":"legendary"},{"id":"effect-sassy-crown","name":"Sassy Coronation","price":5000,"type":"effect","rarity":"sassy"},{"id":"name-menace","name":"BINGO MENACE","price":2750,"type":"nameEffect","rarity":"legendary"},{"id":"name-fraud","name":"CERTIFIED FRAUD","price":3250,"type":"nameEffect","rarity":"sassy"}];
+function utcDayNumber(){ return Math.floor(Date.now()/86400000); }
+function currentDealId(){ const paid=STORE_CATALOG.filter(x=>x.price>0); return paid[utcDayNumber()%paid.length]?.id; }
+function storePrice(item){ return item.id===currentDealId()?Math.max(1,Math.floor(item.price*0.75)):item.price; }
+
+exports.buyStoreItem = onCall({ region:"europe-west1", maxInstances:3, timeoutSeconds:30 }, async request=>{
+ if(!request.auth) throw new HttpsError("unauthenticated","You must be signed in.");
+ const item=STORE_CATALOG.find(x=>x.id===request.data?.itemId); if(!item) throw new HttpsError("not-found","Unknown store item.");
+ const price=storePrice(item), uid=request.auth.uid, {db}=getAdminServices(), pr=db.ref(`v2/profiles/${uid}`); let reason="";
+ const tx=await pr.transaction(cur=>{if(!cur){reason="PROFILE";return;}cur.inventory=cur.inventory||{};if(cur.inventory[item.id]){reason="OWNED";return cur;}if(Number(cur.coins||0)<price){reason="COINS";return;}cur.coins=Number(cur.coins||0)-price;cur.inventory[item.id]=Date.now();cur.storeStats=cur.storeStats||{};cur.storeStats.totalSpent=Number(cur.storeStats.totalSpent||0)+price;cur.updatedAt=Date.now();return cur;});
+ if(!tx.committed) throw new HttpsError("failed-precondition",reason==="COINS"?"Not enough Sassy Coins.":"Purchase could not complete.");
+ await db.ref(`v2/transactions/${uid}`).push({amount:-price,reason:`Bought ${item.name}`,type:"purchase",itemId:item.id,createdAt:Date.now(),createdBy:"buyStoreItem"});
+ return {ok:true,itemId:item.id,pricePaid:price,deal:item.id===currentDealId()};
+});
+
+exports.giftStoreItem = onCall({ region:"europe-west1", maxInstances:3, timeoutSeconds:30 }, async request=>{
+ if(!request.auth) throw new HttpsError("unauthenticated","You must be signed in.");
+ const item=STORE_CATALOG.find(x=>x.id===request.data?.itemId), username=String(request.data?.username||"").trim().toLowerCase(); if(!item||!username) throw new HttpsError("invalid-argument","Choose an item and username.");
+ const {db}=getAdminServices(), all=(await db.ref("v2/profiles").get()).val()||{}, hit=Object.entries(all).find(([id,x])=>id!==request.auth.uid&&String(x?.username||"").trim().toLowerCase()===username); if(!hit) throw new HttpsError("not-found","Player not found.");
+ const [toUid,toProfile]=hit; if(toProfile.inventory?.[item.id]) throw new HttpsError("already-exists","They already own that item."); const price=storePrice(item), fromRef=db.ref(`v2/profiles/${request.auth.uid}`);
+ const debit=await fromRef.transaction(cur=>{if(!cur||Number(cur.coins||0)<price)return;cur.coins=Number(cur.coins||0)-price;cur.storeStats=cur.storeStats||{};cur.storeStats.totalSpent=Number(cur.storeStats.totalSpent||0)+price;return cur;}); if(!debit.committed) throw new HttpsError("failed-precondition","Not enough Sassy Coins.");
+ await db.ref(`v2/profiles/${toUid}/inventory/${item.id}`).set(Date.now()); await db.ref(`v2/transactions/${request.auth.uid}`).push({amount:-price,reason:`Gifted ${item.name} to ${toProfile.username}`,type:"gift",itemId:item.id,createdAt:Date.now()}); return {ok:true,recipient:toProfile.username,pricePaid:price};
+});
 
 exports.openSassyCrate = onCall(
   { region:"europe-west1", maxInstances:3, timeoutSeconds:30 },
@@ -340,7 +374,9 @@ exports.openSassyCrate = onCall(
         // Choose from the CURRENT transaction state.
         // If Firebase retries due to a concurrent profile update, this is
         // recalculated from the newest inventory and cannot duplicate an item.
-        const reward = weightedPick(available);
+        const sinceLegendary = Number(current.storeStats?.cratesSinceLegendary || 0);
+        const pityPool = sinceLegendary >= 9 ? available.filter(x => x.rarity === "legendary" || x.rarity === "sassy") : [];
+        const reward = weightedPick(pityPool.length ? pityPool : available);
 
         if (!reward || !reward.id) {
           abortReason = "NO_REWARD";
@@ -355,6 +391,9 @@ exports.openSassyCrate = onCall(
         current.coins = coins - CRATE_PRICE;
         current.inventory[reward.id] = Date.now();
         current.updatedAt = Date.now();
+        current.storeStats = current.storeStats || {};
+        current.storeStats.cratesOpened = Number(current.storeStats.cratesOpened || 0) + 1;
+        current.storeStats.cratesSinceLegendary = (reward.rarity === "legendary" || reward.rarity === "sassy") ? 0 : Number(current.storeStats.cratesSinceLegendary || 0) + 1;
 
         if (!current.achievements["crate-first"]) {
           current.achievements["crate-first"] = Date.now();
