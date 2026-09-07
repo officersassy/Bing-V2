@@ -22,25 +22,6 @@ function playAudioSafely(audio,{restart=true,volume=0.7}={}){
   }
 }
 
-function playLoadingTune(){
-  if(!sassyLoadingAudio)return;
-  playAudioSafely(sassyLoadingAudio,{volume:0.45});
-  // Keep the loading sting short rather than playing the whole song.
-  setTimeout(()=>{
-    if(!sassyLoadingAudio.paused){
-      const fade=setInterval(()=>{
-        sassyLoadingAudio.volume=Math.max(0,sassyLoadingAudio.volume-0.08);
-        if(sassyLoadingAudio.volume<=0.02){
-          clearInterval(fade);
-          sassyLoadingAudio.pause();
-          sassyLoadingAudio.currentTime=0;
-          sassyLoadingAudio.volume=0.45;
-        }
-      },120);
-    }
-  },6500);
-}
-
 function playWinnerTuneOnce(winnerKey){
   if(!winnerKey || winnerKey===lastWinnerMusicKey)return;
   lastWinnerMusicKey=winnerKey;
@@ -874,12 +855,70 @@ onValue(ref(database,"v2/verifiedWinners"),snap=>{
 });
 
 
-let loadingTuneAttempted=false;
-function startSassyLoadingTune(){
-  if(loadingTuneAttempted)return;
-  loadingTuneAttempted=true;
-  playLoadingTune();
+function stopWinnerTune(){
+  if(!bingoWinnerAudio)return;
+  try{
+    bingoWinnerAudio.pause();
+    bingoWinnerAudio.currentTime=0;
+    bingoWinnerAudio.volume=0.65;
+  }catch(error){
+    console.debug("Could not stop winner audio:",error);
+  }
+  $("winnerOverlay")?.classList.add("hidden");
 }
+
+let loadingTuneStarted=false;
+let loadingTuneFadeTimer=null;
+
+async function startSassyLoadingTune(){
+  if(loadingTuneStarted || !sassyLoadingAudio)return;
+
+  try{
+    sassyLoadingAudio.volume=0.45;
+    sassyLoadingAudio.currentTime=0;
+    await sassyLoadingAudio.play();
+    loadingTuneStarted=true;
+
+    loadingTuneFadeTimer=setTimeout(()=>{
+      if(sassyLoadingAudio.paused)return;
+      const fade=setInterval(()=>{
+        sassyLoadingAudio.volume=Math.max(0,sassyLoadingAudio.volume-0.08);
+        if(sassyLoadingAudio.volume<=0.02){
+          clearInterval(fade);
+          sassyLoadingAudio.pause();
+          sassyLoadingAudio.currentTime=0;
+          sassyLoadingAudio.volume=0.45;
+        }
+      },120);
+    },6500);
+  }catch(error){
+    // Autoplay was blocked. Do NOT mark it as started:
+    // the first real user interaction below will retry it.
+    console.debug("Loading tune waiting for user interaction.");
+  }
+}
+
+// Try autoplay first. If the browser blocks it, retry on the first genuine
+// click/tap/key press. Using capture means even the first menu interaction works.
 window.addEventListener("load",()=>setTimeout(startSassyLoadingTune,250),{once:true});
-document.addEventListener("pointerdown",startSassyLoadingTune,{once:true});
-document.addEventListener("keydown",startSassyLoadingTune,{once:true});
+document.addEventListener("pointerdown",startSassyLoadingTune,{capture:true});
+document.addEventListener("keydown",startSassyLoadingTune,{capture:true});
+
+
+// V2.3.16 — host-controlled winner music stop.
+// As soon as the host moves away from a winner state (Continue/Next Round),
+// Celebration stops immediately and the winner overlay closes.
+let previousMusicGameStatus=null;
+onValue(ref(database,"v2/game"),snap=>{
+  const nextGame=snap.val()||{};
+  const nextStatus=nextGame.status||"waiting";
+
+  const wasWinnerState=["winner","stage-winner"].includes(previousMusicGameStatus);
+  const isWinnerState=["winner","stage-winner"].includes(nextStatus);
+
+  if(wasWinnerState && !isWinnerState){
+    stopWinnerTune();
+  }
+
+  previousMusicGameStatus=nextStatus;
+});

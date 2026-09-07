@@ -1,0 +1,12 @@
+V2.3.16
+
+WINNER MUSIC CHANGE
+- Celebration still starts when a verified Bingo winner is announced.
+- When the host clicks Continue to the next progressive stage OR starts a fresh
+  round, Celebration stops immediately and resets to the beginning.
+- The winner overlay also closes automatically when the host moves on.
+
+Spanish Flea loading fix from V2.3.15 remains included.
+PD pause system remains included.
+No Firebase Rules changes.
+No Cloud Functions deployment.

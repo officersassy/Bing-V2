@@ -1,0 +1,7 @@
+FIX:
+The loading music retry logic no longer marks the tune as 'already attempted'
+when the browser blocks autoplay. It now retries on the player's first genuine
+click/tap/key press and only marks it started after audio.play() succeeds.
+
+Winner Celebration music remains unchanged.
+No Firebase Rules or Functions changes.
