@@ -5,6 +5,62 @@ import { ref,get,set,update,onValue,runTransaction,push,remove,onDisconnect } fr
 import { SHOP_ITEMS,ACHIEVEMENTS,AVATARS,RARITIES,CRATE_PRICE } from "./catalog.js?v=2.3.9";
 import { BLANK,validWin } from "./game-engine.js";
 
+
+const sassyLoadingAudio=document.getElementById("sassyLoadingAudio");
+const bingoWinnerAudio=document.getElementById("bingoWinnerAudio");
+let lastWinnerMusicKey=null;
+
+function playAudioSafely(audio,{restart=true,volume=0.7}={}){
+  if(!audio)return;
+  try{
+    audio.volume=volume;
+    if(restart)audio.currentTime=0;
+    const promise=audio.play();
+    if(promise?.catch)promise.catch(()=>{});
+  }catch(error){
+    console.debug("Audio playback unavailable:",error);
+  }
+}
+
+function playLoadingTune(){
+  if(!sassyLoadingAudio)return;
+  playAudioSafely(sassyLoadingAudio,{volume:0.45});
+  // Keep the loading sting short rather than playing the whole song.
+  setTimeout(()=>{
+    if(!sassyLoadingAudio.paused){
+      const fade=setInterval(()=>{
+        sassyLoadingAudio.volume=Math.max(0,sassyLoadingAudio.volume-0.08);
+        if(sassyLoadingAudio.volume<=0.02){
+          clearInterval(fade);
+          sassyLoadingAudio.pause();
+          sassyLoadingAudio.currentTime=0;
+          sassyLoadingAudio.volume=0.45;
+        }
+      },120);
+    }
+  },6500);
+}
+
+function playWinnerTuneOnce(winnerKey){
+  if(!winnerKey || winnerKey===lastWinnerMusicKey)return;
+  lastWinnerMusicKey=winnerKey;
+  if(sassyLoadingAudio && !sassyLoadingAudio.paused)sassyLoadingAudio.pause();
+  playAudioSafely(bingoWinnerAudio,{volume:0.65});
+  // Winner celebration: about 15 seconds, then fade.
+  setTimeout(()=>{
+    if(!bingoWinnerAudio || bingoWinnerAudio.paused)return;
+    const fade=setInterval(()=>{
+      bingoWinnerAudio.volume=Math.max(0,bingoWinnerAudio.volume-0.06);
+      if(bingoWinnerAudio.volume<=0.02){
+        clearInterval(fade);
+        bingoWinnerAudio.pause();
+        bingoWinnerAudio.currentTime=0;
+        bingoWinnerAudio.volume=0.65;
+      }
+    },140);
+  },15000);
+}
+
 const $=id=>document.getElementById(id);
 let user=null,profile=null,game={},card=[],marked=[],called=[],playerRoundId=null;
 let previousAchievements = new Set();
@@ -802,3 +858,28 @@ onAuthStateChanged(auth,async u=>{
 setInterval(()=>{
   if(game.status==="paused" && game.resumeCountdown?.resumeAt) drawWaitingState();
 },250);
+
+
+// V2.3.14 — celebration music fires only for verified Bingo winners.
+onValue(ref(database,"v2/verifiedWinners"),snap=>{
+  const data=snap.val()||{};
+  const roundWinners=game.roundId ? data[game.roundId] : null;
+  if(!roundWinners)return;
+
+  const entries=Object.entries(roundWinners);
+  if(!entries.length)return;
+
+  const winnerKey=`${game.roundId}:${entries.map(([key,value])=>`${key}:${value?.uid||value?.playerUid||""}`).sort().join("|")}`;
+  playWinnerTuneOnce(winnerKey);
+});
+
+
+let loadingTuneAttempted=false;
+function startSassyLoadingTune(){
+  if(loadingTuneAttempted)return;
+  loadingTuneAttempted=true;
+  playLoadingTune();
+}
+window.addEventListener("load",()=>setTimeout(startSassyLoadingTune,250),{once:true});
+document.addEventListener("pointerdown",startSassyLoadingTune,{once:true});
+document.addEventListener("keydown",startSassyLoadingTune,{once:true});

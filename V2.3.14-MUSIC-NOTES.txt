@@ -1,0 +1,16 @@
+GENERAL SASSY BINGO V2.3.14
+
+AUDIO
+- Spanish Flea: short ~6.5 second loading sting, then fades.
+- Celebration: plays when a verified Bingo winner is received, for ~15 seconds, then fades.
+- Winner music is keyed to the verified winner/round to avoid repeatedly restarting from normal redraws.
+- If a browser blocks autoplay, the loading tune is retried on the player's first click/tap/key press.
+
+PD pause modal from V2.3.13 is retained.
+Username moderation and existing V2 systems are retained.
+
+DEPLOYMENT
+Upload all files/folders to the V2 GitHub repository, including assets/audio.
+Hard refresh afterwards.
+No Firebase Rules changes.
+No Cloud Functions deployment.
