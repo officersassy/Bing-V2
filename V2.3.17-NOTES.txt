@@ -1,0 +1,11 @@
+V2.3.17
+
+FIX
+- Spanish Flea stops immediately when the host starts the live Bingo round.
+- It also stays stopped when a paused game resumes.
+- Celebration next-round stop behavior from V2.3.16 remains unchanged.
+- PD pause system remains included.
+
+Website-only update.
+No Firebase Rules changes.
+No Cloud Functions deployment.

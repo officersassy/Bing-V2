@@ -867,6 +867,17 @@ function stopWinnerTune(){
   $("winnerOverlay")?.classList.add("hidden");
 }
 
+function stopLoadingTune(){
+  if(!sassyLoadingAudio)return;
+  try{
+    sassyLoadingAudio.pause();
+    sassyLoadingAudio.currentTime=0;
+    sassyLoadingAudio.volume=0.45;
+  }catch(error){
+    console.debug("Could not stop loading audio:",error);
+  }
+}
+
 let loadingTuneStarted=false;
 let loadingTuneFadeTimer=null;
 
@@ -918,6 +929,11 @@ onValue(ref(database,"v2/game"),snap=>{
 
   if(wasWinnerState && !isWinnerState){
     stopWinnerTune();
+  }
+
+  // Once the host starts/resumes live Bingo, the loading tune must end immediately.
+  if(nextStatus==="playing"){
+    stopLoadingTune();
   }
 
   previousMusicGameStatus=nextStatus;
