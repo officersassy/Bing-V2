@@ -395,9 +395,53 @@ function dayNumber(){return Math.floor(Date.now()/86400000);}
 function dailyDealItem(){const paid=SHOP_ITEMS.filter(x=>x.price>0);return paid[dayNumber()%paid.length];}
 function effectivePrice(item){return item.id===dailyDealItem()?.id?Math.max(1,Math.floor(item.price*(1-V25_DEAL_DISCOUNT))):item.price;}
 function featuredItems(){const paid=SHOP_ITEMS.filter(x=>x.price>0);const d=dayNumber();return [0,7,17].map(n=>paid[(d+n)%paid.length]);}
-function openPreview(item){
- const r=rarityMeta(item); $("previewVisual").innerHTML=storeVisual(item); $("previewRarity").className=`rarity-chip rarity-${item.rarity}`; $("previewRarity").textContent=`${r.icon} ${r.name}`; $("previewName").textContent=item.name; $("previewDescription").textContent=item.description||""; $("previewDemo").className=`v25-preview-demo preview-${item.type} cosmetic-${item.id}`; $("previewDemo").textContent=item.type==="nameEffect"?`${item.name} · GENERAL SASSY`:item.type==="effect"?"🏆 BINGO! ✨":item.type==="dabber"?"42 ✓":item.type==="theme"?"B  I  N  G  O":"🎱"; $("storePreviewOverlay").classList.remove("hidden");
+let previewItemIndex=-1;
+let previewTimer=null;
+function previewPlayerName(){return String(profile?.username||user?.displayName||"GENERAL SASSY").toUpperCase();}
+function previewItemsInOrder(){
+  const wish=getWishlist();
+  return SHOP_ITEMS.filter(item=>(currentStoreFilter==="all"||item.type===currentStoreFilter)&&(!wishlistOnly||wish.has(item.id)));
 }
+function previewMarkup(item){
+  const name=previewPlayerName();
+  if(item.type==="avatar") return `<div class="v251-avatar-stage"><img src="./${item.image}" alt=""><div><strong>${name}</strong><span>PLAYER AVATAR</span></div></div>`;
+  if(item.type==="dabber") return `<div class="v251-ticket"><div class="v251-bingo-head"><b>B</b><b>I</b><b>N</b><b>G</b><b>O</b></div><div class="v251-grid"><i>7</i><i>18</i><i class="v251-marked">42</i><i>53</i><i>71</i></div><small>Watch 42 get dobbed</small></div>`;
+  if(item.type==="theme") return `<div class="v251-ticket v251-theme"><div class="v251-theme-label">BINGO CARD</div><div class="v251-bingo-head"><b>B</b><b>I</b><b>N</b><b>G</b><b>O</b></div><div class="v251-grid"><i>4</i><i>19</i><i>FREE</i><i>52</i><i>69</i></div><div class="v251-grid"><i>11</i><i>27</i><i>39</i><i>58</i><i>74</i></div></div>`;
+  if(item.type==="nameEffect") return `<div class="v251-name-stage"><span>PLAYER NAME</span><strong>${name}</strong><small>Shown on your profile and in game</small></div>`;
+  if(item.type==="effect") return `<div class="v251-win-stage"><div class="v251-fx-layer" id="previewFxLayer"></div><div class="v251-trophy">🏆</div><strong>BINGO!</strong><span>${name}</span><button id="replayPreviewFx" type="button">↻ REPLAY EFFECT</button></div>`;
+  return `<div class="v251-generic">${item.icon}</div>`;
+}
+function playPreviewEffect(item){
+  clearTimeout(previewTimer);
+  const layer=$("previewFxLayer"); if(!layer)return;
+  layer.innerHTML=""; layer.className=`v251-fx-layer fx-${item.id}`;
+  const specs={
+    "confetti-party":["🎉","✨","🎊"],"effect-fireworks":["🎆","✨","💥"],"effect-coin-rain":["🪙","💰","✨"],
+    "effect-meteor":["☄️","🔥","✨"],"effect-jackpot":["🎰","7️⃣","⭐","🪙"],"effect-lightning":["⚡","🌩️","✨"],"effect-sassy-crown":["👑","✨","💎","⭐"]
+  };
+  const bits=specs[item.id]||["✨","🎉"];
+  for(let i=0;i<24;i++){
+    const b=document.createElement("b"); b.textContent=bits[i%bits.length]; b.style.setProperty("--x",`${4+Math.random()*92}%`); b.style.setProperty("--d",`${Math.random()*.7}s`); b.style.setProperty("--r",`${-35+Math.random()*70}deg`); layer.appendChild(b);
+  }
+  layer.classList.remove("playing"); void layer.offsetWidth; layer.classList.add("playing");
+  previewTimer=setTimeout(()=>layer?.classList.remove("playing"),3200);
+}
+function openPreview(item){
+  if(!item)return;
+  const r=rarityMeta(item), list=previewItemsInOrder(); previewItemIndex=list.findIndex(x=>x.id===item.id);
+  $("previewVisual").innerHTML=storeVisual(item); $("previewRarity").className=`rarity-chip rarity-${item.rarity}`; $("previewRarity").textContent=`${r.icon} ${r.name}`;
+  $("previewName").textContent=item.name; $("previewDescription").textContent=item.description||"";
+  const demo=$("previewDemo"); demo.className=`v251-preview-demo preview-${item.type} cosmetic-${item.id}`; demo.dataset.item=item.id; demo.innerHTML=previewMarkup(item);
+  $("previewType").textContent=({avatar:"AVATAR",dabber:"DOBBER",theme:"CARD THEME",nameEffect:"NAME EFFECT",effect:"WINNER EFFECT"}[item.type]||item.type).toUpperCase();
+  $("previewOwned").textContent=isOwned(item)?"✓ OWNED":(item.price===0?"FREE":`${coins(effectivePrice(item))} 🪙`);
+  $("storePreviewOverlay").classList.remove("hidden");
+  $("previewPrev").disabled=list.length<2; $("previewNext").disabled=list.length<2;
+  const replay=$("replayPreviewFx"); if(replay)replay.onclick=()=>playPreviewEffect(item);
+  if(item.type==="effect") requestAnimationFrame(()=>playPreviewEffect(item));
+}
+function movePreview(step){const list=previewItemsInOrder();if(!list.length)return;previewItemIndex=(previewItemIndex+step+list.length)%list.length;openPreview(list[previewItemIndex]);}
+function closePreview(){clearTimeout(previewTimer);$("storePreviewOverlay").classList.add("hidden");}
+
 function renderV25Dashboard(){
  const deal=dailyDealItem(), w=getWishlist(), owned=SHOP_ITEMS.filter(isOwned).length;
  $("wishlistCount").textContent=w.size; $("collectionProgress").textContent=`${Math.round(owned/SHOP_ITEMS.length*100)}%`;
@@ -595,7 +639,10 @@ async function buyItem(item){
   }catch(error){console.error("Direct purchase failed",error);show("shopMessage",String(error?.message||"Purchase failed").replace(/^FirebaseError:\s*/i,""),"error");}
 }
 
-$("closeStorePreview").onclick=()=>$("storePreviewOverlay").classList.add("hidden");
+$("closeStorePreview").onclick=closePreview;
+$("previewPrev").onclick=()=>movePreview(-1);
+$("previewNext").onclick=()=>movePreview(1);
+$("storePreviewOverlay").addEventListener("click",e=>{if(e.target===$("storePreviewOverlay"))closePreview();});
 $("wishlistOnly").onclick=()=>{wishlistOnly=!wishlistOnly;$("wishlistOnly").textContent=wishlistOnly?"❤️ Showing Wishlist":"❤️ Wishlist Only";drawShop();};
 $("closeCrateHistory").onclick=()=>$("crateHistoryOverlay").classList.add("hidden");
 $("showCrateHistory").onclick=async()=>{const snap=await get(ref(database,`v2/transactions/${user.uid}`));const rows=Object.values(snap.val()||{}).filter(x=>x.type==="crate").sort((a,b)=>Number(b.createdAt||0)-Number(a.createdAt||0)).slice(0,10);$("crateCount").textContent=Object.values(snap.val()||{}).filter(x=>x.type==="crate").length;$("crateHistoryList").innerHTML=rows.length?rows.map(x=>`<div><b>${x.rarity||"DROP"}</b><span>${x.reason||x.itemId}</span></div>`).join(""):"<p>No crates opened yet.</p>";$("crateHistoryOverlay").classList.remove("hidden");};

@@ -1,0 +1,16 @@
+GENERAL SASSY BINGO — V2.5.1 STORE PREVIEW FIX
+
+Based directly on V2.5 Sassy Emporium 2.0.
+
+Changes:
+- Rebuilt Try It On modal with real mini Bingo-card previews.
+- Dabbers animate an actual marked number.
+- Card themes render a complete mini card.
+- Name effects render the player name with the actual visual style.
+- Avatars render as a proper player profile preview.
+- Winner effects animate inside the preview and have Replay Effect.
+- Previous/Next navigation added.
+- Preview is local-only: no Firebase writes, no purchases, no equipping, no coin deductions.
+- Purchase, gifting, crate and Cloud Functions code intentionally left unchanged.
+
+DEPLOYMENT: GitHub files only. No Firebase Rules or Functions changes. Hard refresh with Ctrl+F5.
