@@ -14,6 +14,8 @@ const hostSassyAudio=new Audio();
 hostSassyAudio.preload="auto";
 hostSassyAudio.volume=0.82;
 let hostSassyBusy=false,hostSassyPending=null,lastHostSassyPick={};
+const HOST_SASSY_MIN_GAP_MS=30000;
+let lastHostSassyAt=0;
 function pickHostSassy(category){
   const count=SASSY_VOICE_COUNTS[category]||0;if(!count)return null;
   let pick=1;if(count>1){do{pick=1+Math.floor(Math.random()*count);}while(pick===lastHostSassyPick[category]);}
@@ -22,8 +24,9 @@ function pickHostSassy(category){
 }
 async function playHostSassy(category,{force=false}={}){
   const src=pickHostSassy(category);if(!src)return false;if(hostSassyBusy&&!force)return false;
+  if(!force&&Date.now()-lastHostSassyAt<HOST_SASSY_MIN_GAP_MS)return false;
   if(force){try{hostSassyAudio.pause();}catch{}}
-  try{hostSassyBusy=true;hostSassyAudio.src=src;hostSassyAudio.currentTime=0;await hostSassyAudio.play();hostSassyPending=null;return true;}
+  try{hostSassyBusy=true;hostSassyAudio.src=src;hostSassyAudio.currentTime=0;await hostSassyAudio.play();lastHostSassyAt=Date.now();hostSassyPending=null;return true;}
   catch{hostSassyBusy=false;hostSassyPending=category;return false;}
 }
 hostSassyAudio.addEventListener("ended",()=>{hostSassyBusy=false;});
@@ -87,8 +90,16 @@ function drawHost(){
   $("hostCalledNumbers").innerHTML="";
   called.slice().reverse().forEach(n=>{const e=document.createElement("span");e.textContent=displayCall(n);$("hostCalledNumbers").appendChild(e);});
 }
-function activePlayerEntries(){
+function onlinePlayerEntries(){
   return Object.keys(lobby)
+    .filter(uid=>Boolean(lobby?.[uid]?.online))
+    .map(uid=>[uid,profiles[uid]])
+    .filter(([,profile])=>Boolean(profile));
+}
+function activePlayerEntries(){
+  const roundActive=Boolean(game?.roundId)&&["playing","paused","winner","stage-winner"].includes(game?.status);
+  return Object.keys(lobby)
+    .filter(uid=>Boolean(lobby?.[uid]?.online) || (roundActive && window.gamePlayers?.[uid]?.roundId===game.roundId))
     .map(uid=>[uid,profiles[uid]])
     .filter(([,profile])=>Boolean(profile));
 }
@@ -336,7 +347,7 @@ $("openGameButton").onclick=async()=>{await update(ref(database,"v2/game"),{stat
 $("startGameButton").onclick=async()=>{
   const mode=$("hostGameMode").value;
   const roundId=`round-${Date.now()}`;
-  const activeUids=activePlayerEntries().map(([uid])=>uid);
+  const activeUids=onlinePlayerEntries().map(([uid])=>uid);
 
   if(!activeUids.length){
     alert("No active players are in the lobby.");
@@ -725,7 +736,7 @@ onAuthStateChanged(auth,async u=>{
       if(status==="playing"&&roundId===hostSassyPreviousRoundId&&callCount>hostSassyPreviousCalledCount){
         const threshold=String(next.mode||"").startsWith("90")?55:45;
         if(!hostSassySlowPlayed&&callCount>=threshold){hostSassySlowPlayed=true;playHostSassy("slow");}
-        else if(callCount>=8&&callCount-hostSassyLastRandomAt>=7&&Math.random()<0.18){playHostSassy("random");hostSassyLastRandomAt=callCount;}
+        else if(callCount>=12&&callCount-hostSassyLastRandomAt>=12&&Math.random()<0.10){playHostSassy("random");hostSassyLastRandomAt=callCount;}
       }
     }
     if(roundId!==hostSassyPreviousRoundId){hostSassySlowPlayed=false;hostSassyLastRandomAt=0;}

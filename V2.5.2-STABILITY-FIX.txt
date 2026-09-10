@@ -1,0 +1,18 @@
+GENERAL SASSY BINGO V2.5.2 STABILITY FIX
+
+Fixed:
+- Direct store purchases failing while Sassy Crates still worked.
+- Daily Deal price now matches the server price on BUY buttons/cards.
+- Temporary Firebase disconnects no longer delete players from the lobby.
+- Players who briefly disconnect remain visible to the host during an active round.
+- Reconnected players automatically return to online state.
+- Tie-window Bingo claims stay visible/clickable after the first winner.
+- Lightning Victory and Sassy Coronation now run on real wins.
+- General Sassy voice lines have a 30-second non-forced cooldown.
+- Random voice comments are substantially less frequent.
+
+Deployment:
+1. Upload/replace frontend files on GitHub Pages and Ctrl+F5.
+2. From this folder run npm install in functions if needed.
+3. Deploy ONLY the V2/default functions from this V2 folder.
+4. No Firebase Rules change is required for this fix.

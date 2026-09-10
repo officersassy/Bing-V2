@@ -20,6 +20,8 @@ let sassyVoiceBusy=false;
 let lastSassyVoicePick={};
 let sassyVoiceUnlocked=false;
 let pendingSassyVoice=null;
+const SASSY_MIN_GAP_MS=30000;
+let lastSassyVoiceAt=0;
 
 function pickSassyVoice(category){
   const count=SASSY_VOICE_COUNTS[category]||0;
@@ -36,6 +38,7 @@ async function playSassyVoice(category,{force=false}={}){
   const src=pickSassyVoice(category);
   if(!src)return false;
   if(sassyVoiceBusy&&!force)return false;
+  if(!force && Date.now()-lastSassyVoiceAt<SASSY_MIN_GAP_MS)return false;
   if(force){try{sassyVoiceAudio.pause();}catch{}}
   try{
     sassyVoiceBusy=true;
@@ -43,6 +46,7 @@ async function playSassyVoice(category,{force=false}={}){
     sassyVoiceAudio.currentTime=0;
     await sassyVoiceAudio.play();
     sassyVoiceUnlocked=true;
+    lastSassyVoiceAt=Date.now();
     return true;
   }catch(error){
     sassyVoiceBusy=false;
@@ -217,7 +221,7 @@ function applyCosmetics() {
 }
 
 function fireConfettiCannons() {
-  if (!["confetti-party","effect-fireworks","effect-coin-rain","effect-meteor","effect-jackpot"].includes(profile?.cosmetics?.effect)) return;
+  if (!["confetti-party","effect-fireworks","effect-coin-rain","effect-meteor","effect-jackpot","effect-lightning","effect-sassy-crown"].includes(profile?.cosmetics?.effect)) return;
 
   const layer = $("confettiLayer");
   if (!layer) return;
@@ -233,7 +237,11 @@ function fireConfettiCannons() {
         ? ["☄️","🔥","✦","☄️"]
         : effect==="effect-jackpot"
           ? ["🎰","7️⃣","⭐","🪙"]
-          : ["●","■","▲","★"];
+          : effect==="effect-lightning"
+            ? ["⚡","🌩️","✨","⚡"]
+            : effect==="effect-sassy-crown"
+              ? ["👑","💎","✨","⭐"]
+              : ["●","■","▲","★"];
 
   for (let i = 0; i < pieces; i++) {
     const piece = document.createElement("span");
@@ -309,7 +317,9 @@ function pdPauseMessage(){
 
 function drawWaitingState() {
   drawPdPauseModal();
-  const inRound = ["playing","paused"].includes(game.status) &&
+  const tieWindowOpen=["stage-winner","winner"].includes(game.status) &&
+    Number(game.claimWindowClosesAt||0)>=Date.now();
+  const inRound = (["playing","paused"].includes(game.status)||tieWindowOpen) &&
     playerRoundId === game.roundId && card.length > 0;
   const paused = game.status === "paused" && inRound;
 
@@ -317,7 +327,7 @@ function drawWaitingState() {
   $("liveGamePanel").classList.toggle("hidden", !inRound);
   $("ticketTitle").closest(".ticket-panel").classList.toggle("hidden", !inRound);
   $("claimBingoButton").classList.toggle("hidden", !inRound);
-  $("claimBingoButton").disabled=paused;
+  $("claimBingoButton").disabled=paused || !(game.status==="playing"||tieWindowOpen);
 
   if (paused) {
     $("waitingMessage").textContent = pdPauseMessage();
@@ -484,7 +494,7 @@ function drawShop(){
           <span class="rarity-chip rarity-${item.rarity||"common"}">${rarity.icon} ${rarity.name}</span>
           <h3>${item.name}</h3>
           <p>${item.description||"General Sassy approved cosmetic."}</p>
-          <div class="store-price">${item.price===0 ? "FREE" : `${coins(item.price)} 🪙`}</div>
+          <div class="store-price">${item.price===0 ? "FREE" : (effectivePrice(item)!==item.price ? `${coins(effectivePrice(item))} 🪙 <small>was ${coins(item.price)}</small>` : `${coins(item.price)} 🪙`)}</div>
         </div>
       `;
 
@@ -496,7 +506,7 @@ function drawShop(){
         button.disabled=equipped;
         if(!equipped)button.onclick=()=>equipItem(item);
       }else{
-        button.textContent=`BUY — ${coins(item.price)} 🪙`;
+        button.textContent=`BUY — ${coins(effectivePrice(item))} 🪙`;
         button.onclick=()=>buyItem(item);
       }
 
@@ -823,11 +833,21 @@ $("saveNameButton").onclick=async()=>{
 onAuthStateChanged(auth,async u=>{
   if(!u){location.href="./index.html";return;} user=u;
   const lobbyRef=ref(database,`v2/lobby/${u.uid}`);
-  await set(lobbyRef,{
-    online:true,
-    joinedAt:Date.now()
+  const connectedRef=ref(database,".info/connected");
+  const joinedAt=Date.now();
+
+  // Keep the lobby entry during temporary Wi-Fi/browser disconnects.
+  // Firebase will mark the player offline instead of deleting them, then
+  // automatically restore them to online when the connection comes back.
+  onValue(connectedRef,async snap=>{
+    if(snap.val()!==true)return;
+    try{
+      await update(lobbyRef,{online:true,joinedAt,lastSeen:Date.now()});
+      await onDisconnect(lobbyRef).update({online:false});
+    }catch(error){
+      console.debug("Lobby presence update failed:",error);
+    }
   });
-  onDisconnect(lobbyRef).remove();
 
   const adminSnap = await get(ref(database,`v2/admins/${u.uid}`));
   if (adminSnap.exists() && adminSnap.val() === true) {
@@ -1090,7 +1110,7 @@ onValue(ref(database,"v2/game"),snap=>{
       if(!sassySlowPlayedForRound && callCount>=slowThreshold){
         sassySlowPlayedForRound=true;
         playSassyVoice("slow");
-      }else if(callCount>=8 && callCount-sassyLastRandomAt>=7 && Math.random()<0.18){
+      }else if(callCount>=12 && callCount-sassyLastRandomAt>=12 && Math.random()<0.10){
         if(playSassyVoice("random"))sassyLastRandomAt=callCount;
       }
     }

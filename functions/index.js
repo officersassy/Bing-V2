@@ -281,10 +281,39 @@ function storePrice(item){ return item.id===currentDealId()?Math.max(1,Math.floo
 
 exports.buyStoreItem = onCall({ region:"europe-west1", maxInstances:3, timeoutSeconds:30 }, async request=>{
  if(!request.auth) throw new HttpsError("unauthenticated","You must be signed in.");
- const item=STORE_CATALOG.find(x=>x.id===request.data?.itemId); if(!item) throw new HttpsError("not-found","Unknown store item.");
- const price=storePrice(item), uid=request.auth.uid, {db}=getAdminServices(), pr=db.ref(`v2/profiles/${uid}`); let reason="";
- const tx=await pr.transaction(cur=>{if(!cur){reason="PROFILE";return;}cur.inventory=cur.inventory||{};if(cur.inventory[item.id]){reason="OWNED";return cur;}if(Number(cur.coins||0)<price){reason="COINS";return;}cur.coins=Number(cur.coins||0)-price;cur.inventory[item.id]=Date.now();cur.storeStats=cur.storeStats||{};cur.storeStats.totalSpent=Number(cur.storeStats.totalSpent||0)+price;cur.updatedAt=Date.now();return cur;});
- if(!tx.committed) throw new HttpsError("failed-precondition",reason==="COINS"?"Not enough Sassy Coins.":"Purchase could not complete.");
+ const item=STORE_CATALOG.find(x=>x.id===request.data?.itemId);
+ if(!item) throw new HttpsError("not-found","Unknown store item.");
+
+ const price=storePrice(item), uid=request.auth.uid, {db}=getAdminServices();
+ const pr=db.ref(`v2/profiles/${uid}`);
+ const initialSnap=await pr.get();
+ if(!initialSnap.exists()) throw new HttpsError("not-found","Profile not found.");
+ const initialProfile=initialSnap.val();
+ let reason="";
+
+ // RTDB transactions can briefly provide null on their first local pass.
+ // The crate code already protects against this; direct purchases now do too.
+ const tx=await pr.transaction(cur=>{
+   reason="";
+   if(cur===null||cur===undefined) cur=structuredClone(initialProfile);
+   if(!cur||typeof cur!=="object"){reason="PROFILE";return;}
+   cur.inventory=cur.inventory||{};
+   if(cur.inventory[item.id]){reason="OWNED";return;}
+   if(Number(cur.coins||0)<price){reason="COINS";return;}
+   cur.coins=Number(cur.coins||0)-price;
+   cur.inventory[item.id]=Date.now();
+   cur.storeStats=cur.storeStats||{};
+   cur.storeStats.totalSpent=Number(cur.storeStats.totalSpent||0)+price;
+   cur.updatedAt=Date.now();
+   return cur;
+ });
+
+ if(!tx.committed){
+   if(reason==="COINS") throw new HttpsError("failed-precondition","Not enough Sassy Coins.");
+   if(reason==="OWNED") return {ok:true,itemId:item.id,pricePaid:0,alreadyOwned:true,deal:item.id===currentDealId()};
+   throw new HttpsError("failed-precondition","Purchase could not complete.");
+ }
+
  await db.ref(`v2/transactions/${uid}`).push({amount:-price,reason:`Bought ${item.name}`,type:"purchase",itemId:item.id,createdAt:Date.now(),createdBy:"buyStoreItem"});
  return {ok:true,itemId:item.id,pricePaid:price,deal:item.id===currentDealId()};
 });
