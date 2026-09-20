@@ -1,0 +1,9 @@
+V2.5.3 PLAYER BALL COLOURS
+
+Adds per-player called Bingo ball colour cosmetics.
+- Classic Blue is free/default.
+- Ruby Red, Emerald, Royal Purple, Hot Pink, Sassy Orange, Midas Gold and Neon Cyan added to the Emporium.
+- Ball Colours have their own store filter and preview.
+- Equipped colour changes only that player’s large current-call ball.
+- No game, claim, lobby, card-generation or winner logic changed.
+- Paid ball colours are supported by secure direct purchases and Sassy Crates.

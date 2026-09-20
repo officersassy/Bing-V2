@@ -60,6 +60,15 @@ export const SHOP_ITEMS = [
   ,{ id:"name-menace", name:"BINGO MENACE", price:2750, icon:"😈", type:"nameEffect", rarity:"legendary", description:"An animated menace badge around your name." }
   ,{ id:"name-fraud", name:"CERTIFIED FRAUD", price:3250, icon:"🚨", type:"nameEffect", rarity:"sassy", description:"For players with a distinguished history of questionable claims." }
 
+  ,{ id:"ball-blue", name:"Classic Blue Ball", price:0, icon:"🔵", type:"ballColor", rarity:"common", description:"The classic General Sassy blue call ball." }
+  ,{ id:"ball-red", name:"Ruby Red Ball", price:125, icon:"🔴", type:"ballColor", rarity:"common", description:"A bold ruby-red call ball." }
+  ,{ id:"ball-green", name:"Emerald Ball", price:175, icon:"🟢", type:"ballColor", rarity:"common", description:"A rich emerald-green call ball." }
+  ,{ id:"ball-purple", name:"Royal Purple Ball", price:250, icon:"🟣", type:"ballColor", rarity:"rare", description:"Royal purple for unnecessarily important Bingo calls." }
+  ,{ id:"ball-pink", name:"Hot Pink Ball", price:300, icon:"🩷", type:"ballColor", rarity:"rare", description:"Hot pink. Subtlety has left the building." }
+  ,{ id:"ball-orange", name:"Sassy Orange Ball", price:400, icon:"🟠", type:"ballColor", rarity:"rare", description:"A loud orange ball with proper game-show energy." }
+  ,{ id:"ball-gold", name:"Midas Ball", price:750, icon:"🟡", type:"ballColor", rarity:"epic", description:"Gold call balls for players with expensive taste." }
+  ,{ id:"ball-cyan", name:"Neon Cyan Ball", price:1100, icon:"💠", type:"ballColor", rarity:"legendary", description:"Electric cyan glow for maximum Bingo drama." }
+
 ];
 
 export const AVATARS = SHOP_ITEMS.filter(item => item.type === "avatar");

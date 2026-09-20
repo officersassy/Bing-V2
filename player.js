@@ -181,7 +181,8 @@ function isEquipped(item) {
     theme: c.theme,
     effect: c.effect,
     nameEffect: c.nameEffect,
-    avatar: c.avatar || "avatar-ball"
+    avatar: c.avatar || "avatar-ball",
+    ballColor: c.ballColor || "ball-blue"
   };
 
   return map[item.type] === item.id;
@@ -194,18 +195,20 @@ function applyCosmetics() {
   const nameEffect = profile?.cosmetics?.nameEffect || "default";
   const effect = profile?.cosmetics?.effect || "default";
   const avatar = profile?.cosmetics?.avatar || "avatar-ball";
+  const ballColor = profile?.cosmetics?.ballColor || "ball-blue";
 
   document.body.dataset.dabber = dabber;
   document.body.dataset.theme = theme;
   document.body.dataset.nameEffect = nameEffect;
   document.body.dataset.effect = effect;
+  document.body.dataset.ballColor = ballColor;
 
   // Classes make the cosmetic selectors reliable across browsers.
   [...document.body.classList]
     .filter(name => name.startsWith("cosmetic-"))
     .forEach(name => document.body.classList.remove(name));
 
-  [dabber, theme, nameEffect, effect]
+  [dabber, theme, nameEffect, effect, ballColor]
     .filter(value => value && value !== "default")
     .forEach(value => document.body.classList.add(`cosmetic-${value}`));
 
@@ -213,6 +216,7 @@ function applyCosmetics() {
   $("equippedTheme").textContent = cosmeticName(theme);
   $("equippedNameEffect").textContent = cosmeticName(nameEffect);
   $("equippedAvatar").textContent = cosmeticName(avatar);
+  $("equippedBallColor").textContent = cosmeticName(ballColor);
   const selectedAvatar=avatarItem(avatar);
   $("profileAvatar").innerHTML=selectedAvatar?.image
     ? `<img class="profile-avatar-img" src="./${selectedAvatar.image}" alt="${selectedAvatar.name}">`
@@ -415,6 +419,7 @@ function previewItemsInOrder(){
 function previewMarkup(item){
   const name=previewPlayerName();
   if(item.type==="avatar") return `<div class="v251-avatar-stage"><img src="./${item.image}" alt=""><div><strong>${name}</strong><span>PLAYER AVATAR</span></div></div>`;
+  if(item.type==="ballColor") return `<div class="v251-ball-preview"><div class="mobile-current-ball">G 52</div><small>Your called ball</small></div>`;
   if(item.type==="dabber") return `<div class="v251-ticket"><div class="v251-bingo-head"><b>B</b><b>I</b><b>N</b><b>G</b><b>O</b></div><div class="v251-grid"><i>7</i><i>18</i><i class="v251-marked">42</i><i>53</i><i>71</i></div><small>Watch 42 get dobbed</small></div>`;
   if(item.type==="theme") return `<div class="v251-ticket v251-theme"><div class="v251-theme-label">BINGO CARD</div><div class="v251-bingo-head"><b>B</b><b>I</b><b>N</b><b>G</b><b>O</b></div><div class="v251-grid"><i>4</i><i>19</i><i>FREE</i><i>52</i><i>69</i></div><div class="v251-grid"><i>11</i><i>27</i><i>39</i><i>58</i><i>74</i></div></div>`;
   if(item.type==="nameEffect") return `<div class="v251-name-stage"><span>PLAYER NAME</span><strong>${name}</strong><small>Shown on your profile and in game</small></div>`;
@@ -442,7 +447,7 @@ function openPreview(item){
   $("previewVisual").innerHTML=storeVisual(item); $("previewRarity").className=`rarity-chip rarity-${item.rarity}`; $("previewRarity").textContent=`${r.icon} ${r.name}`;
   $("previewName").textContent=item.name; $("previewDescription").textContent=item.description||"";
   const demo=$("previewDemo"); demo.className=`v251-preview-demo preview-${item.type} cosmetic-${item.id}`; demo.dataset.item=item.id; demo.innerHTML=previewMarkup(item);
-  $("previewType").textContent=({avatar:"AVATAR",dabber:"DOBBER",theme:"CARD THEME",nameEffect:"NAME EFFECT",effect:"WINNER EFFECT"}[item.type]||item.type).toUpperCase();
+  $("previewType").textContent=({avatar:"AVATAR",dabber:"DOBBER",theme:"CARD THEME",nameEffect:"NAME EFFECT",effect:"WINNER EFFECT",ballColor:"BALL COLOUR"}[item.type]||item.type).toUpperCase();
   $("previewOwned").textContent=isOwned(item)?"✓ OWNED":(item.price===0?"FREE":`${coins(effectivePrice(item))} 🪙`);
   $("storePreviewOverlay").classList.remove("hidden");
   $("previewPrev").disabled=list.length<2; $("previewNext").disabled=list.length<2;
@@ -609,7 +614,8 @@ async function equipItem(item){
     theme: "theme",
     effect: "effect",
     nameEffect: "nameEffect",
-    avatar: "avatar"
+    avatar: "avatar",
+    ballColor: "ballColor"
   };
 
   const key = map[item.type];
