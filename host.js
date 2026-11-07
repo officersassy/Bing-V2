@@ -1,3 +1,4 @@
+import { createDillonAnnouncer } from "./dillon-announcer.js";
 import { auth,database,functions } from "./firebase.js";
 import { onAuthStateChanged,signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
@@ -8,32 +9,8 @@ import { SHOP_ITEMS,AVATARS } from "./catalog.js?v=2.3.9";
 const $=id=>document.getElementById(id);
 let host=null,profiles={},lobby={},bannedUsernameTerms={},selectedUid=null,game={},called=[],hostDrawOrder=[];
 const TIE_WINDOW_MS=5000;
-// V2.4.1 — Dillon Sass also speaks on the Host page.
-const SASSY_VOICE_COUNTS={start:5,pause:5,resume:5,invalid:6,slow:4,random:6};
-const hostSassyAudio=new Audio();
-hostSassyAudio.preload="auto";
-hostSassyAudio.volume=0.82;
-let hostSassyBusy=false,hostSassyPending=null,lastHostSassyPick={};
-const HOST_SASSY_MIN_GAP_MS=30000;
-let lastHostSassyAt=0;
-function pickHostSassy(category){
-  const count=SASSY_VOICE_COUNTS[category]||0;if(!count)return null;
-  let pick=1;if(count>1){do{pick=1+Math.floor(Math.random()*count);}while(pick===lastHostSassyPick[category]);}
-  lastHostSassyPick[category]=pick;
-  return `./assets/audio/sassy-voice/${category}-${String(pick).padStart(2,"0")}.mp3`;
-}
-async function playHostSassy(category,{force=false}={}){
-  const src=pickHostSassy(category);if(!src)return false;if(hostSassyBusy&&!force)return false;
-  if(!force&&Date.now()-lastHostSassyAt<HOST_SASSY_MIN_GAP_MS)return false;
-  if(force){try{hostSassyAudio.pause();}catch{}}
-  try{hostSassyBusy=true;hostSassyAudio.src=src;hostSassyAudio.currentTime=0;await hostSassyAudio.play();lastHostSassyAt=Date.now();hostSassyPending=null;return true;}
-  catch{hostSassyBusy=false;hostSassyPending=category;return false;}
-}
-hostSassyAudio.addEventListener("ended",()=>{hostSassyBusy=false;});
-hostSassyAudio.addEventListener("error",()=>{hostSassyBusy=false;});
-async function unlockHostSassy(){if(hostSassyPending&&!hostSassyBusy){const c=hostSassyPending;hostSassyPending=null;await playHostSassy(c);}}
-document.addEventListener("pointerdown",unlockHostSassy,{capture:true});
-document.addEventListener("keydown",unlockHostSassy,{capture:true});
+const dillonHostAnnouncer=createDillonAnnouncer();
+function playHostSassy(category,options={}){return dillonHostAnnouncer.speak(category,options);}
 let hostSassyPreviousStatus=null,hostSassyPreviousRoundId=null,hostSassyPreviousCalledCount=0,hostSassySlowPlayed=false,hostSassyLastRandomAt=0,lastInvalidSassyEventKey=null;
 
 let currentStageWinners=[];

@@ -1,0 +1,1 @@
+Dillon Sass browser speech synthesis replaces legacy General Sassy clips on player and host. 30-second gap between ordinary announcements. Voice varies by device. No Firebase functions or rules changes. Winner music unchanged. Browser may require a click before speech. GitHub frontend files only.

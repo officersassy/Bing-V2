@@ -1,3 +1,4 @@
+import { createDillonAnnouncer } from "./dillon-announcer.js";
 import { auth,database,functions } from "./firebase.js";
 import { onAuthStateChanged,signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
@@ -11,64 +12,9 @@ const bingoWinnerAudio=document.getElementById("bingoWinnerAudio");
 let lastWinnerMusicKey=null;
 
 
-// V2.4 — Dillon Sass voice announcer.
-const SASSY_VOICE_COUNTS={start:5,pause:5,resume:5,invalid:6,slow:4,random:6};
-const sassyVoiceAudio=new Audio();
-sassyVoiceAudio.preload="auto";
-sassyVoiceAudio.volume=0.82;
-let sassyVoiceBusy=false;
-let lastSassyVoicePick={};
-let sassyVoiceUnlocked=false;
-let pendingSassyVoice=null;
-const SASSY_MIN_GAP_MS=30000;
-let lastSassyVoiceAt=0;
-
-function pickSassyVoice(category){
-  const count=SASSY_VOICE_COUNTS[category]||0;
-  if(!count)return null;
-  let pick=1;
-  if(count>1){
-    do{pick=1+Math.floor(Math.random()*count);}while(pick===lastSassyVoicePick[category]);
-  }
-  lastSassyVoicePick[category]=pick;
-  return `./assets/audio/sassy-voice/${category}-${String(pick).padStart(2,"0")}.mp3`;
-}
-
-async function playSassyVoice(category,{force=false}={}){
-  const src=pickSassyVoice(category);
-  if(!src)return false;
-  if(sassyVoiceBusy&&!force)return false;
-  if(!force && Date.now()-lastSassyVoiceAt<SASSY_MIN_GAP_MS)return false;
-  if(force){try{sassyVoiceAudio.pause();}catch{}}
-  try{
-    sassyVoiceBusy=true;
-    sassyVoiceAudio.src=src;
-    sassyVoiceAudio.currentTime=0;
-    await sassyVoiceAudio.play();
-    sassyVoiceUnlocked=true;
-    lastSassyVoiceAt=Date.now();
-    return true;
-  }catch(error){
-    sassyVoiceBusy=false;
-    // Browsers may block audio until the player interacts with the page.
-    pendingSassyVoice=category;
-    return false;
-  }
-}
-
-sassyVoiceAudio.addEventListener("ended",()=>{sassyVoiceBusy=false;});
-sassyVoiceAudio.addEventListener("error",()=>{sassyVoiceBusy=false;});
-
-async function unlockSassyVoice(){
-  sassyVoiceUnlocked=true;
-  if(pendingSassyVoice&&!sassyVoiceBusy){
-    const category=pendingSassyVoice;
-    pendingSassyVoice=null;
-    await playSassyVoice(category);
-  }
-}
-document.addEventListener("pointerdown",unlockSassyVoice,{capture:true});
-document.addEventListener("keydown",unlockSassyVoice,{capture:true});
+// Medic Bingo Bash announcer: browser voice, no old PD clips.
+const dillonAnnouncer=createDillonAnnouncer();
+function playSassyVoice(category,options={}){return dillonAnnouncer.speak(category,options);}
 
 function playAudioSafely(audio,{restart=true,volume=0.7}={}){
   if(!audio)return;
