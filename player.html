@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-  <title>Player Hub | Bingo V2</title>
+  <title>Medic Bingo Bash | Dillon Sass</title>
   <link rel="stylesheet" href="./style.css?v=2.5.1">
 </head>
 <body>
@@ -13,7 +13,7 @@
       <button id="menuButton" class="hamburger-button" type="button" aria-label="Open menu">☰</button>
 
       <div class="mobile-title-block">
-        <span class="eyebrow">General Sassy Bingo V2</span>
+        <span class="eyebrow">Medic Bingo Bash</span>
         <h1 id="welcomeName">Loading...</h1>
       </div>
 
@@ -25,7 +25,7 @@
     <aside id="sideMenu" class="side-menu" aria-hidden="true">
       <div class="side-menu-header">
         <div>
-          <span class="eyebrow">General Sassy</span>
+          <span class="eyebrow">Dillon Sass</span>
           <h2>Menu</h2>
         </div>
         <button id="closeMenuButton" class="menu-close-button" type="button" aria-label="Close menu">✕</button>
@@ -52,10 +52,10 @@
 
       <article id="waitingPanel" class="panel waiting-panel">
         <div class="waiting-icon">🎖️</div>
-        <span class="panel-kicker">General Sassy Command</span>
+        <span class="panel-kicker">Dillon Sass Command</span>
         <h2>Waiting for the next round</h2>
         <p id="waitingMessage">
-          General Sassy is preparing the battlefield. Try not to spend all your coins before we start.
+          Dillon Sass is preparing the battlefield. Try not to spend all your coins before we start.
         </p>
         <div class="waiting-pulse">●</div>
       </article>
@@ -110,7 +110,7 @@
     <section id="viewShop" class="mobile-view">
       <article class="sassy-store-hero">
         <div class="store-hero-copy">
-          <span class="store-superline">GENERAL SASSY PRESENTS</span>
+          <span class="store-superline">DILLON SASS PRESENTS</span>
           <h2>THE SASSY EMPORIUM</h2>
           <p>Premium cosmetics, ridiculous rarity, and absolutely unnecessary levels of glow.</p>
           <div class="store-hero-meta">
@@ -125,7 +125,7 @@
       <article class="panel v25-dashboard">
         <div class="store-heading-row"><div><span class="panel-kicker">V2.5</span><h2>🔥 Today's Sassy Deal</h2></div><div id="dealBadge" class="store-count">25% OFF</div></div>
         <div id="dailyDeal" class="v25-feature-strip"></div>
-        <div class="store-heading-row"><div><span class="panel-kicker">General Sassy's picks</span><h2>⭐ Featured</h2></div></div>
+        <div class="store-heading-row"><div><span class="panel-kicker">Dillon Sass's picks</span><h2>⭐ Featured</h2></div></div>
         <div id="featuredItems" class="v25-feature-strip"></div>
         <div class="v25-stats"><span>❤️ Wishlist <b id="wishlistCount">0</b></span><span>🏆 Collection <b id="collectionProgress">0%</b></span><span>📦 Crates <b id="crateCount">0</b></span></div>
       </article>
@@ -137,7 +137,7 @@
         </div>
         <div class="crate-copy">
           <span class="rarity-chip rarity-sassy">👑 SASSY CRATE</span>
-          <h2>Mystery Sassy Crate</h2>
+          <h2>Mystery Medic Crate</h2>
           <p>One random paid cosmetic you do not already own. No free junk. No duplicates.</p>
           <div class="crate-odds">
             <span>Common 42%</span><span>Rare 30%</span><span>Epic 18%</span><span>Legendary 8%</span><span>Sassy 2%</span>
@@ -218,7 +218,7 @@
 
 
   <div id="storePreviewOverlay" class="crate-overlay hidden"><div class="crate-reveal-card v25-preview-card v251-preview-card"><button id="closeStorePreview" class="crate-close" type="button">✕</button><span class="crate-reveal-kicker">TRY IT ON · NO COINS SPENT</span><div class="v251-preview-top"><div id="previewVisual" class="v251-preview-icon">✨</div><div class="v251-preview-copy"><div id="previewRarity" class="rarity-chip">RARITY</div><h2 id="previewName">Cosmetic</h2><p id="previewDescription"></p><div class="v251-preview-meta"><span id="previewType">COSMETIC</span><strong id="previewOwned">PREVIEW</strong></div></div></div><div id="previewDemo" class="v251-preview-demo">BINGO 42</div><div class="v251-preview-nav"><button id="previewPrev" class="ghost-button" type="button">← PREVIOUS</button><span>Preview only · nothing is equipped or purchased</span><button id="previewNext" class="ghost-button" type="button">NEXT →</button></div></div></div>
-  <div id="crateHistoryOverlay" class="crate-overlay hidden"><div class="crate-reveal-card v25-preview-card"><button id="closeCrateHistory" class="crate-close" type="button">✕</button><span class="crate-reveal-kicker">YOUR LAST DROPS</span><h2>📦 Sassy Crate History</h2><div id="crateHistoryList" class="v25-history"></div></div></div>
+  <div id="crateHistoryOverlay" class="crate-overlay hidden"><div class="crate-reveal-card v25-preview-card"><button id="closeCrateHistory" class="crate-close" type="button">✕</button><span class="crate-reveal-kicker">YOUR LAST DROPS</span><h2>📦 Medic Crate History</h2><div id="crateHistoryList" class="v25-history"></div></div></div>
 
   <div id="winnerOverlay" class="winner-overlay hidden">
     <div class="winner-modal">
@@ -241,10 +241,10 @@
     <div class="winner-card pd-pause-card">
       <div class="winner-icon">🚨</div>
       <h2 id="pdPauseTitle">BINGO PAUSED</h2>
-      <p id="pdPauseReason">PD duties have called.</p>
+      <p id="pdPauseReason">Emergency dispatch have called.</p>
       <div class="pd-pause-last">Last number: <strong id="pdPauseLastCall">--</strong></div>
       <div id="pdResumeCountdown" class="pd-resume-countdown hidden"></div>
-      <p class="pd-pause-sassy">General Sassy reluctantly authorises actual police work.</p>
+      <p class="pd-pause-sassy">Dillon Sass reluctantly authorises emergency medical duties.</p>
     </div>
   </div>
 

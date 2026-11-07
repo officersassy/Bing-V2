@@ -20,9 +20,9 @@ export const SHOP_ITEMS = [
   { id:"avatar-disco-queen", name:"Disco Queen", price:1100, icon:"🪩", image:"assets/avatars/avatar-disco-queen.webp?v=2.2.0", type:"avatar", rarity:"epic", description:"Own the dancefloor and the Bingo hall." },
   { id:"avatar-skull", name:"Neon Skull", price:1250, icon:"💀", image:"assets/avatars/avatar-skull.webp?v=2.2.0", type:"avatar", rarity:"epic", description:"Neon menace for serious dobbers." },
   { id:"avatar-devil", name:"Bingo Devil", price:1300, icon:"😈", image:"assets/avatars/avatar-devil.webp?v=2.2.0", type:"avatar", rarity:"epic", description:"For absolutely angelic behaviour." },
-  { id:"avatar-general", name:"General Sassy", price:1500, icon:"🫡", image:"assets/avatars/avatar-general.webp?v=2.2.0", type:"avatar", rarity:"legendary", description:"General Sassy personally disapproves." },
+  { id:"avatar-general", name:"Dillon Sass", price:1500, icon:"🫡", image:"assets/avatars/avatar-general.webp?v=2.2.0", type:"avatar", rarity:"legendary", description:"Dillon Sass personally disapproves." },
   { id:"avatar-jackpot", name:"Jackpot", price:1750, icon:"🎰", image:"assets/avatars/avatar-jackpot.webp?v=2.2.0", type:"avatar", rarity:"legendary", description:"Casino energy without losing real money." },
-  { id:"avatar-sassy", name:"Legendary General", price:3000, icon:"⭐", image:"assets/avatars/avatar-sassy.webp?v=2.2.0", type:"avatar", rarity:"sassy", description:"The ultimate Sassy status symbol." },
+  { id:"avatar-sassy", name:"Legendary Medic", price:3000, icon:"⭐", image:"assets/avatars/avatar-sassy.webp?v=2.2.0", type:"avatar", rarity:"sassy", description:"The ultimate Sassy status symbol." },
 
   { id:"dabber-blue", name:"Electric Blue", price:100, icon:"💙", type:"dabber", rarity:"common", description:"A crisp electric-blue dob with a proper glow." },
   { id:"dabber-pink", name:"Hot Pink", price:175, icon:"🩷", type:"dabber", rarity:"common", description:"Bright enough to offend nearby retinas." },
@@ -37,11 +37,11 @@ export const SHOP_ITEMS = [
   { id:"theme-rainbow", name:"Prismatic Riot", price:1500, icon:"🌈", type:"theme", rarity:"legendary", description:"A moving spectrum aura that refuses to be subtle." },
   { id:"theme-galaxy", name:"Sassy Galaxy", price:1800, icon:"🌌", type:"theme", rarity:"legendary", description:"Deep-space card with stars, nebula glow and cosmic cells." },
   { id:"theme-obsidian", name:"Black Diamond", price:2400, icon:"🖤", type:"theme", rarity:"legendary", description:"Gloss-black glass with diamond-white highlights." },
-  { id:"theme-general", name:"General's Private Table", price:4000, icon:"🎖️", type:"theme", rarity:"sassy", description:"Gold command insignia, animated prestige border and maximum ego." },
+  { id:"theme-general", name:"Dillon's Resus Bay", price:4000, icon:"🎖️", type:"theme", rarity:"sassy", description:"Gold command insignia, animated prestige border and maximum ego." },
 
   { id:"confetti-party", name:"Confetti Cannon", price:750, icon:"🎉", type:"effect", rarity:"rare", description:"Twin cannons fill the screen when you win." },
   { id:"effect-fireworks", name:"Firework Takeover", price:1250, icon:"🎆", type:"effect", rarity:"epic", description:"Full-screen winner fireworks with sparkling bursts." },
-  { id:"effect-coin-rain", name:"Coin Storm", price:1750, icon:"🪙", type:"effect", rarity:"legendary", description:"Sassy Coins rain across your victory screen." },
+  { id:"effect-coin-rain", name:"Coin Storm", price:1750, icon:"🪙", type:"effect", rarity:"legendary", description:"Medic Coins rain across your victory screen." },
   { id:"effect-meteor", name:"Meteor Shower", price:2100, icon:"☄️", type:"effect", rarity:"legendary", description:"Flaming meteors streak through your winner celebration." },
   { id:"effect-jackpot", name:"Jackpot Explosion", price:3200, icon:"🎰", type:"effect", rarity:"sassy", description:"Jackpot symbols, gold stars and maximum casino nonsense." },
 
@@ -49,10 +49,10 @@ export const SHOP_ITEMS = [
   { id:"name-rainbow", name:"Prismatic Name", price:1400, icon:"🌈", type:"nameEffect", rarity:"epic", description:"Smooth animated spectrum text." },
   { id:"name-royal", name:"Royal Diamond", price:2000, icon:"💎", type:"nameEffect", rarity:"legendary", description:"Diamond-white lettering with royal purple bloom." },
   { id:"name-electric", name:"Electric Sassy", price:2300, icon:"⚡", type:"nameEffect", rarity:"legendary", description:"Blue lightning flickers around your name." },
-  { id:"name-general", name:"GENERAL'S FAVOURITE", price:4500, icon:"🎖️", type:"nameEffect", rarity:"sassy", description:"Animated command-gold name reserved for outrageous spenders." }
+  { id:"name-general", name:"DILLON'S FAVOURITE", price:4500, icon:"🎖️", type:"nameEffect", rarity:"sassy", description:"Animated command-gold name reserved for outrageous spenders." }
   ,{ id:"dabber-thunder", name:"Thunder Stamp", price:1900, icon:"🌩️", type:"dabber", rarity:"legendary", description:"A thunder-charged dob for players who require unnecessary drama." }
   ,{ id:"dabber-sassy", name:"Sassy Detonation", price:3500, icon:"💥", type:"dabber", rarity:"sassy", description:"The dobber equivalent of kicking the door in." }
-  ,{ id:"theme-police", name:"Blue Line Command", price:1650, icon:"🚔", type:"theme", rarity:"legendary", description:"Police-blue command deck with animated emergency-light trim." }
+  ,{ id:"theme-police", name:"Ambulance Response", price:1650, icon:"🚔", type:"theme", rarity:"legendary", description:"Ambulance-green response deck with animated emergency-light trim." }
   ,{ id:"theme-casino", name:"Midnight Casino", price:2100, icon:"🎲", type:"theme", rarity:"legendary", description:"Velvet-black casino styling with jackpot highlights." }
   ,{ id:"theme-disco", name:"Disco Disaster", price:2900, icon:"🪩", type:"theme", rarity:"sassy", description:"Animated disco glow. Tasteful? Absolutely not." }
   ,{ id:"effect-lightning", name:"Lightning Victory", price:2600, icon:"⚡", type:"effect", rarity:"legendary", description:"Your win arrives with a screen full of electric chaos." }
@@ -60,7 +60,7 @@ export const SHOP_ITEMS = [
   ,{ id:"name-menace", name:"BINGO MENACE", price:2750, icon:"😈", type:"nameEffect", rarity:"legendary", description:"An animated menace badge around your name." }
   ,{ id:"name-fraud", name:"CERTIFIED FRAUD", price:3250, icon:"🚨", type:"nameEffect", rarity:"sassy", description:"For players with a distinguished history of questionable claims." }
 
-  ,{ id:"ball-blue", name:"Classic Blue Ball", price:0, icon:"🔵", type:"ballColor", rarity:"common", description:"The classic General Sassy blue call ball." }
+  ,{ id:"ball-blue", name:"Classic Blue Ball", price:0, icon:"🔵", type:"ballColor", rarity:"common", description:"The classic Dillon Sass blue call ball." }
   ,{ id:"ball-red", name:"Ruby Red Ball", price:125, icon:"🔴", type:"ballColor", rarity:"common", description:"A bold ruby-red call ball." }
   ,{ id:"ball-green", name:"Emerald Ball", price:175, icon:"🟢", type:"ballColor", rarity:"common", description:"A rich emerald-green call ball." }
   ,{ id:"ball-purple", name:"Royal Purple Ball", price:250, icon:"🟣", type:"ballColor", rarity:"rare", description:"Royal purple for unnecessarily important Bingo calls." }
@@ -77,7 +77,7 @@ export const CRATE_PRICE = 1000;
 export const CRATE_ITEMS = SHOP_ITEMS.filter(item => item.price > 0);
 
 export const ACHIEVEMENTS = [
-  { id:"account-created", name:"Fresh Recruit", icon:"🫡", description:"Create a V2 account." },
+  { id:"account-created", name:"New Responder", icon:"🫡", description:"Create a V2 account." },
   { id:"first-game", name:"Eyes Down", icon:"🎱", description:"Play your first V2 game." },
   { id:"games-10", name:"Regular Customer", icon:"🪑", description:"Play 10 games." },
   { id:"games-25", name:"Bingo Resident", icon:"🏕️", description:"Play 25 games." },
@@ -90,6 +90,6 @@ export const ACHIEVEMENTS = [
   { id:"coin-1000", name:"Sassy Millionaire-ish", icon:"🪙", description:"Earn 1,000 lifetime coins." },
   { id:"coin-2500", name:"Coin Hoarder", icon:"💰", description:"Earn 2,500 lifetime coins." },
   { id:"coin-5000", name:"Sassy High Roller", icon:"💎", description:"Earn 5,000 lifetime coins." },
-  { id:"crate-first", name:"What's In The Box?", icon:"📦", description:"Open your first Sassy Crate." },
+  { id:"crate-first", name:"What's In The Box?", icon:"📦", description:"Open your first Medic Crate." },
   { id:"crate-legendary", name:"Ridiculous Luck", icon:"🌟", description:"Pull a Legendary or Sassy item from a crate." }
 ];

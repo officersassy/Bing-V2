@@ -11,7 +11,7 @@ const bingoWinnerAudio=document.getElementById("bingoWinnerAudio");
 let lastWinnerMusicKey=null;
 
 
-// V2.4 — General Sassy voice announcer.
+// V2.4 — Dillon Sass voice announcer.
 const SASSY_VOICE_COUNTS={start:5,pause:5,resume:5,invalid:6,slow:4,random:6};
 const sassyVoiceAudio=new Audio();
 sassyVoiceAudio.preload="auto";
@@ -272,7 +272,7 @@ function showWinnerOverlay(stageLabel, names, reward = 0) {
   $("winnerNames").innerHTML = names.map(name => `<div class="winner-name-row">🏆 ${name}</div>`).join("");
 
   if (reward > 0) {
-    $("winnerReward").textContent = `+${reward} Sassy Coins`;
+    $("winnerReward").textContent = `+${reward} Medic Coins`;
     $("winnerReward").classList.remove("hidden");
   } else {
     $("winnerReward").classList.add("hidden");
@@ -295,7 +295,7 @@ function drawPdPauseModal(){
   modal.classList.toggle("hidden",!paused);
   if(!paused)return;
 
-  const reason=game.pauseReason||"PD Duties";
+  const reason=game.pauseReason||"Emergency Dispatch";
   const lastCall=game.currentCall||"--";
   const resumeAt=Number(game.resumeCountdown?.resumeAt||0);
   const remaining=resumeAt?Math.max(0,Math.ceil((resumeAt-Date.now())/1000)):0;
@@ -310,13 +310,13 @@ function drawPdPauseModal(){
 }
 
 function pdPauseMessage(){
-  const reason=game.pauseReason||"PD Duties";
+  const reason=game.pauseReason||"Emergency Dispatch";
   const lastCall=game.currentCall||"--";
   const resumeAt=Number(game.resumeCountdown?.resumeAt||0);
   const remaining=resumeAt?Math.max(0,Math.ceil((resumeAt-Date.now())/1000)):0;
   return remaining>0
     ? `🚨 ${reason.toUpperCase()} — Resuming in ${remaining}… Last number: ${lastCall}`
-    : `🚨 BINGO SUSPENDED — ${reason}. General Sassy reluctantly authorises actual police work. Last number: ${lastCall}. Your card and dabs are safe.`;
+    : `🚑 BINGO ON HOLD — ${reason}. Dillon Sass reluctantly authorises emergency medical duties. Last number: ${lastCall}. Your card and dabs are safe.`;
 }
 
 function drawWaitingState() {
@@ -337,10 +337,10 @@ function drawWaitingState() {
     $("waitingMessage").textContent = pdPauseMessage();
   } else if (!inRound) {
     const messages = [
-      "General Sassy is preparing the battlefield.",
+      "Dillon Sass is preparing the battlefield.",
       "The numbers are being emotionally prepared for duty.",
       "Joining is open. Confidence is optional.",
-      "General Sassy is pretending this is all under control."
+      "Dillon Sass is pretending this is all under control."
     ];
     $("waitingMessage").textContent = messages[Math.floor(Math.random() * messages.length)];
   }
@@ -366,7 +366,7 @@ function detectCoinChange(nextProfile) {
 
   if (previousCoinBalance !== null && nextCoins > previousCoinBalance) {
     toast(
-      "Sassy Coins Added",
+      "Medic Coins Added",
       `+${nextCoins - previousCoinBalance} coins`,
       "🪙"
     );
@@ -411,7 +411,7 @@ function effectivePrice(item){return item.id===dailyDealItem()?.id?Math.max(1,Ma
 function featuredItems(){const paid=SHOP_ITEMS.filter(x=>x.price>0);const d=dayNumber();return [0,7,17].map(n=>paid[(d+n)%paid.length]);}
 let previewItemIndex=-1;
 let previewTimer=null;
-function previewPlayerName(){return String(profile?.username||user?.displayName||"GENERAL SASSY").toUpperCase();}
+function previewPlayerName(){return String(profile?.username||user?.displayName||"DILLON SASS").toUpperCase();}
 function previewItemsInOrder(){
   const wish=getWishlist();
   return SHOP_ITEMS.filter(item=>(currentStoreFilter==="all"||item.type===currentStoreFilter)&&(!wishlistOnly||wish.has(item.id)));
@@ -498,7 +498,7 @@ function drawShop(){
         <div class="premium-store-info">
           <span class="rarity-chip rarity-${item.rarity||"common"}">${rarity.icon} ${rarity.name}</span>
           <h3>${item.name}</h3>
-          <p>${item.description||"General Sassy approved cosmetic."}</p>
+          <p>${item.description||"Dillon Sass approved cosmetic."}</p>
           <div class="store-price">${item.price===0 ? "FREE" : (effectivePrice(item)!==item.price ? `${coins(effectivePrice(item))} 🪙 <small>was ${coins(item.price)}</small>` : `${coins(item.price)} 🪙`)}</div>
         </div>
       `;
@@ -561,13 +561,13 @@ $("crateEquipButton").onclick=async()=>{
 
 $("openSassyCrateButton").onclick=async()=>{
   if(Number(profile?.coins||0)<CRATE_PRICE){
-    show("shopMessage","You need 1,000 Sassy Coins for a crate.","error");
+    show("shopMessage","You need 1,000 Medic Coins for a crate.","error");
     return;
   }
 
   const button=$("openSassyCrateButton");
   button.disabled=true;
-  button.textContent="GENERAL SASSY IS CHOOSING...";
+  button.textContent="DILLON SASS IS CHOOSING...";
 
   try{
     const openCrate=httpsCallable(functions,"openSassyCrate");
@@ -575,7 +575,7 @@ $("openSassyCrateButton").onclick=async()=>{
     const data=result.data||{};
 
     if(data.complete){
-      show("shopMessage","You already own every item available in the Sassy Crate.","success");
+      show("shopMessage","You already own every item available in the Medic Crate.","success");
       return;
     }
 
@@ -596,10 +596,10 @@ $("openSassyCrateButton").onclick=async()=>{
     show(
       "shopMessage",
       rawMessage.toLowerCase().includes("coins")
-        ? "Not enough Sassy Coins."
+        ? "Not enough Medic Coins."
         : cleanMessage
-          ? `Sassy Crate: ${cleanMessage}`
-          : "Sassy Crate failed unexpectedly.",
+          ? `Medic Crate: ${cleanMessage}`
+          : "Medic Crate failed unexpectedly.",
       "error"
     );
   }finally{
@@ -646,9 +646,9 @@ async function equipItem(item){
 async function buyItem(item){
   if(isOwned(item)){await equipItem(item);return;}
   const price=effectivePrice(item);
-  if(Number(profile.coins||0)<price){show("shopMessage","Not enough Sassy Coins.","error");return;}
+  if(Number(profile.coins||0)<price){show("shopMessage","Not enough Medic Coins.","error");return;}
   try{
-    show("shopMessage",`General Sassy is processing ${item.name}...`,"success");
+    show("shopMessage",`Dillon Sass is processing ${item.name}...`,"success");
     const buy=httpsCallable(functions,"buyStoreItem"); const result=await buy({itemId:item.id});
     show("shopMessage",`${item.name} purchased for ${coins(result.data?.pricePaid??price)} coins. No host cashier required.`,"success");
     toast("Purchase Complete",item.name,item.icon);
@@ -913,7 +913,7 @@ onAuthStateChanged(auth,async u=>{
     try {
       alert(
         kick.reason ||
-        "General Sassy has removed you from the current Bingo session."
+        "Dillon Sass has removed you from the current Bingo session."
       );
 
       // Acknowledge this kick so it cannot fire again on the next login.
@@ -1082,7 +1082,7 @@ onValue(ref(database,"v2/game"),snap=>{
 });
 
 
-// V2.4 — event choreography for General Sassy.
+// V2.4 — event choreography for Dillon Sass.
 // Start, pause and resume are transition-based so refreshing mid-round does not replay them.
 let sassyPreviousStatus=null;
 let sassyPreviousRoundId=null;

@@ -167,7 +167,7 @@ registerForm.onsubmit=async e=>{
 
     await ensureProfile(c.user,username);
 
-    msg("Account created. 25 Sassy Coins issued.","success");
+    msg("Account created. 25 Medic Coins issued.","success");
     setTimeout(()=>location.href="./player.html",400);
   }catch(err){
     console.error(err);

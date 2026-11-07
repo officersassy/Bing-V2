@@ -2278,3 +2278,15 @@ body[data-ball-color="ball-gold"],.cosmetic-ball-gold {--player-ball-mid:#fde68a
 body[data-ball-color="ball-cyan"],.cosmetic-ball-cyan {--player-ball-mid:#a5f3fc;--player-ball-main:#06b6d4;--player-ball-dark:#164e63;--player-ball-glow:rgba(34,211,238,.62)}
 .mobile-current-ball {background:radial-gradient(circle at 35% 30%,var(--player-ball-light) 0 6%,var(--player-ball-mid) 7%,var(--player-ball-main) 62%,var(--player-ball-dark) 100%);box-shadow:0 15px 35px var(--player-ball-glow)}
 .v251-ball-preview{width:min(430px,100%);min-height:220px;display:grid;place-items:center;align-content:center;gap:10px}.v251-ball-preview .mobile-current-ball{width:150px;margin:0}.v251-ball-preview small{color:#91a6c4;font-weight:850;letter-spacing:.08em}
+
+/* MEDIC BINGO BASH — visual-only rebrand; game logic unchanged */
+:root{--medic-green:#18d6a0;--medic-deep:#052a2b;--medic-teal:#0c8f8c;--medic-lime:#d8ff68}
+body{background:radial-gradient(ellipse at 12% 4%,#0b5347 0%,transparent 48%),radial-gradient(ellipse at 90% 80%,#0c3543 0%,transparent 50%),#06151f}
+.brand-badge,.eyebrow,.panel-kicker,.store-superline{color:#73f4c8}
+.brand-panel h1 span{color:#a7f3d0}
+.primary-button{background:linear-gradient(135deg,#0d9f87,#1ed6a3);color:#032c29}
+.primary-button:hover{filter:brightness(1.1)}
+.auth-card,.brand-panel{border-color:#198b7b66}
+body[data-theme="theme-police"] .ticket-panel:before{content:"🚑 AMBULANCE RESPONSE";display:block;text-align:center;color:#75f5c8;font-weight:900}
+.cosmetic-theme-police .bingo-card,.preview-theme.cosmetic-theme-police{box-shadow:0 0 28px #18d6a088,0 0 55px #0c8f8c55 inset}
+.preview-theme.cosmetic-theme-police .v251-ticket{background:linear-gradient(145deg,#062f2e,#07454a);border-color:#18d6a0;box-shadow:0 0 32px #18d6a088}

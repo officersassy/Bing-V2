@@ -8,7 +8,7 @@ import { SHOP_ITEMS,AVATARS } from "./catalog.js?v=2.3.9";
 const $=id=>document.getElementById(id);
 let host=null,profiles={},lobby={},bannedUsernameTerms={},selectedUid=null,game={},called=[],hostDrawOrder=[];
 const TIE_WINDOW_MS=5000;
-// V2.4.1 — General Sassy also speaks on the Host page.
+// V2.4.1 — Dillon Sass also speaks on the Host page.
 const SASSY_VOICE_COUNTS={start:5,pause:5,resume:5,invalid:6,slow:4,random:6};
 const hostSassyAudio=new Audio();
 hostSassyAudio.preload="auto";
@@ -72,7 +72,7 @@ async function createCardsForPlayers(mode,activeUids,roundId){
 }
 function drawHost(){
   $("hostGameStatus").textContent=game.status==="paused"
-    ? `PAUSED · ${game.pauseReason||"PD DUTIES"}`
+    ? `PAUSED · ${game.pauseReason||"EMERGENCY DISPATCH"}`
     : (game.status||"waiting").toUpperCase();
   $("hostCurrentCall").textContent=game.currentCall||"--";
 
@@ -309,7 +309,7 @@ $("customAddCoins").onclick = async () => {
     return;
   }
 
-  await award(amount, "Custom General Sassy Credit");
+  await award(amount, "Custom Dillon Sass Credit");
   $("customCoinAmount").value = "";
 };
 
@@ -331,12 +331,12 @@ $("customDeductCoins").onclick = async () => {
   }
 
   const confirmed = window.confirm(
-    `Deduct ${deduction} Sassy Coins from ${player.username}?`
+    `Deduct ${deduction} Medic Coins from ${player.username}?`
   );
 
   if (!confirmed) return;
 
-  await award(-deduction, "Custom General Sassy Deduction");
+  await award(-deduction, "Custom Dillon Sass Deduction");
   $("customCoinAmount").value = "";
 };
 
@@ -393,7 +393,7 @@ $("startGameButton").onclick=async()=>{
 };
 $("pauseGameButton").onclick=async()=>{
   if(game.status==="playing"){
-    const pauseReason=$("pauseReasonSelect")?.value||"PD Duties";
+    const pauseReason=$("pauseReasonSelect")?.value||"Emergency Dispatch";
     await update(ref(database,"v2/game"),{
       status:"paused",
       pausedAt:Date.now(),
@@ -652,7 +652,7 @@ async function kickSelectedPlayer(){
     kicked: true,
     kickedAt: Date.now(),
     kickedBy: host.uid,
-    reason: "Removed by General Sassy"
+    reason: "Removed by Dillon Sass"
   });
 
   await set(ref(database,`v2/gamePlayers/${uid}`),null);
