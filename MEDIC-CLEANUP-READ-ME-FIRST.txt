@@ -1,0 +1,13 @@
+MEDIC BINGO BASH MASS ACCOUNT CLEANUP
+
+This feature is DESTRUCTIVE and has NOT been deployed or run.
+
+Backup: Server-side snapshot of v2 Realtime Database and Auth user metadata, stored at medicAdminBackups/{backupId}. This is NOT an export of Authentication passwords, and it does not automatically restore Firebase Auth accounts. For an independent backup, export Realtime Database and Firebase Auth users from Firebase Console before use.
+
+The cleanup protects the signed-in admin and every UID marked true at v2/admins. Deletion is performed 10 accounts per call, and each call rechecks admin rights.
+
+Installation requires uploading frontend files to V2 GitHub AND deploying only Firebase functions:default. Do not deploy to V3. Do not deploy until ready to use this feature.
+
+Open medic-account-cleanup.html while logged in as admin. Preview, create backup, type exact confirmation, and delete. Do not run while a game is active.
+
+WARNING: Backups include private user data; Firebase admin permissions and database rules must prevent ordinary users from reading medicAdminBackups.

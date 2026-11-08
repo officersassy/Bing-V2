@@ -1,0 +1,1 @@
+31 ElevenLabs MP3s integrated in chronological order: 5 start, 5 pause, 5 resume, 6 invalid, 4 slow, 6 random. Browser speech synthesis disabled. Existing event triggers and 30-second ordinary gap retained. No functions/rules changes. Website GitHub files only. Browser may need one click before playing audio.
