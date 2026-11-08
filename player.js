@@ -12,7 +12,7 @@ const bingoWinnerAudio=document.getElementById("bingoWinnerAudio");
 let lastWinnerMusicKey=null;
 
 
-// Medic Bingo Bash announcer: browser voice, no old PD clips.
+// Medic Bingo Bash announcer: locally hosted ElevenLabs recordings.
 const dillonAnnouncer=createDillonAnnouncer();
 function playSassyVoice(category,options={}){return dillonAnnouncer.speak(category,options);}
 
@@ -1043,8 +1043,13 @@ onValue(ref(database,"v2/game"),snap=>{
   const callCount=Object.keys(next.called||{}).length;
 
   if(sassyPreviousStatus!==null){
-    const freshRound=status==="playing" && roundId && roundId!==sassyPreviousRoundId;
     const resumed=status==="playing" && sassyPreviousStatus==="paused";
+    // Starting a round does not always change roundId. Detect the actual
+    // transition into play, but never mistake a resume for a new start.
+    const freshRound=status==="playing" && !resumed && (
+      (roundId && roundId!==sassyPreviousRoundId) ||
+      (sassyPreviousStatus!=="playing" && sassyPreviousStatus!=="paused")
+    );
     const justPaused=status==="paused" && sassyPreviousStatus!=="paused";
 
     if(freshRound){
