@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Medic Bingo Bash | Dillon Sass</title>
+  <link rel="stylesheet" href="./style.css?v=2.3.9">
+</head>
+<body>
+  <div class="background"></div>
+  <main class="dashboard-shell">
+    <header class="topbar">
+      <div><span class="eyebrow">Dillon Sass Command Centre</span><span class="build-badge">V2.3 SASSY STORE</span><h1>🎤 Medic Bingo Bash Host</h1></div>
+      <div class="topbar-actions"><a class="ghost-link" href="./player.html">Player Hub</a><button id="hostLogoutButton" class="ghost-button">Sign Out</button></div>
+    </header>
+
+    <section id="hostDenied" class="auth-card hidden">
+      <h2>🚫 Host access required</h2>
+      <p>Finish the one-time setup later at <a href="./host-setup.html">host-setup.html</a>.</p>
+    </section>
+
+    <section id="hostDashboard" class="host-v2-grid hidden">
+      <article class="panel host-control-panel">
+        <div class="panel-heading"><div><span class="panel-kicker">Game control</span><h2>🎱 Live Round</h2></div><span id="hostGameStatus" class="status-badge">WAITING</span></div>
+        <div id="hostCurrentCall" class="host-current-ball">--</div>
+        <select id="hostGameMode" class="mode-select">
+          <option value="75-line">75 Ball — One Line</option>
+          <option value="75-two-lines">75 Ball — Two Lines</option>
+          <option value="75-corners">75 Ball — Four Corners</option>
+          <option value="90-progressive">90 Ball — Progressive</option>
+          <option value="90-full-house">90 Ball — Full House</option>
+        </select>
+        <div class="host-action-grid">
+          <button id="openGameButton">🟢 Open Joining</button>
+          <button id="startGameButton" class="success">▶ Start</button>
+          <button id="callNumberButton" class="primary-button">🎱 Call Number</button>
+          <button id="pauseGameButton">⏸ Pause Game</button>
+          <select id="pauseReasonSelect" aria-label="Pause reason">
+            <option value="Emergency Dispatch">🚨 Emergency Dispatch</option>
+            <option value="Major Trauma">🚑 Major Trauma</option>
+            <option value="Crew Assistance">🩺 Crew Assistance</option>
+            <option value="Server Restart">🔄 Server Restart</option>
+            <option value="Crew Break">☕ Crew Break</option>
+          </select>
+          <button id="resetGameButton" class="danger-button">↻ Reset Round</button>
+        </div>
+        <div class="host-mini-stats">
+          <div><span>Players</span><strong id="hostPlayersCount">0</strong></div>
+          <div><span>Called</span><strong id="hostCalledCount">0</strong></div>
+          <div><span>Stage</span><strong id="hostStage">--</strong></div>
+        </div>
+      </article>
+
+
+      <article id="hostWinnerPanel" class="panel host-winner-panel hidden">
+        <span class="panel-kicker">Winner control</span>
+        <h2 id="hostWinnerTitle">🏆 Winner</h2>
+        <div id="hostWinnerList" class="winner-list"></div>
+        <div id="hostWinnerActions" class="host-action-grid">
+          <button id="continueStageButton" class="success hidden">Continue Stage</button>
+          <button id="newRoundButton" class="primary-button">New Round</button>
+        </div>
+      </article>
+
+      <article class="panel host-player-panel">
+        <div class="panel-heading"><div><span class="panel-kicker">Players</span><h2>👥 Lobby</h2></div></div>
+        <input id="playerSearch" type="search" placeholder="Search players">
+        <div id="hostPlayerList" class="host-player-list">Loading...</div>
+      </article>
+
+      <article class="panel host-near-panel">
+        <span class="panel-kicker">Live race</span>
+        <h2>🔥 Closest to Winning</h2>
+        <div id="nearWinnerList" class="leaderboard-list">Waiting...</div>
+      </article>
+
+      <article class="panel host-economy-panel">
+        <span class="panel-kicker">Treasury</span>
+        <h2>🪙 Economy</h2>
+        <div id="selectedPlayerEconomy">Select a player above.</div>
+        <div id="economyControls" class="hidden">
+          <div class="host-balance"><span>Balance</span><strong id="selectedCoins">0 🪙</strong></div>
+          <div class="reward-buttons">
+            <button data-reward="25" data-reason="Sassy Bonus">+25</button>
+            <button data-reward="100" data-reason="One Line Win">+100 Line</button>
+            <button data-reward="200" data-reason="Two Lines Win">+200 2 Lines</button>
+            <button data-reward="500" data-reason="Full House Win">+500 House</button>
+
+            <button class="coin-deduct-button" data-reward="-25" data-reason="Dillon Sass Deduction">−25</button>
+            <button class="coin-deduct-button" data-reward="-100" data-reason="Dillon Sass Deduction">−100</button>
+          </div>
+
+          <div class="custom-coin-control">
+            <input id="customCoinAmount" type="number" min="1" max="100000" step="1" placeholder="Custom amount">
+            <button id="customAddCoins" type="button">➕ Add</button>
+            <button id="customDeductCoins" class="danger-button" type="button">➖ Deduct</button>
+          </div>
+        </div>
+      </article>
+
+
+      <article class="panel host-admin-panel">
+        <span class="panel-kicker">Admin tools</span>
+        <h2>🛠️ Event Controls</h2>
+
+        <div class="host-action-grid">
+          <a href="./medic-account-cleanup.html" class="ghost-link" style="display:inline-flex;align-items:center;justify-content:center;padding:12px 16px;border:1px solid currentColor;border-radius:10px;text-decoration:none;font-weight:700;">🚑 Medic Account Cleanup</a>
+
+          <button id="resetLeaderboardButton" class="danger-button" type="button">
+            🧹 Reset Leaderboard
+          </button>
+
+          <button id="kickSelectedPlayerButton" class="danger-button hidden" type="button">
+            🚪 Kick Selected Player
+          </button>
+
+          <button id="deleteSelectedPlayerButton" class="danger-button permanent-delete hidden" type="button">
+            🗑️ Delete Account Permanently
+          </button>
+        </div>
+
+        <p class="muted-text admin-help">
+          Reset Leaderboard keeps accounts. Delete Account permanently removes the selected
+          player's Firebase login and V2 account data and cannot be undone.
+        </p>
+      </article>
+
+
+      <article class="panel host-account-manager">
+        <div class="panel-heading">
+          <div>
+            <span class="panel-kicker">Admin accounts</span>
+            <h2>👤 All Registered Accounts</h2>
+          </div>
+          <span id="allAccountCount" class="status-badge">0</span>
+        </div>
+
+        <p class="muted-text">
+          Search every registered V2 account — online or offline. Select an account
+          to manage coins or permanently delete it.
+        </p>
+
+        <input id="allAccountSearch" type="search" placeholder="Search username or UID">
+        <div id="allAccountList" class="host-player-list account-manager-list">Loading...</div>
+      </article>
+
+      <article class="panel host-banlist-panel">
+        <span class="panel-kicker">Username moderation</span>
+        <h2>🚫 Banned Username Terms</h2>
+
+        <p class="muted-text">
+          Basic profanity/sexual/extremist terms are permanently blocked automatically.
+          Use this list to add extra words, names or phrases you also want blocked.
+        </p>
+
+        <div class="ban-term-add">
+          <input id="newBannedTerm" type="text" maxlength="30" placeholder="Add blocked word or phrase">
+          <button id="addBannedTermButton" type="button">➕ Add</button>
+        </div>
+
+        <div class="builtin-ban-note">
+          <strong>🛡️ Built-in filter active</strong>
+          <span>fuck · cunt · shit · bitch · dick · cock · pussy · wanker · twat · slut · whore · porn · sex · nazi · hitler + variants</span>
+        </div>
+        <div id="bannedTermList" class="banned-term-list">Loading...</div>
+      </article>
+
+      <article class="panel host-history-panel">
+        <span class="panel-kicker">Call history</span>
+        <h2>📋 Called Numbers</h2>
+        <div id="hostCalledNumbers" class="called-number-grid"></div>
+      </article>
+    </section>
+  </main>
+  <script type="module" src="./host.js?v=2.5.0"></script>
+</body>
+</html>
