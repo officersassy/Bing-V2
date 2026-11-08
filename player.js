@@ -697,7 +697,7 @@ async function claim(){
 
   if(!validWin(card,marked,called,game.mode,stage())){
     show("gameMessage",`Not a valid ${stageName(stage())} yet.`,"error");
-    playSassyVoice("invalid");
+    playSassyVoice("invalid",{force:true});
     try{
       await push(ref(database,"v2/sassyEvents"),{type:"invalid",uid:user.uid,name:profile.username||"Player",createdAt:Date.now()});
     }catch(error){console.debug("Host Sassy event unavailable:",error);}
